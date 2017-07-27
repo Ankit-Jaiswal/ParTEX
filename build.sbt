@@ -2,7 +2,7 @@ lazy val root = (project in file(".")).
   settings(
     name := "LatexParser",
     version := "0.1.0",
-    scalaVersion := "2.11.8",
+    scalaVersion := "2.12.2",
     scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation"),
     libraryDependencies += "com.lihaoyi" %% "fastparse" % "0.4.3",
 
