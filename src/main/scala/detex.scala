@@ -14,11 +14,13 @@ object detex {
   val body: P[String] = P(bodyElem.rep.map(_.reduceLeft((xs,x) => xs+"\n"+x)) )
   val bodyElem: P[String] = P(text | enclosure | !"\\end{" ~ command)
   
-  val text: P[String] = P( (!command ~ (dollarBlock|AnyChar.!)).rep(1).map(_.reduceLeft(_+_)) )
+  val text: P[String] = P( (!command ~ (mathBlock|AnyChar.!)).rep(1).map(_.reduceLeft(_+_)) )
   
-  val dollarBlock: P[String] = P(doubleDollar | singleDollar)
+  val mathBlock: P[String] = P(doubleDollar | singleDollar | roundBracket | sqBracket)
   val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
   val singleDollar : P[String] = P("$" ~ (!"$" ~ AnyChar).rep(1).! ~ "$")
+  val roundBracket: P[String] = P("\\(" ~ (!"\\)" ~ AnyChar).rep(1).! ~ "\\)")
+  val sqBracket : P[String] = P("\\[" ~ (!"\\]" ~ AnyChar).rep(1).! ~ "\\]")
 
   val enclosure: P[String] = P(begin ~ body ~ end)
   val begin: P[Unit] = P("\\begin" ~ box.rep(1) ~ (&("\\")|ws.rep) )
