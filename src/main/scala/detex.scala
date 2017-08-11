@@ -43,15 +43,7 @@ object detex {
 }
 
 
-/*
-class ParTEX(filename: String) {
-  val fullname = "../grad-school-notes/Algebra/" + filename
-  val content = scala.io.Source.fromFile(fullname).getLines mkString "\n"
-  val tree = detex.document.parse(content)
-}
-*/
-
-object partex {
+object samples {
 
   val input1 = scala.io.Source.fromFile("../grad-school-notes/Algebra/group_theory.tex").getLines mkString "\n"
 
