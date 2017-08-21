@@ -14,11 +14,14 @@ object detex {
 
 
   val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs:Vector[BodyElem]) => Body(bs)) )
+
   val bodyElem: P[BodyElem] = P(text | enclosure | !"\\end{" ~ command)
 
-  val text: P[Text] = P( (!command ~ (mathBlock|AnyChar.!)).rep(1).
+  val text: P[Text] = P( (!command ~ reservedCmd.? ~ (mathBlock|AnyChar.!)).rep(1).
     map(_.reduceLeft(_+_)).
     map((s:String) => Text(s)) )
+
+  val reservedCmd: P[Unit] = P("\\" ~ ("item"|"maketitle") )
 
   val mathBlock: P[String] = P(doubleDollar | singleDollar | roundBracket | sqBracket)
   val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
@@ -59,13 +62,16 @@ object samplesIO {
 %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
 \begin{document}
-\begin{defn*}[1.3.6]
-A sequence of homomorphisms
-\[\ldots \to \ldots  G_{i-1} \xrightarrow{f_{i-1}}G_i \xrightarrow{f_i} G_{i+1} \to \ldots \to \ldots\]
-is called \emph{exact} if \(\text{im}(f_{i-1})=\ker(f_i)\) for each \(i\). A sequence is a short exact sequence
-(SES) if it is exact and takes the form:
-\[1 \to N \xrightarrow{f_1} G \xrightarrow{f_2} Q \to 1.\]
-\end{defn*}
+  This follows from the second part of the remark above.
+  Now for some remakrs about centralizers.
+  \begin{rmk*}[1.1.3]
+    \begin{enumerate}
+    \item If $A \subgroup G$, then $A$ is abelian if and only if $A \subset
+      C_G(A)$.
+    \item Furthermore, if $A \subgroup Z(G)$, then $A \normsubgroup G$.
+      This follows using basic commutativity arguments.
+    \end{enumerate}
+  \end{rmk*}
 \end{document}
 """
 
