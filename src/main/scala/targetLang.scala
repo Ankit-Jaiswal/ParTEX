@@ -3,7 +3,7 @@ package partex
 object texLang {
 
   case class Document(body: Body)
-  case class Body(elems: Seq[BodyElem])
+  case class Body(elems: Vector[BodyElem])
   sealed trait BodyElem
 
   case class Text(s: String) extends BodyElem

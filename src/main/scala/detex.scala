@@ -13,7 +13,7 @@ object detex {
   val endDoc: P[Unit] = P("\\end{document}" ~ ws.rep)
 
 
-  val body: P[Body] = P(bodyElem.rep.map((bs:Seq[BodyElem]) => Body(bs)) )
+  val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs:Vector[BodyElem]) => Body(bs)) )
   val bodyElem: P[BodyElem] = P(text | enclosure | !"\\end{" ~ command)
 
   val text: P[Text] = P( (!command ~ (mathBlock|AnyChar.!)).rep(1).
@@ -32,7 +32,7 @@ object detex {
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
   val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
 
-  val command: P[Command] = P( ("\\" ~ (alpha|"*").rep(1).! ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
+  val command: P[Command] = P( ("\\" ~ (alpha| "*").rep(1).! ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
     map((t:(String,String)) => Command(t._1,t._2)) )
   val cmdName: P[String] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}" )
 
@@ -43,9 +43,10 @@ object detex {
 }
 
 
-object samples {
+object samplesIO {
 
-  val input1 = scala.io.Source.fromFile("../grad-school-notes/Algebra/group_theory.tex").getLines mkString "\n"
+  val input1 = scala.io.Source.fromFile("../grad-school-notes/Algebra/group_theory.tex").mkString
+
 
   def main(args: Array[String]): Unit = {
     println(detex.document.parse(input2))
