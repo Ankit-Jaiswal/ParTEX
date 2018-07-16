@@ -1,4 +1,4 @@
-lazy val root = (project in file(".")).
+lazy val partex = (project in file("partex")).
   settings(
     name := "LatexParser",
     version := "0.1.0",
