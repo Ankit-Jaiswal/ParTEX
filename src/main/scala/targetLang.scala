@@ -1,6 +1,6 @@
 package partex
 
-object texLang {
+object TargetLang {
 
   case class Document(body: Body)
   case class Body(elems: Vector[BodyElem])

@@ -1,9 +1,9 @@
 package partex
 
 import fastparse.all._
-import texLang._
+import TargetLang._
 
-object detex {
+object DeTeX {
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha = P(CharIn('a' to 'z'))
 
@@ -55,13 +55,13 @@ object detex {
 }
 
 
-object samplesIO {
+object SourcesIO {
 
 //  val input1 = scala.io.Source.fromFile("../grad-school-notes/Algebra/group_theory.tex").mkString
 //  val input2 = scala.io.Source.fromFile("../stacks-project/algebra.tex").mkString
 
   def main(args: Array[String]): Unit = {
-    println(detex.document.parse(input3))
+    println(DeTeX.document.parse(input3))
   }
 
   val input3 =
