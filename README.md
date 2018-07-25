@@ -1,2 +1,2 @@
 # ParTEX
-A parser in Scala for LATEX documents (mathematics).
+A parser in Scala for LaTeX documents (mathematics).
