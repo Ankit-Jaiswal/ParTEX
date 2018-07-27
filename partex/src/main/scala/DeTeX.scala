@@ -1,3 +1,9 @@
+/*****
+STATUS - "inlineEq" is not working.
+       - dollar sign is not terminating "text" parsing rule.
+
+*/
+
 package partex
 
 import fastparse.all._
@@ -15,10 +21,17 @@ object DeTeX {
 
   val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs:Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(text | enclosure | !"\\end{" ~ command)
+  val bodyElem: P[BodyElem] = P(mathBlock | paragraph | environment | !"\\end{" ~ command)
+
+  val mathBlock: P[MathBlock] = P("math**".!.map((s: String) => MathBlock(s))) // designed to fail, always.
+
+  val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
+    map((frgs:Vector[Fragment]) => Paragraph(frgs)))
+
+  val fragment: P[Fragment] = P(inlineEq|text)
 
   val text: P[Text] =
-    P( (reserved.? ~ !command ~ comment.? ~ (wrapper|spSym|mathBlock|AnyChar.!)).rep(1).
+    P( (reserved.? ~ !command ~ comment.? ~ (wrapper|spSym|AnyChar.!)).rep(1).
     map(_.reduceLeft(_+_)).
     map((s:String) => Text(s)) )
 
@@ -38,14 +51,15 @@ object DeTeX {
     "textsuperscript"|"uppercase"|"underline") ~ cmdName)
   val spSym: P[String] = P("\\" ~ ("#"|"$"|"%"|"^"|"&"|"{"|"}"|"~").!)
 
-  val mathBlock: P[String] = P(doubleDollar | singleDollar | roundBracket | sqBracket)
+  val inlineEq: P[InlineEq] = P((doubleDollar | singleDollar | roundBracket | sqBracket).
+    map((s:String)=> InlineEq(s)))
   val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
   val singleDollar : P[String] = P("$" ~ (!"$" ~ AnyChar).rep(1).! ~ "$")
   val roundBracket: P[String] = P("\\(" ~ (!"\\)" ~ AnyChar).rep(1).! ~ "\\)")
   val sqBracket : P[String] = P("\\[" ~ (!"\\]" ~ AnyChar).rep(1).! ~ "\\]")
 
-  val enclosure: P[Enclosure] = P( (begin ~ body ~ end).
-    map((t:(String,Body)) => Enclosure(t._1,t._2)) )
+  val environment: P[Environment] = P( (begin ~ body ~ end).
+    map((t:(String,Body)) => Environment(t._1,t._2)) )
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
   val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
 
@@ -88,7 +102,7 @@ object SourcesIO {
     Now for some remakrs \% about centralizers.
     \vspace{1cm}
     \begin{rmk*}[1.1.3]
-      This is a example of nested enclosure. \\
+      This is a example of nested environment. \\
       Also test the line break token.
       \begin{enumerate}
       \item If $A \subgroup G$, \medskip then $A$ is abelian if and only if $A \subset
