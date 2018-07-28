@@ -1,6 +1,6 @@
 /*****
-STATUS - "inlineEq" is not working.
-       - dollar sign is not terminating "text" parsing rule.
+STATUS - "inlineEq" fixed.
+       - List(enumerate vs itemize) parsing rule is yet to be added.
 
 */
 
@@ -28,10 +28,10 @@ object DeTeX {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs:Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineEq|text)
+  val fragment: P[Fragment] = P(text|inlineEq)
 
   val text: P[Text] =
-    P( (reserved.? ~ !command ~ comment.? ~ (wrapper|spSym|AnyChar.!)).rep(1).
+    P( (reserved.? ~ !("$"|"\\("|"\\[") ~ !command ~ comment.? ~ (wrapper|spSym|AnyChar.!)).rep(1).
     map(_.reduceLeft(_+_)).
     map((s:String) => Text(s)) )
 
