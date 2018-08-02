@@ -13,33 +13,40 @@ object DeTeX {
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha = P(CharIn('a' to 'z'))
 
+
   val document: P[Document] = P( ((!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
     map((b:Body) => Document(b)) )
-  val beginDoc: P[Unit] = P("\\begin{document}" ~ ws.rep)
-  val endDoc: P[Unit] = P("\\end{document}" ~ ws.rep)
+  val beginDoc: P[Unit] = P("\\begin{document}" ~ (&("\\")|ws.rep))
+  val endDoc: P[Unit] = P("\\end{document}" ~ (&("\\")|ws.rep))
 
 
   val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs:Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(mathBlock | paragraph | environment | !"\\end{" ~ command)
+  val bodyElem: P[BodyElem] = P(mathBlock | list | environment| paragraph | !"\\end{" ~ command)
 
   val mathBlock: P[MathBlock] = P("math**".!.map((s: String) => MathBlock(s))) // designed to fail, always.
+
+  val list: P[List] = P((beginLs ~ lsItem.rep.map(_.toVector) ~ endLs).
+    map((xs:Vector[Body]) => List(xs)))
+  val lsItem: P[Body] = P("\\item" ~ ws.rep ~ body)
+  val beginLs: P[Unit] = P("\\begin{" ~ lsType ~ "}" ~ box.rep ~ (&("\\")|ws.rep))
+  val endLs: P[Unit] = P("\\end{" ~ lsType ~ "}" ~ (&("\\")|ws.rep))
+  val lsType: P[Unit] = P("itemize"|"enumerate"|"description")
 
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs:Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(text|inlineEq)
+  val fragment: P[Fragment] = P(inlineEq|text)
 
   val text: P[Text] =
-    P( (reserved.? ~ !("$"|"\\("|"\\[") ~ !command ~ comment.? ~ (wrapper|spSym|AnyChar.!)).rep(1).
+    P( (reserved.? ~ !("$"|"\\("|"\\["|"\\item") ~ !command ~ (wrapper|spSym|AnyChar.!)).rep(1).
     map(_.reduceLeft(_+_)).
     map((s:String) => Text(s)) )
 
-  val comment: P[Unit] = P("%" ~ (!"\n" ~ AnyChar).rep ~ "\n")
   val reserved: P[Unit] = P(resvdWord|resvdCmd)
   val resvdWord: P[Unit] = P("\\" ~
     ("bigskip"|"break"|"centering"|"clearpage"|"cleardoublepage"|"footnotesize"|"hfill"|
-      "indent"|"item"|"justify"|"large"|"Large"|"LARGE"|"huge"|"Huge"|
+      "indent"|"justify"|"large"|"Large"|"LARGE"|"huge"|"Huge"|
       "leftskip"|"listoffigures"|"listoftables"|"maketitle"|"medskip"|"normalsize"|"noindent"|"newline"|
       "newpage"|"parindent"|"parfillskip"|"parskip"|"par"|"raggedleft"|"ragggedright"|
       "rightskip"|"scriptsize"|"smallskip"|"small"|"tableofcontents"|"tiny"|"vfill"|"\\*"|"\\" ~ " ".rep) )
@@ -81,7 +88,15 @@ object SourcesIO {
 //  val input2 = scala.io.Source.fromFile("../stacks-project/algebra.tex").mkString
 
   def main(args: Array[String]): Unit = {
-    println(DeTeX.document.parse(input3))
+    def rmvComments(l: String) =
+      if (l.startsWith("%")) ""
+      else """[^\\]%""".r
+      .findFirstMatchIn(l)
+      .map((m) => m.before.toString + m.group(0).head)
+      .getOrElse(l)
+
+    val docString = input3.split('\n').map(rmvComments).mkString("\n")
+    println(DeTeX.document.parse(docString))
   }
 
   val input3 =
@@ -108,7 +123,13 @@ object SourcesIO {
       \item If $A \subgroup G$, \medskip then $A$ is abelian if and only if $A \subset
         C_G(A)$.
       \item Furthermore, if $A \subgroup Z(G)$, then $A \normsubgroup G$. \newline
-        This follows using \emph{basic} commutativity arguments.
+        This follows using \emph{basic} commutativity arguments, which are as follows:
+        \begin{itemize}
+          % testing nested list
+          \item First One.
+          % testing comments.
+          \item Second One.
+        \end{itemize}
       \end{enumerate}
     \end{rmk*}
     \begin{defn*}[1.1.1]
