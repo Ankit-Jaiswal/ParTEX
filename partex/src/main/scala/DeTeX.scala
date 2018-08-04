@@ -15,33 +15,41 @@ object DeTeX {
 
 
   val document: P[Document] = P( ((!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
-    map((b:Body) => Document(b)) )
+    map((b: Body) => Document(b)) )
   val beginDoc: P[Unit] = P("\\begin{document}" ~ (&("\\")|ws.rep))
   val endDoc: P[Unit] = P("\\end{document}" ~ (&("\\")|ws.rep))
 
 
-  val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs:Vector[BodyElem]) => Body(bs)) )
+  val body: P[Body] = P(bodyElem.rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
   val bodyElem: P[BodyElem] = P(mathBlock | list | environment| paragraph | !"\\end{" ~ command)
 
-  val mathBlock: P[MathBlock] = P("math**".!.map((s: String) => MathBlock(s))) // designed to fail, always.
+  val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
+    map((s: String) => MathBlock(s)))
+  val displayEnv: P[String] = P("\\begin{displaymath}" ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~
+    "\\end{displaymath}")
+  val mathEnv: P[String] = P("\\begin{" ~ ("equation*}"|"equation}") ~
+    (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ "\\end{"~("equation*}"|"equation}") )
+  val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
+  val sqBracket : P[String] = P("\\[" ~ (!"\\]" ~ AnyChar).rep(1).! ~ "\\]")
+
 
   val list: P[List] = P((beginLs ~ lsItem.rep.map(_.toVector) ~ endLs).
-    map((xs:Vector[Body]) => List(xs)))
+    map((xs: Vector[Body]) => List(xs)))
   val lsItem: P[Body] = P("\\item" ~ ws.rep ~ body)
   val beginLs: P[Unit] = P("\\begin{" ~ lsType ~ "}" ~ box.rep ~ (&("\\")|ws.rep))
   val endLs: P[Unit] = P("\\end{" ~ lsType ~ "}" ~ (&("\\")|ws.rep))
   val lsType: P[Unit] = P("itemize"|"enumerate"|"description")
 
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
-    map((frgs:Vector[Fragment]) => Paragraph(frgs)))
+    map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
   val fragment: P[Fragment] = P(inlineEq|text)
 
   val text: P[Text] =
     P( (reserved.? ~ !("$"|"\\("|"\\["|"\\item") ~ !command ~ (wrapper|spSym|AnyChar.!)).rep(1).
     map(_.reduceLeft(_+_)).
-    map((s:String) => Text(s)) )
+    map((s: String) => Text(s)) )
 
   val reserved: P[Unit] = P(resvdWord|resvdCmd)
   val resvdWord: P[Unit] = P("\\" ~
@@ -58,12 +66,11 @@ object DeTeX {
     "textsuperscript"|"uppercase"|"underline") ~ cmdName)
   val spSym: P[String] = P("\\" ~ ("#"|"$"|"%"|"^"|"&"|"{"|"}"|"~").!)
 
-  val inlineEq: P[InlineEq] = P((doubleDollar | singleDollar | roundBracket | sqBracket).
-    map((s:String)=> InlineEq(s)))
-  val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
+  val inlineEq: P[InlineEq] = P((inlineEnv | singleDollar | roundBracket ).
+    map((s: String)=> InlineEq(s)))
+  val inlineEnv: P[String] = P("\\begin{math}" ~ (!"\\end{math}" ~ AnyChar).rep(1).! ~ "\\end{math}")
   val singleDollar : P[String] = P("$" ~ (!"$" ~ AnyChar).rep(1).! ~ "$")
   val roundBracket: P[String] = P("\\(" ~ (!"\\)" ~ AnyChar).rep(1).! ~ "\\)")
-  val sqBracket : P[String] = P("\\[" ~ (!"\\]" ~ AnyChar).rep(1).! ~ "\\]")
 
   val environment: P[Environment] = P( (begin ~ body ~ end).
     map((t:(String,Body)) => Environment(t._1,t._2)) )
