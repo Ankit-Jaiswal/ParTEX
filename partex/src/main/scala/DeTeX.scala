@@ -26,12 +26,12 @@ object DeTeX {
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))
-  val displayEnv: P[String] = P("\\begin{displaymath}" ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~
-    "\\end{displaymath}")
-  val mathEnv: P[String] = P("\\begin{" ~ ("equation*}"|"equation}") ~
-    (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ "\\end{"~("equation*}"|"equation}") )
-  val doubleDollar : P[String] = P("$$" ~ (!"$$" ~ AnyChar).rep(1).! ~ "$$")
-  val sqBracket : P[String] = P("\\[" ~ (!"\\]" ~ AnyChar).rep(1).! ~ "\\]")
+  val displayEnv: P[String] = P("\\begin{displaymath}" ~ ws.rep ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~
+    ws.rep ~ "\\end{displaymath}")
+  val mathEnv: P[String] = P("\\begin{" ~ ("equation*}"|"equation}") ~ ws.rep ~
+    (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ ws.rep ~ "\\end{"~("equation*}"|"equation}") )
+  val doubleDollar : P[String] = P("$$" ~ ws.rep ~ (!"$$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
+  val sqBracket : P[String] = P("\\[" ~ ws.rep ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
 
   val list: P[List] = P((beginLs ~ lsItem.rep.map(_.toVector) ~ endLs).
@@ -68,9 +68,10 @@ object DeTeX {
 
   val inlineEq: P[InlineEq] = P((inlineEnv | singleDollar | roundBracket ).
     map((s: String)=> InlineEq(s)))
-  val inlineEnv: P[String] = P("\\begin{math}" ~ (!"\\end{math}" ~ AnyChar).rep(1).! ~ "\\end{math}")
-  val singleDollar : P[String] = P("$" ~ (!"$" ~ AnyChar).rep(1).! ~ "$")
-  val roundBracket: P[String] = P("\\(" ~ (!"\\)" ~ AnyChar).rep(1).! ~ "\\)")
+  val inlineEnv: P[String] = P("\\begin{math}" ~ ws.rep ~ (!"\\end{math}" ~ AnyChar).rep(1).! ~
+    ws.rep ~ "\\end{math}")
+  val singleDollar : P[String] = P("$" ~ ws.rep ~ (!"$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$")
+  val roundBracket: P[String] = P("\\(" ~ ws.rep ~ (!"\\)" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\)")
 
   val environment: P[Environment] = P( (begin ~ body ~ end).
     map((t:(String,Body)) => Environment(t._1,t._2)) )
@@ -121,7 +122,7 @@ object SourcesIO {
     \section{Testing}
     This follows from the second part of the \textit{remark} above.
     % parsing comments
-    Now for some remakrs \% about centralizers.
+    Now for some remakrs \% about centralizers. %one more comment.
     \vspace{1cm}
     \begin{rmk*}[1.1.3]
       This is a example of nested environment. \\
@@ -144,6 +145,11 @@ object SourcesIO {
         $C_G(A) := \{g \in G | gag^{-1} = a, \forall a \in A\}$.
     \end{defn*}
     Note that $C_G(A) \subset N_G(A)$ and $Z(G) = C_G(G)$.
+
+    \section{math section}
+    \begin{equation}
+    if x = 2 - x then 2x = 2, hence x = 1
+    \end{equation}
 
   \end{document}
   """
