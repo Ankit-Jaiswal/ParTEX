@@ -1,27 +1,13 @@
 package partex
 
+import fastparse.all._
+import TargetLang._
+
 object SourcesIO {
 //  val input1 = scala.io.Source.fromFile("../grad-school-notes/Algebra/group_theory.tex").mkString
 //  val input2 = scala.io.Source.fromFile("../stacks-project/algebra.tex").mkString
-  def main(args: Array[String]): Unit = {
-    val divided = raw.split("""\\begin\{document\}""")
-    val preamble = divided(0)
-    val rest = "\\begin{document}" + divided(1)
-    val docString = rest.split('\n').map(rmvComments).mkString("\n")
 
-    println(DeTeX.document.parse(docString))
-  }
-
-  def rmvComments(l: String) =
-    if (l.startsWith("%")) ""
-    else """[^\\]%""".r
-    .findFirstMatchIn(l)
-    .map((m) => m.before.toString + m.group(0).head)
-    .getOrElse(l)
-
-
-
-/**********************             Source file             ********************/
+/**********************             a typical .tex file             ********************/
 
   val raw =
   """
@@ -69,5 +55,49 @@ object SourcesIO {
 
   \end{document}
   """
+
+
+
+/********************          rest of code          ***********************/
+
+  val divided = raw.split("""\\begin\{document\}""")
+  val preamble = divided(0)
+  val rest = "\\begin{document}" + divided(1)
+  val docString = rest.split('\n').map(rmvComments).mkString("\n")
+
+  def main(args: Array[String]): Unit = {
+      println(DeTeX.document.parse(docString))
+    }
+
+  def rmvComments(l: String) =
+    if (l.startsWith("%")) ""
+    else """[^\\]%""".r
+    .findFirstMatchIn(l)
+    .map((m) => m.before.toString + m.group(0).head)
+    .getOrElse(l)
+
+
+
+/********************          preamble parser        ************************/
+
+  val preambleParser: P[Map[String,(Vector[String],String)]] =
+    P((!defCmd ~ AnyChar).rep(1) ~ usrCmd).rep.map(_.toVector).map(_.toMap)
+  val usrCmd: P[(String,(Vector[String],String))] =
+    P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
+  val defCmd: P[Unit] = P("\\def" | "\\newcommand" | "\\renewcommand")
+  val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
+  val argBox: P[Unit] = P("[" ~ num ~ "]" )
+  val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
+  val definition: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
+  val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
+  val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
+
+
+  val usrCmdList: Map[String,(Vector[String],String)] = preambleParser.parse(preamble).get.value
+
+
+/************************          resolving raw file       ***********************/
+//  val usrCmdToken = P( StringIn(usrCmdList.keys.toList.sortWith(_>_)) )
+//def resolve(l: String): String = l
 
 }
