@@ -10,6 +10,8 @@ object SourcesIO {
   """
   \documentclass[master.tex]{subfiles}
 
+  \newcommand{\foo}{foobar}
+  \newcommand{\jc}{John \foo Cena}
   %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
   \begin{document}
@@ -19,9 +21,9 @@ object SourcesIO {
     \maketitle
 
     \section{Testing}
-    This follows from the second part of the \textit{remark} above.
+    This follows from \jc the second part of the \textit{remark} above.
     % parsing comments
-    Now for some remakrs \% about centralizers. %one more comment.
+    Now for some remakrs \% about \foo centralizers. %one more comment.
     \vspace{1cm}
     \begin{rmk*}[1.1.3]
       This is a example of nested environment. \\
@@ -60,7 +62,7 @@ object SourcesIO {
   val divided = raw.split("""\\begin\{document\}""")
   val preamble = divided(0)
   val rest = "\\begin{document}" + divided(1)
-  val docString = rest.split('\n').map(rmvComments).mkString("\n")
+  val docString = rest.split('\n').map(rmvComments).map(Macros.resolve).mkString("\n")
 
   def main(args: Array[String]): Unit = {
       println(DeTeX.document.parse(docString))

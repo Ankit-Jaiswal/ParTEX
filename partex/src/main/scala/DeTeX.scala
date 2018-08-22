@@ -1,6 +1,6 @@
 /*****
-STATUS - "inlineEq" fixed.
-       - List(enumerate vs itemize) parsing rule is yet to be added.
+STATUS - issue#1 fixed (almost).
+       - parameters from "newcommand" definitions still needs substitution inside the raw text.
 
 */
 

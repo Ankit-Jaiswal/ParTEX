@@ -7,7 +7,7 @@ object Macros {
 /********************          preamble parser        ************************/
 
   val preambleParser: P[Map[String,(Vector[String],String)]] =
-    P((!defCmd ~ AnyChar).rep(1) ~ usrCmd).rep.map(_.toVector).map(_.toMap)
+    P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
   val usrCmd: P[(String,(Vector[String],String))] =
     P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
   val defCmd: P[Unit] = P("\\def" | "\\newcommand" | "\\renewcommand")
@@ -23,8 +23,15 @@ object Macros {
     preambleParser.parse(SourcesIO.preamble).get.value
 
 
-/************************          resolving raw file       ***********************/
-//val usrCmdToken = P( StringIn(usrCmdList.keys.toList.sortWith(_>_)) )
-//def resolve(l: String): String = l
+/***********************       resolving raw file       **********************/
+
+  def resolve(l: String): String = {
+    val res = usrCmdList.keys.foldLeft(l)(replaceIn)
+    if (res == l) res else resolve(res)
+  }
+
+  def replaceIn(l: String,key: String): String =
+    l.replaceAllLiterally( key, usrCmdList(key)._2 )
+
 
 }
