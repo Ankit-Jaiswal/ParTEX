@@ -4,7 +4,7 @@ import fastparse.all._
 import TargetLang._
 
 object Macros {
-/********************          preamble parser        ************************/
+/********************         parsing preamble        ************************/
 
   val preambleParser: P[Map[String,(Vector[String],String)]] =
     P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
@@ -19,19 +19,36 @@ object Macros {
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
 
 
-  val usrCmdList: Map[String,(Vector[String],String)] =
-    preambleParser.parse(SourcesIO.preamble).get.value
+  val Parsed.Success(usrCmdList,_) = preambleParser.parse(SourcesIO.preamble)
 
 
 /***********************       resolving raw file       **********************/
 
+  val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
+  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ params).rep.map(_.toVector)
+  val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+  val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
+
   def resolve(l: String): String = {
-    val res = usrCmdList.keys.foldLeft(l)(replaceIn)
+    val Parsed.Success(calledCmdList,_) = calledCmd.parse(l)
+    val res = calledCmdList.foldLeft(l)((l: String,t: (String,Vector[String])) =>
+      l.replaceAllLiterally(t._1 ++ wrapped(t._2), resolveDef(t._1,t._2)) )
+
     if (res == l) res else resolve(res)
   }
 
-  def replaceIn(l: String,key: String): String =
-    l.replaceAllLiterally( key, usrCmdList(key)._2 )
+/*  {
+    val res = cmdKeys.foldLeft(l)(substitute)
+    if (res == l) res else resolve(res)
+  }
 
+  def substitute(l: String,k: String): String =  l.replaceAllLiterally( k, usrCmdList(k)._2 )
+*/
+  def resolveDef(k: String,params: Vector[String]): String =
+    params.foldLeft(usrCmdList(k)._2)((d: String,p: String) =>
+      d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
+
+
+  def wrapped(xs: Vector[String]) = xs.foldLeft("{")((l: String,s: String) => l++s++"}")
 
 }
