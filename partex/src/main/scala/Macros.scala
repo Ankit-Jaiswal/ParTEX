@@ -10,7 +10,7 @@ object Macros {
     P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
   val usrCmd: P[(String,(Vector[String],String))] =
     P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
-  val defCmd: P[Unit] = P("\\def" | "\\newcommand" | "\\renewcommand")
+  val defCmd: P[Unit] = P( StringIn("\\def","\\newcommand","\\renewcommand") )
   val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
   val argBox: P[Unit] = P("[" ~ num ~ "]" )
   val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
@@ -46,13 +46,6 @@ object Macros {
     if (res == l) res else resolve(res)
   }
 
-/*  {
-    val res = cmdKeys.foldLeft(l)(substitute)
-    if (res == l) res else resolve(res)
-  }
-
-  def substitute(l: String,k: String): String =  l.replaceAllLiterally( k, usrCmdList(k)._2 )
-*/
   def resolveDef(k: String,params: Vector[String]): String =
     params.foldLeft(usrCmdList(k)._2)((d: String,p: String) =>
       d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
