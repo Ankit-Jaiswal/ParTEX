@@ -19,7 +19,12 @@ object Macros {
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
 
 
-  val Parsed.Success(usrCmdList,_) = preambleParser.parse(SourcesIO.preamble)
+  val usrCmdList: Map[String,(Vector[String],String)] =
+    preambleParser.parse(SourcesIO.preamble) match {
+      case Parsed.Success(value,_) => value
+      case _: Parsed.Failure => Map()
+    }
+
 
 
 /***********************       resolving raw file       **********************/
@@ -30,7 +35,11 @@ object Macros {
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
   def resolve(l: String): String = {
-    val Parsed.Success(calledCmdList,_) = calledCmd.parse(l)
+    val calledCmdList = calledCmd.parse(l) match {
+      case Parsed.Success(value,_) => value
+      case _: Parsed.Failure => Vector()
+    }
+
     val res = calledCmdList.foldLeft(l)((l: String,t: (String,Vector[String])) =>
       l.replaceAllLiterally(t._1 ++ wrapped(t._2), resolveDef(t._1,t._2)) )
 
@@ -49,6 +58,6 @@ object Macros {
       d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
 
 
-  def wrapped(xs: Vector[String]) = xs.foldLeft("{")((l: String,s: String) => l++s++"}")
+  def wrapped(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"{"++s++"}")
 
 }

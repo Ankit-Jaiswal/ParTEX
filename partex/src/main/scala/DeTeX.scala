@@ -1,6 +1,6 @@
 /*****
 STATUS - issue#1 fixed (almost).
-       - parameters from "newcommand" definitions still needs substitution inside the raw text.
+       - case of default parameters in `\def` is still to be added.
 
 */
 
