@@ -48,10 +48,16 @@ object SourcesIO {
     \end{defn*}
     Note that $C_G(A) \subset N_G(A)$ and $Z(G) = C_G(G)$.
 
+
     \section{math section}
     \begin{equation}
     if x = 2 - x then 2x = 2, hence x = 1
     \end{equation}
+
+    {\tiny\begin{theorem}
+    If the \emph{tiny} is followed immediately by begin this fails.
+    \end{theorem}
+    }
 
   \end{document}
   """
