@@ -52,19 +52,20 @@ object DeTeX {
     map((s: String) => Text(s)) )
 
   val reserved: P[Unit] = P(resvdWord|resvdCmd)
-  val resvdWord: P[Unit] = P("\\" ~
-    ("bigskip"|"break"|"centering"|"clearpage"|"cleardoublepage"|"footnotesize"|"hfill"|
-      "indent"|"justify"|"large"|"Large"|"LARGE"|"huge"|"Huge"|
-      "leftskip"|"listoffigures"|"listoftables"|"maketitle"|"medskip"|"normalsize"|"noindent"|"newline"|
-      "newpage"|"parindent"|"parfillskip"|"parskip"|"par"|"raggedleft"|"ragggedright"|
-      "rightskip"|"scriptsize"|"smallskip"|"small"|"tableofcontents"|"tiny"|"vfill"|"\\*"|"\\" ~ " ".rep) )
-  val resvdCmd: P[Unit] = P("\\" ~
-    ("hspace"|"linespread"|"setlength"|"vspace")
+  val resvdWord: P[Unit] = P("\\" ~ StringIn("bigskip","break","centering",
+      "clearpage","cleardoublepage","footnotesize","hfill","indent","justify",
+      "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
+      "listoftables","maketitle","medskip","normalsize","noindent","newline",
+      "newpage","parindent","parfillskip","parskip","par","raggedleft",
+      "ragggedright","rightskip","scriptsize","smallskip","small",
+      "tableofcontents","tiny","vfill","\\*")
+      | "\\\\" ~ " ".rep )
+  val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","vspace")
     ~ curlyBox.rep)
-  val wrapper: P[String] = P("\\" ~ ("emph"|"lowercase"|"textbf"|"textit"|"textnormal"|
-    "textrm"|"textsf"|"texttt"|"textup"|"textsl"|"textsc"|"textmd"|"textlf"|"textsubscript"|
-    "textsuperscript"|"uppercase"|"underline") ~ cmdName)
-  val spSym: P[String] = P("\\" ~ ("#"|"$"|"%"|"^"|"&"|"{"|"}"|"~").!)
+  val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
+    "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
+    "textsuperscript","uppercase","underline") ~ cmdName)
+  val spSym: P[String] = P("\\" ~ StringIn("#","$","%","^","&","{","}","~").!)
 
   val inlineEq: P[InlineEq] = P((inlineEnv | singleDollar | roundBracket ).
     map((s: String)=> InlineEq(s)))
