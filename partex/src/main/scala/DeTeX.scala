@@ -47,11 +47,12 @@ object DeTeX {
   val fragment: P[Fragment] = P(inlineEq|text)
 
   val text: P[Text] =
-    P( (reserved.? ~ !("$"|"\\("|"\\["|"\\item") ~ !command ~ (wrapper|spSym|AnyChar.!)).rep(1).
+    P( ( reserved | wrapper | spSym |
+      !("{"|"}"|"$"|"\\("|"\\["|"\\item") ~ !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
 
-  val reserved: P[Unit] = P(resvdWord|resvdCmd)
+  val reserved: P[String] = P(resvdWord|resvdCmd).!.map((s: String) => "")
   val resvdWord: P[Unit] = P("\\" ~ StringIn("bigskip","break","centering",
       "clearpage","cleardoublepage","footnotesize","hfill","indent","justify",
       "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
@@ -74,7 +75,9 @@ object DeTeX {
   val singleDollar : P[String] = P("$" ~ ws.rep ~ (!"$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$")
   val roundBracket: P[String] = P("\\(" ~ ws.rep ~ (!"\\)" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\)")
 
-  val environment: P[Environment] = P( (begin ~ body ~ end).
+  val environment: P[Environment] = P( withoutName | withName )
+  val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
+  val withName: P[Environment] = P( (begin ~ body ~ end).
     map((t:(String,Body)) => Environment(t._1,t._2)) )
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
   val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
