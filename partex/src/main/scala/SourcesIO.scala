@@ -13,6 +13,7 @@ object SourcesIO {
   \newcommand{\foo}{foobar}
   \newcommand{\jc}{John \foo Cena}
   \newcommand{\name}[2]{My first name is #1 and second name is #2}
+  \newcommand{\withDefault}[2][books]{my friends are #1 and #2}
   %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
   \begin{document}
@@ -24,11 +25,12 @@ object SourcesIO {
     \section{Testing}
     This follows from \jc the second part of the \textit{remark} above.
     % parsing comments
+    \withDefault{Abhijeet}
     Now for some remakrs \% about \foo centralizers. %one more comment.
     \vspace{1cm}
     \begin{rmk*}[1.1.3]
       This is a example of nested environment. \name{Ankit}{Jaiswal} \\
-      Also test the line break token.
+      Also test the line break token. \withDefault[Bhavna]{Abhijeet}
       \begin{enumerate}
       \item If $A \subgroup G$, \medskip then $A$ is abelian if and only if $A \subset
         C_G(A)$.

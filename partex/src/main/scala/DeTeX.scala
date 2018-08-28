@@ -1,6 +1,6 @@
 /*****
-STATUS - issue#1 fixed (almost).
-       - case of default parameters in `\def` is still to be added.
+STATUS - issue#1 fixed.
+       - refrences and \labels are still to be added.
 
 */
 

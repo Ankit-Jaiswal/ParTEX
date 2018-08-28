@@ -4,9 +4,9 @@ import fastparse.all._
 import TargetLang._
 
 object Macros {
-/********************         parsing preamble        ************************/
+/********************       extracting latex macros      ************************/
 
-  val preambleParser: P[Map[String,(Vector[String],String)]] =
+  val macroParser: P[Map[String,(Vector[String],String)]] =
     P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
   val usrCmd: P[(String,(Vector[String],String))] =
     P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
@@ -20,7 +20,7 @@ object Macros {
 
 
   val usrCmdList: Map[String,(Vector[String],String)] =
-    preambleParser.parse(SourcesIO.preamble) match {
+    macroParser.parse(SourcesIO.raw) match {
       case Parsed.Success(value,_) => value
       case _: Parsed.Failure => Map()
     }
@@ -30,8 +30,9 @@ object Macros {
 /***********************       resolving raw file       **********************/
 
   val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ params).rep.map(_.toVector)
+  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
   val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+  val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
   def resolve(l: String): String = {
@@ -40,17 +41,27 @@ object Macros {
       case _: Parsed.Failure => Vector()
     }
 
-    val res = calledCmdList.foldLeft(l)((l: String,t: (String,Vector[String])) =>
-      l.replaceAllLiterally(t._1 ++ wrapped(t._2), resolveDef(t._1,t._2)) )
+    val res = calledCmdList.foldLeft(l)(substitute)
 
     if (res == l) res else resolve(res)
   }
+
+  def substitute(l: String,t:(String,Vector[String],Vector[String])) =
+    if (t._2.length == 0)
+    l.replaceAllLiterally(t._1 ++ wrap(t._3),
+      resolveDef(t._1, usrCmdList(t._1)._1 ++ t._3) )
+    else
+    l.replaceAllLiterally(t._1 ++ boxwrap(t._2) ++ wrap(t._3),
+      resolveDef(t._1, t._2 ++ t._3) )
+
 
   def resolveDef(k: String,params: Vector[String]): String =
     params.foldLeft(usrCmdList(k)._2)((d: String,p: String) =>
       d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
 
 
-  def wrapped(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"{"++s++"}")
+  def wrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"{"++s++"}")
+
+  def boxwrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"["++s++"]")
 
 }
