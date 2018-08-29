@@ -81,7 +81,7 @@ class SourcesIO(filename: String) {
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
 
-  def usrCmdList: Map[String,(Vector[String],String)] =
+  val usrCmdList: Map[String,(Vector[String],String)] =
     macroParser.parse(raw) match {
       case Parsed.Success(value,_) => value
       case _: Parsed.Failure => Map()
@@ -90,9 +90,9 @@ class SourcesIO(filename: String) {
 
 /***********************       resolving raw file       **********************/
 
-  def cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-  def calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
-  def cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+  val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
+  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
+  val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
   val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
