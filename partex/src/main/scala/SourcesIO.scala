@@ -4,8 +4,9 @@ import TargetLang._
 
 class SourcesIO(filename: String) {
 
-  val raw = if (filename != "")
-  scala.io.Source.fromFile("../grad-school-notes/Algebra/"+filename).mkString
+  val raw = if (filename != "") {
+    val file = getClass.getResource("/"+filename)
+    scala.io.Source.fromFile(file.getPath).mkString }
   else
   """
   \documentclass[master.tex]{subfiles}
@@ -80,7 +81,7 @@ class SourcesIO(filename: String) {
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
 
-  val usrCmdList: Map[String,(Vector[String],String)] =
+  def usrCmdList: Map[String,(Vector[String],String)] =
     macroParser.parse(raw) match {
       case Parsed.Success(value,_) => value
       case _: Parsed.Failure => Map()
@@ -89,9 +90,9 @@ class SourcesIO(filename: String) {
 
 /***********************       resolving raw file       **********************/
 
-  val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
-  val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+  def cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
+  def calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
+  def cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
   val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
@@ -101,7 +102,7 @@ class SourcesIO(filename: String) {
   val divided = raw.split("""\\begin\{document\}""")
   val preamble = divided(0)
   val rest = "\\begin{document}" + divided(1)
-  val docString = rest.split('\n').map(rmvComments).map(resolve).mkString("\n")
+  def docString = rest.split('\n').map(rmvComments).map(resolve).mkString("\n")
 
   def rmvComments(l: String) =
     if (l.startsWith("%")) ""
