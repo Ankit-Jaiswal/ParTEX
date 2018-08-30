@@ -85,7 +85,7 @@ object DeTeX {
   val command: P[Command] = P( !wrapper ~
     ("\\" ~ (alpha| "*").rep(1).! ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
     map((t:(String,String)) => Command(t._1,t._2)) )
-  val cmdName: P[String] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}" )
+  val cmdName: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep.! ~ "}" )
 
   val box: P[Unit] = P(curlyBox|sqBox)
   val curlyBox: P[Unit] = P("{" ~ (!"}" ~ AnyChar).rep ~ "}" )
