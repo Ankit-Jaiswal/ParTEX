@@ -34,12 +34,11 @@ object DeTeX {
   val sqBracket : P[String] = P("\\[" ~ ws.rep ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
 
-  val list: P[List] = P((beginLs ~ lsItem.rep.map(_.toVector) ~ endLs).
-    map((xs: Vector[Body]) => List(xs)))
-  val lsItem: P[Body] = P("\\item" ~ ws.rep ~ body)
-  val beginLs: P[Unit] = P("\\begin{" ~ lsType ~ "}" ~ box.rep ~ (&("\\")|ws.rep))
-  val endLs: P[Unit] = P("\\end{" ~ lsType ~ "}" ~ (&("\\")|ws.rep))
-  val lsType: P[Unit] = P("itemize"|"enumerate"|"description")
+  val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).
+    map((t:(String,Vector[Body])) => List(t._1,t._2))
+  val lsItem: P[Body] = P("\\item" ~ box.rep ~ ws.rep ~ body)
+  val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
+  val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
 
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
@@ -79,8 +78,6 @@ object DeTeX {
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
   val withName: P[Environment] = P( (begin ~ body ~ end).
     map((t:(String,Body)) => Environment(t._1,t._2)) )
-  val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
-  val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
 
   val command: P[Command] = P( !wrapper ~
     ("\\" ~ (alpha| "*").rep(1).! ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
@@ -88,7 +85,7 @@ object DeTeX {
   val cmdName: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep.! ~ "}" )
 
   val box: P[Unit] = P(curlyBox|sqBox)
-  val curlyBox: P[Unit] = P("{" ~ (!"}" ~ AnyChar).rep ~ "}" )
-  val sqBox: P[Unit] = P("[" ~ (!"]" ~ AnyChar).rep ~ "]" )
+  val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
+  val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
 
 }

@@ -10,7 +10,7 @@ object TargetLang {
   case class MathBlock(s: String) extends BodyElem
   case class Command(name: String, value: String) extends BodyElem
   case class Environment(name: String, value: Body) extends BodyElem
-  case class List(xs: Vector[Body]) extends BodyElem
+  case class List(name: String, xs: Vector[Body]) extends BodyElem
 
   sealed trait Fragment {
     val s : String
