@@ -98,7 +98,8 @@ class SourcesIO(filename: String) {
 /***********************       resolving raw file       **********************/
 
   val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-  val calledCmd = P((!cmdToken ~ AnyChar).rep ~ cmdToken.! ~ boxPara ~ params).rep.map(_.toVector)
+  val calledCmd =
+    P((!cmdToken ~ AnyChar).rep ~ (cmdToken ~ !alpha).! ~ boxPara ~ params).rep.map(_.toVector)
   val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
   val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
@@ -106,7 +107,7 @@ class SourcesIO(filename: String) {
 
   /**********************        main processing        ************************/
 
-  def docString = rest.split('\n').map(rmvComments).map(resolve).mkString("\n")
+  def docString = resolve(rest.split('\n').map(rmvComments).mkString("\n"))
 
   def rmvComments(l: String) =
     if (l.startsWith("%")) ""
@@ -115,15 +116,15 @@ class SourcesIO(filename: String) {
     .map((m) => m.before.toString + m.group(0).head)
     .getOrElse(l)
 
-  def resolve(l: String): String = {
-    val calledCmdList = calledCmd.parse(l) match {
+  def resolve(s: String): String = {
+    val calledCmdList = calledCmd.parse(s) match {
       case Parsed.Success(value,_) => value
       case _: Parsed.Failure => Vector()
     }
 
-    val res = calledCmdList.foldLeft(l)(substitute)
+    val res = calledCmdList.foldLeft(s)(substitute)
 
-    if (res == l) res else resolve(res)
+    if (res == s) res else resolve(res)
   }
 
   def substitute(l: String,t:(String,Vector[String],Vector[String])) =
