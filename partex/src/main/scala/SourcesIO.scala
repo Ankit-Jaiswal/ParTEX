@@ -3,6 +3,7 @@ import fastparse.all._
 import TargetLang._
 
 class SourcesIO(filename: String) {
+  import DeTeX.alpha
 
   val raw = if (filename != "") {
     val file = getClass.getResource("/"+filename)
@@ -45,7 +46,7 @@ class SourcesIO(filename: String) {
         \end{itemize}
       \end{enumerate}
     \end{rmk*}
-    \begin{defn*}[1.1.1]
+    \begin{defn*}[theorem of the page]
         For $A \subset G$, we set $N_G(A) := \{g \in G | gAg^{-1} = A\}$ and
         $C_G(A) := \{g \in G | gag^{-1} = a, \forall a \in A\}$.
     \end{defn*}
@@ -78,7 +79,6 @@ class SourcesIO(filename: String) {
   val argBox: P[Unit] = P("[" ~ num ~ "]" )
   val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
   val definition: P[String] = P("{" ~ (box | !"}" ~ AnyChar).rep(1).! ~ "}")
-  val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
   val box: P[Unit] = P("{" ~ (!"}" ~ AnyChar).rep ~ "}")
 

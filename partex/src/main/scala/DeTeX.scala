@@ -11,7 +11,7 @@ import TargetLang._
 
 object DeTeX {
   val ws = P(" "|"\n"|"\t"|"\\:")
-  val alpha = P(CharIn('a' to 'z'))
+  val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
 
 
   val document: P[Document] = P( ((!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
