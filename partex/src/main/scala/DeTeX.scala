@@ -1,5 +1,5 @@
 /*****
-STATUS - issue#1 fixed.
+STATUS - expansion of target language is in progress.
        - refrences and \labels are still to be added.
 
 */

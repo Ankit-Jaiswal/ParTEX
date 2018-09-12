@@ -5,12 +5,17 @@ object Expanded {
   sealed trait Labelable
   sealed trait Math
   sealed trait Float
-  case class Document(top: TopMatter, body: Body)
-
-  case class TopMatter(title: Option[String], date: Option[String],
-    author: Option[String], abs: Option[String])
+  case class Document(top: Vector[MetaData], abs: Option[Abstract], body: Body)
 
   case class Body(elems: Vector[BodyElem])
+  case class Abstract(body: String)
+  sealed trait MetaData
+  case class Title(alias: Option[String], s: String) extends MetaData
+  case class Author(s: String) extends MetaData
+  case class Address(s: String) extends MetaData
+  case class Email(s: String) extends MetaData
+  case class Date(s: String) extends MetaData
+
 
   sealed trait BodyElem
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem
@@ -39,7 +44,9 @@ object Expanded {
   sealed trait Fragment
   case class Text(s: String) extends Fragment
   case class InlineMath(s: String) extends Fragment with Math
+  case class Phantom(label: Option[String]) extends Fragment with Labelable
   case class Quoted(s: String) extends Fragment
+  case class Citation(s: String) extends Fragment
   case class Linked(s: String) extends Fragment
   case class References(s: String) extends Fragment
   case class Note(s: String) extends Fragment
