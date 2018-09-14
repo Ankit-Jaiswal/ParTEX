@@ -11,7 +11,7 @@ class SourcesIO(filename: String) {
   else
   """
   \documentclass[master.tex]{subfiles}
-
+  \author{Ankit Jaiswal}
   \newcommand{\foo}{foobar}
   \newcommand{\jc}{John \foo Cena}
   \newcommand{\name}[2]{My first name is #1 and second name is #2}
@@ -20,7 +20,6 @@ class SourcesIO(filename: String) {
 
   \begin{document}
     \title{How to Structure a LaTeX Document}
-    \author{Andrew Roberts}
     \date{December 2004}
     \maketitle
 
@@ -143,6 +142,6 @@ class SourcesIO(filename: String) {
   def boxwrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"["++s++"]")
 
 
-  def parse = DeTeX.document.parse(docString)
+  def parse = DeTeX.document.parse(preamble + docString)
 
 }

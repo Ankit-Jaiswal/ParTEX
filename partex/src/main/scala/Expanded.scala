@@ -5,16 +5,18 @@ object Expanded {
   sealed trait Labelable
   sealed trait Math
   sealed trait Float
-  case class Document(top: Vector[MetaData], abs: Option[Abstract], body: Body)
+  case class Document(top: Vector[MetaData], body: Body)
 
   case class Body(elems: Vector[BodyElem])
-  case class Abstract(body: String)
-  sealed trait MetaData
+
+  sealed trait MetaData extends BodyElem
   case class Title(alias: Option[String], s: String) extends MetaData
+  case class Abstract(alias: Option[String], s: String) extends MetaData
   case class Author(s: String) extends MetaData
   case class Address(s: String) extends MetaData
   case class Email(s: String) extends MetaData
   case class Date(s: String) extends MetaData
+  case class Info(s: String) extends MetaData
 
 
   sealed trait BodyElem

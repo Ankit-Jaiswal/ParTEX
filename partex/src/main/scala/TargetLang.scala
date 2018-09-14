@@ -2,10 +2,23 @@ package partex
 
 object TargetLang {
 
-  case class Document(body: Body)
-  case class Body(elems: Vector[BodyElem])
-  sealed trait BodyElem
+  sealed trait Labelable
+  sealed trait Math
+  sealed trait Float
+  case class Document(top: Vector[MetaData], body: Body)
 
+  case class Body(elems: Vector[BodyElem])
+
+  sealed trait MetaData extends BodyElem
+  case class Title(alias: Option[String], s: String) extends MetaData
+  case class Abstract(alias: Option[String], s: String) extends MetaData
+  case class Author(s: String) extends MetaData
+  case class Address(s: String) extends MetaData
+  case class Email(s: String) extends MetaData
+  case class Date(s: String) extends MetaData
+  case class Info(s: String) extends MetaData
+
+  sealed trait BodyElem
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem
   case class MathBlock(s: String) extends BodyElem
   case class Command(name: String, value: String) extends BodyElem
