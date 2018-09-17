@@ -21,7 +21,7 @@ object Expanded {
 
   sealed trait BodyElem
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem
-  case class Command(name: String, s: String) extends BodyElem with Fragment
+  case class Command(name: String, value: String) extends BodyElem
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable
   case class Graphics(src: String, width: String) extends BodyElem with Float
@@ -46,6 +46,7 @@ object Expanded {
   sealed trait Fragment
   case class Text(s: String) extends Fragment
   case class InlineMath(s: String) extends Fragment with Math
+  case class InlineCmd(name: String, s: String) extends Fragment
   case class Phantom(label: Option[String]) extends Fragment with Labelable
   case class Quoted(s: String) extends Fragment
   case class Citation(s: String) extends Fragment

@@ -12,14 +12,15 @@ import TargetLang._
 object DeTeX {
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
+  val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
+  val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
 
   val document: P[Document] = P(topmatter ~ (!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
     map((t:(Vector[MetaData],Body)) => Document(t._1,t._2))
-//  val document: P[Document] = P( ((!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
-//    map((b: Body) => Document(Vector(),b)) )
 
   val topmatter: P[Vector[MetaData]] = P( (!(metaToken|beginDoc) ~ AnyChar).rep ~
     meta ).rep.map(_.toVector)
+
   val meta: P[MetaData] = P(abs | title | author | address | email | date)
   val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ ws.rep ~ (!"\\end{abstract}" ~ AnyChar).rep.! ~
     "\\end{abstract}").map((t:(Option[String],String)) => Abstract(t._1,t._2))
@@ -32,11 +33,16 @@ object DeTeX {
     StringIn("begin{abstract}","title{","author{","address{","email{","date{"))
   val beginDoc: P[Unit] = P("\\begin{document}" ~ (&("\\")|ws.rep))
   val endDoc: P[Unit] = P("\\end{document}" ~ (&("\\")|ws.rep))
-  val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
+
+
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | mathBlock | list | environment| paragraph | !"\\end{" ~ command)
+  val bodyElem: P[BodyElem] = P(meta | heading | mathBlock | list | environment| paragraph | !"\\end{" ~ command)
+
+  val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
+      "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
+      map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))

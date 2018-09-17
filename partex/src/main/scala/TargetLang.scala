@@ -20,8 +20,11 @@ object TargetLang {
 
   sealed trait BodyElem
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem
-  case class MathBlock(s: String) extends BodyElem
   case class Command(name: String, value: String) extends BodyElem
+  case class Heading(name: String, alias: Option[String], label: Option[String],
+    value: String) extends BodyElem with Labelable
+
+  case class MathBlock(s: String) extends BodyElem
   case class Environment(name: String, value: Body) extends BodyElem
   case class List(name: String, xs: Vector[Body]) extends BodyElem
 
