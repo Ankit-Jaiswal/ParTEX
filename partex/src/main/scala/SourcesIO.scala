@@ -62,6 +62,9 @@ class SourcesIO(filename: String) {
     \end{theorem}
     }
 
+    This can parse graphics as well
+    \includegraphics[scale=1.5,width=2cm,angle=23]{avatar.jpg}
+
   \end{document}
   """
 

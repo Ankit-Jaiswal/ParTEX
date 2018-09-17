@@ -12,6 +12,7 @@ import TargetLang._
 object DeTeX {
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
+  val num: P[Unit] = P( CharIn('0' to '9') )
   val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
   val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
 
@@ -38,11 +39,18 @@ object DeTeX {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | mathBlock | list | environment| paragraph | !"\\end{" ~ command)
+  val bodyElem: P[BodyElem] = P(meta | heading | graphics | mathBlock | list | environment| paragraph | !"\\end{" ~ command)
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
       "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
+
+  val graphics: P[Graphics] = P("\\includegraphics" ~ spec.? ~ name ~ (&("\\")|ws.rep)).
+    map((t:(Option[Vector[String]],String)) => Graphics(t._2,t._1))
+  val name: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
+  val spec: P[Vector[String]] = P("[" ~ (attr ~ "=" ~ value).!.rep(sep= ",") ~ "]").map(_.toVector)
+  val attr: P[Unit] = P(ws.rep ~ StringIn("scale","height","width","angle") ~ ws.rep)
+  val value: P[Unit] = P(ws.rep ~ (alpha|num| ".").rep ~ ws.rep)
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))
@@ -67,7 +75,8 @@ object DeTeX {
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
-      !("{"|"}"|"$"|"\\("|"\\["|"\\item") ~ !command ~ AnyChar.! ).rep(1).
+      !("{"|"}"|"$"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
+      !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
 
