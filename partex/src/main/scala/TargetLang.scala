@@ -25,9 +25,11 @@ object TargetLang {
     value: String) extends BodyElem with Labelable
   case class Graphics(name: String, spec: Option[Vector[String]])
     extends BodyElem with Float
+  case class Environment(name: String, value: Body) extends BodyElem
+  case class Theorem(name: String, alias: Option[String], label: Option[String],
+    value: Body) extends BodyElem with Labelable
 
   case class MathBlock(s: String) extends BodyElem
-  case class Environment(name: String, value: Body) extends BodyElem
   case class List(name: String, xs: Vector[Body]) extends BodyElem
 
   sealed trait Fragment {

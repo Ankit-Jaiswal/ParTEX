@@ -1,9 +1,8 @@
 package partex
 import fastparse.all._
-import TargetLang._
 
 class SourcesIO(filename: String) {
-  import DeTeX.alpha
+  import ParsingRules.all.alpha
 
   val raw = if (filename != "") {
     val file = getClass.getResource("/"+filename)
@@ -70,7 +69,7 @@ class SourcesIO(filename: String) {
 
 
 
-/********************       extracting latex macros      ************************/
+/********************       extracting \newcommands      ************************/
 
   val macroParser: P[Map[String,(Vector[String],String)]] =
     P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
@@ -84,6 +83,10 @@ class SourcesIO(filename: String) {
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
   val box: P[Unit] = P("{" ~ (!"}" ~ AnyChar).rep ~ "}")
 
+/********************     extracting \newtheorems      ************************/
+
+
+
 /********************          pre-processing          ***********************/
 
   val divided = raw.split("""\\begin\{document\}""")
@@ -96,6 +99,7 @@ class SourcesIO(filename: String) {
       case _: Parsed.Failure => Map()
     }
 
+  val thmList: Vector[String] = Vector()
 
 /***********************       resolving raw file       **********************/
 
@@ -145,6 +149,6 @@ class SourcesIO(filename: String) {
   def boxwrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"["++s++"]")
 
 
-  def parse = DeTeX.document.parse(preamble + docString)
+  def parse = DeTeX(thmList).document.parse(preamble + docString)
 
 }

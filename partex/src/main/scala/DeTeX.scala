@@ -6,18 +6,32 @@ STATUS - expansion of target language is in progress.
 
 package partex
 
-import fastparse.all._
-import TargetLang._
+object ParsingRules {
+  val all = DeTeX(Vector())
+}
 
-object DeTeX {
+case class DeTeX(thmList: Vector[String]) {
+  import fastparse.all._
+  import TargetLang._
+
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9') )
   val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
   val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
+  val box: P[Unit] = P(curlyBox|sqBox)
+  val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
+  val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
+
+  def isMeta(b: BodyElem) : Boolean = b match {
+    case _: MetaData => true
+    case _ => false
+  }
+
 
   val document: P[Document] = P(topmatter ~ (!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
-    map((t:(Vector[MetaData],Body)) => Document(t._1,t._2))
+    map((t:(Vector[MetaData],Body)) =>
+    Document(t._1 ++ t._2.elems.filter(isMeta).asInstanceOf[Vector[MetaData]] , Body(t._2.elems.filterNot(isMeta))))
 
   val topmatter: P[Vector[MetaData]] = P( (!(metaToken|beginDoc) ~ AnyChar).rep ~
     meta ).rep.map(_.toVector)
@@ -39,7 +53,8 @@ object DeTeX {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | graphics | mathBlock | list | environment| paragraph | !"\\end{" ~ command)
+  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | mathBlock | 
+    list | environment| paragraph | !"\\end{" ~ command)
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
       "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
@@ -51,6 +66,10 @@ object DeTeX {
   val spec: P[Vector[String]] = P("[" ~ (attr ~ "=" ~ value).!.rep(sep= ",") ~ "]").map(_.toVector)
   val attr: P[Unit] = P(ws.rep ~ StringIn("scale","height","width","angle") ~ ws.rep)
   val value: P[Unit] = P(ws.rep ~ (alpha|num| ".").rep ~ ws.rep)
+
+  val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
+    body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(t._1,t._2,t._3,t._4))
+  val thmToken: P[Unit] = thmList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))
@@ -66,7 +85,7 @@ object DeTeX {
     map((t:(String,Vector[Body])) => List(t._1,t._2))
   val lsItem: P[Body] = P("\\item" ~ box.rep ~ ws.rep ~ body)
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
-  val end: P[Unit] = P("\\end" ~ box.rep(1) ~ (&("\\")|ws.rep) )
+  val end: P[Unit] = P("\\end" ~ curlyBox.rep(1) ~ (&("\\")|ws.rep) )
 
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
@@ -112,10 +131,6 @@ object DeTeX {
     ("\\" ~ (alpha| "*").rep(1).! ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
     map((t:(String,String)) => Command(t._1,t._2)) )
   val cmdName: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep.! ~ "}" )
-
-  val box: P[Unit] = P(curlyBox|sqBox)
-  val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
-  val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
 
 }
 
