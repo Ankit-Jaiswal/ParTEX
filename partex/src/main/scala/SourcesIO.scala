@@ -3,6 +3,9 @@ import fastparse.all._
 
 class SourcesIO(filename: String) {
   import ParsingRules.all.alpha
+  import ParsingRules.all.curlyBox
+  import ParsingRules.all.sqBox
+  import ParsingRules.all.cmdName
 
   val raw = if (filename != "") {
     val file = getClass.getResource("/"+filename)
@@ -15,6 +18,8 @@ class SourcesIO(filename: String) {
   \newcommand{\jc}{John \foo Cena}
   \newcommand{\name}[2]{My first name is #1 and second name is #2}
   \newcommand{\withDefault}[2][books]{my friends are #1 and #2}
+
+  \newtheorem{defn*}{Definition}[section]
   %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
   \begin{document}
@@ -44,7 +49,7 @@ class SourcesIO(filename: String) {
         \end{itemize}
       \end{enumerate}
     \end{rmk*}
-    \begin{defn*}[theorem of the page]
+    \begin{defn*}[definition of the page]
         For $A \subset G$, we set $N_G(A) := \{g \in G | gAg^{-1} = A\}$ and
         $C_G(A) := \{g \in G | gag^{-1} = a, \forall a \in A\}$.
     \end{defn*}
@@ -79,13 +84,14 @@ class SourcesIO(filename: String) {
   val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
   val argBox: P[Unit] = P("[" ~ num ~ "]" )
   val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
-  val definition: P[String] = P("{" ~ (box | !"}" ~ AnyChar).rep(1).! ~ "}")
+  val definition: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep(1).! ~ "}")
   val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
-  val box: P[Unit] = P("{" ~ (!"}" ~ AnyChar).rep ~ "}")
 
 /********************     extracting \newtheorems      ************************/
 
-
+  val nwthmParser: P[Map[String,String]] = P(nwthm.rep).map(_.toVector).map(_.toMap)
+  val nwthm: P[(String,String)] = P((!"\\newtheorem{" ~ AnyChar).rep ~
+    "\\newtheorem" ~ cmdName ~ sqBox.? ~ cmdName ~ sqBox.?)
 
 /********************          pre-processing          ***********************/
 
@@ -99,7 +105,12 @@ class SourcesIO(filename: String) {
       case _: Parsed.Failure => Map()
     }
 
-  val thmList: Vector[String] = Vector()
+  val thmList: Map[String,String] =
+    nwthmParser.parse(preamble) match {
+    case Parsed.Success(value,_) => value
+    case _: Parsed.Failure => Map()
+  }
+
 
 /***********************       resolving raw file       **********************/
 

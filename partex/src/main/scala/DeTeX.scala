@@ -7,10 +7,10 @@ STATUS - expansion of target language is in progress.
 package partex
 
 object ParsingRules {
-  val all = DeTeX(Vector())
+  val all = DeTeX(Map())
 }
 
-case class DeTeX(thmList: Vector[String]) {
+case class DeTeX(thmList: Map[String,String]) {
   import fastparse.all._
   import TargetLang._
 
@@ -53,7 +53,7 @@ case class DeTeX(thmList: Vector[String]) {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | mathBlock | 
+  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | mathBlock |
     list | environment| paragraph | !"\\end{" ~ command)
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -68,8 +68,8 @@ case class DeTeX(thmList: Vector[String]) {
   val value: P[Unit] = P(ws.rep ~ (alpha|num| ".").rep ~ ws.rep)
 
   val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
-    body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(t._1,t._2,t._3,t._4))
-  val thmToken: P[Unit] = thmList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+    body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(thmList(t._1),t._2,t._3,t._4))
+  val thmToken: P[Unit] = thmList.keys.toList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))
@@ -137,7 +137,7 @@ case class DeTeX(thmList: Vector[String]) {
 
 object ExampleRun {
   def main(args: Array[String]): Unit = {
-    val first = new SourcesIO("")
+    val first = new SourcesIO("polymath.tex")
     println(first.parse)
   }
 
