@@ -20,6 +20,7 @@ class SourcesIO(filename: String) {
   \newcommand{\withDefault}[2][books]{my friends are #1 and #2}
 
   \newtheorem{defn*}{Definition}[section]
+  \newtheorem{theorem}{Theorem}
   %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
   \begin{document}

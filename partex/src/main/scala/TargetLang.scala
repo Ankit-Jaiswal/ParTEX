@@ -30,8 +30,9 @@ object TargetLang {
     value: Body) extends BodyElem with Labelable
   case class Proof(alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable
+  case class DisplayMath(label: Option[String], value: String) extends BodyElem
+  with Math with Labelable
 
-  case class MathBlock(s: String) extends BodyElem
   case class List(name: String, xs: Vector[Body]) extends BodyElem
 
   sealed trait Fragment {

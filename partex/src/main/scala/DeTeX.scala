@@ -53,8 +53,9 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | mathBlock |
+  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
     list | environment| paragraph | !"\\end{" ~ command)
+
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
       "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
@@ -74,14 +75,17 @@ case class DeTeX(thmList: Map[String,String]) {
   val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
     body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
-  val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
-    map((s: String) => MathBlock(s)))
-  val displayEnv: P[String] = P("\\begin{displaymath}" ~ ws.rep ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~
-    ws.rep ~ "\\end{displaymath}")
-  val mathEnv: P[String] = P("\\begin{" ~ ("equation*}"|"equation}") ~ ws.rep ~
-    (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ ws.rep ~ "\\end{"~("equation*}"|"equation}") )
-  val doubleDollar : P[String] = P("$$" ~ ws.rep ~ (!"$$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
-  val sqBracket : P[String] = P("\\[" ~ ws.rep ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
+  val displaymath: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
+    map((t:(Option[String],String)) => DisplayMath(t._1,t._2))
+  val displayEnv: P[(Option[String],String)] = P("\\begin{displaymath}" ~ (&("\\")|ws.rep) ~
+    label.? ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{displaymath}")
+  val mathEnv: P[(Option[String],String)] = P("\\begin{" ~ ("equation*}"|"equation}") ~ (&("\\")|ws.rep) ~
+    label.? ~ (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~
+    "\\end{"~("equation*}"|"equation}") )
+  val doubleDollar : P[(Option[String],String)] =
+    P("$$" ~ ws.rep ~ label.? ~ (!"$$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
+  val sqBracket : P[(Option[String],String)] =
+    P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
 
   val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).
@@ -140,7 +144,7 @@ case class DeTeX(thmList: Map[String,String]) {
 
 object ExampleRun {
   def main(args: Array[String]): Unit = {
-    val first = new SourcesIO("polymath.tex")
+    val first = new SourcesIO("group_theory.tex")
     println(first.parse)
   }
 
