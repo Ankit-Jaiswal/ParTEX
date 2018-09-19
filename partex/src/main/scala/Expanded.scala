@@ -29,7 +29,7 @@ object Expanded {
   case class Environment(name: String, value: Body) extends BodyElem
   case class Theorem(name: String, alias: Option[String], label: Option[String],
     value: Body) extends BodyElem with Labelable
-  case class Proofs(alias: Option[String], label: Option[String], value: Body)
+  case class Proof(alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
     with Math with Labelable

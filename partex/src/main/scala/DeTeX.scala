@@ -53,7 +53,7 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | mathBlock |
+  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | mathBlock |
     list | environment| paragraph | !"\\end{" ~ command)
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -70,6 +70,9 @@ case class DeTeX(thmList: Map[String,String]) {
   val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
     body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(thmList(t._1),t._2,t._3,t._4))
   val thmToken: P[Unit] = thmList.keys.toList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+
+  val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
+    body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
   val mathBlock: P[MathBlock] = P((displayEnv | mathEnv | doubleDollar | sqBracket).
     map((s: String) => MathBlock(s)))

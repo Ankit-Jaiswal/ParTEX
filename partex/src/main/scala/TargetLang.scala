@@ -28,6 +28,8 @@ object TargetLang {
   case class Environment(name: String, value: Body) extends BodyElem
   case class Theorem(name: String, alias: Option[String], label: Option[String],
     value: Body) extends BodyElem with Labelable
+  case class Proof(alias: Option[String], label: Option[String], value: Body)
+    extends BodyElem with Labelable
 
   case class MathBlock(s: String) extends BodyElem
   case class List(name: String, xs: Vector[Body]) extends BodyElem
