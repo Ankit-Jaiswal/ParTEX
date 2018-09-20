@@ -61,12 +61,13 @@ case class DeTeX(thmList: Map[String,String]) {
       "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
-  val graphics: P[Graphics] = P("\\includegraphics" ~ spec.? ~ name ~ (&("\\")|ws.rep)).
-    map((t:(Option[Vector[String]],String)) => Graphics(t._2,t._1))
-  val name: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
-  val spec: P[Vector[String]] = P("[" ~ (attr ~ "=" ~ value).!.rep(sep= ",") ~ "]").map(_.toVector)
-  val attr: P[Unit] = P(ws.rep ~ StringIn("scale","height","width","angle") ~ ws.rep)
-  val value: P[Unit] = P(ws.rep ~ (alpha|num| ".").rep ~ ws.rep)
+  val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ filename ~ (&("\\")|ws.rep)).
+    map((t:(Option[Map[String,String]],String)) => Graphics(t._1,t._2))
+  val filename: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
+  val imgSpec: P[Map[String,String]] =
+    P("[" ~ (attr ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
+  val attr: P[String] = P(ws.rep ~ StringIn("scale","height","width","angle").! ~ ws.rep)
+  val value: P[String] = P(ws.rep ~ (alpha|num| "."|"{"|"}").rep.! ~ ws.rep)
 
   val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
     body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(thmList(t._1),t._2,t._3,t._4))
@@ -86,6 +87,17 @@ case class DeTeX(thmList: Map[String,String]) {
     P("$$" ~ ws.rep ~ label.? ~ (!"$$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
   val sqBracket : P[(Option[String],String)] =
     P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
+
+  val codeBlock: P[CodeBlock] = P(inputCode|writtenCode)
+  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ codeSpec.? ~ filename ~ (&("\\")|ws.rep)).
+    map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
+  val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting") ~
+    "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end).
+    map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
+  val codeSpec: P[Map[String,String]] =
+    P("[" ~ (key ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
+  val key: P[String] = P(ws.rep ~ StringIn("language","label","caption").! ~ ws.rep)
+  val code: P[String] = P(!("\\end{" ~ StringIn("verbatim","lstlisting") ~ "*".? ~ "}") ~ AnyChar).rep.!
 
 
   val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).

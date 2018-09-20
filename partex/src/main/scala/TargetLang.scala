@@ -23,7 +23,7 @@ object TargetLang {
   case class Command(name: String, value: String) extends BodyElem
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable
-  case class Graphics(name: String, spec: Option[Vector[String]])
+  case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float
   case class Environment(name: String, value: Body) extends BodyElem
   case class Theorem(name: String, alias: Option[String], label: Option[String],
@@ -32,8 +32,14 @@ object TargetLang {
     extends BodyElem with Labelable
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
   with Math with Labelable
+  case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem
 
   case class List(name: String, xs: Vector[Body]) extends BodyElem
+
+
+  case class Rows(tr: Vector[Paragraph])
+  case class Caption(s: String, label: Option[String]) extends Labelable
+
 
   sealed trait Fragment {
     val s : String
