@@ -24,7 +24,7 @@ object Expanded {
   case class Command(name: String, value: String) extends BodyElem
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable
-  case class Graphics(spec: Option[Vector[String]], name: String)
+  case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float
   case class Environment(name: String, value: Body) extends BodyElem
   case class Theorem(name: String, alias: Option[String], label: Option[String],
@@ -34,8 +34,10 @@ object Expanded {
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
     with Math with Labelable
   case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem
-  case class Figure(cap: Option[Caption], incl: Graphics) extends BodyElem with Float
-  case class Table(cap: Option[Caption], tb: Vector[Rows]) extends BodyElem with Float
+  case class Figure(g: Graphics, cap: Option[String], label: Option[String])
+    extends BodyElem with Float with Labelable
+  case class Table(tb: Vector[Rows], cap: Option[String], label: Option[String])
+    extends BodyElem with Float with Labelable
   sealed trait TexList extends BodyElem
 
   case class Ordered(name: String, xs: Vector[Item]) extends TexList
@@ -44,7 +46,6 @@ object Expanded {
   case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable
 
   case class Rows(tr: Vector[Paragraph])
-  case class Caption(s: String, label: Option[String]) extends Labelable
 
   sealed trait Fragment
   case class Text(s: String) extends Fragment

@@ -68,8 +68,9 @@ class SourcesIO(filename: String) {
     }
 
     This can parse graphics as well
-    \includegraphics[scale=1.5,width=2cm,angle=23]{avatar.jpg}
-
+    \begin{figure}[h]
+      \includegraphics[width=8cm]{Plot}
+    \end{figure}
   \end{document}
   """
 

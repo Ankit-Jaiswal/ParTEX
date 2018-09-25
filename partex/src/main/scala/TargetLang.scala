@@ -31,14 +31,15 @@ object TargetLang {
   case class Proof(alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
-  with Math with Labelable
+    with Math with Labelable
   case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem
+  case class Figure(g: Graphics, cap: Option[String], label: Option[String])
+    extends BodyElem with Float with Labelable
 
   case class List(name: String, xs: Vector[Body]) extends BodyElem
 
 
   case class Rows(tr: Vector[Paragraph])
-  case class Caption(s: String, label: Option[String]) extends Labelable
 
 
   sealed trait Fragment {

@@ -18,10 +18,12 @@ case class DeTeX(thmList: Map[String,String]) {
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9') )
   val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
-  val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
   val box: P[Unit] = P(curlyBox|sqBox)
   val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
   val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
+  val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
+  val caption: P[String] = P("\\caption{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
+    label.? ~ "}" ~ (&("\\")|ws.rep)).map((t:(String,Option[String])) => t._1)
 
   def isMeta(b: BodyElem) : Boolean = b match {
     case _: MetaData => true
@@ -54,16 +56,16 @@ case class DeTeX(thmList: Map[String,String]) {
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
   val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
-    list | environment| paragraph | !"\\end{" ~ command)
+    codeBlock | figure | list | environment| paragraph | !"\\end{" ~ command)
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
       "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
-  val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ filename ~ (&("\\")|ws.rep)).
+  val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
     map((t:(Option[Map[String,String]],String)) => Graphics(t._1,t._2))
-  val filename: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
+  val name: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
   val imgSpec: P[Map[String,String]] =
     P("[" ~ (attr ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
   val attr: P[String] = P(ws.rep ~ StringIn("scale","height","width","angle").! ~ ws.rep)
@@ -89,7 +91,7 @@ case class DeTeX(thmList: Map[String,String]) {
     P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
   val codeBlock: P[CodeBlock] = P(inputCode|writtenCode)
-  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ codeSpec.? ~ filename ~ (&("\\")|ws.rep)).
+  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ codeSpec.? ~ name ~ (&("\\")|ws.rep)).
     map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
   val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting") ~
     "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end).
@@ -98,6 +100,12 @@ case class DeTeX(thmList: Map[String,String]) {
     P("[" ~ (key ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
   val key: P[String] = P(ws.rep ~ StringIn("language","label","caption").! ~ ws.rep)
   val code: P[String] = P(!("\\end{" ~ StringIn("verbatim","lstlisting") ~ "*".? ~ "}") ~ AnyChar).rep.!
+
+  val figure: P[Figure] = P("\\begin{" ~ StringIn("SCfigure","wrapfigure","figure") ~ "}" ~
+    (!end ~ AnyChar).rep.! ~ end).map((s: String) =>
+    Figure( P((!"\\includegraphics" ~ AnyChar).rep ~ graphics).parse(s).get.value ,
+      P((!"\\caption" ~ AnyChar).rep ~ caption).?.parse(s).get.value ,
+      P((!"\\label" ~ AnyChar).rep ~ label).?.parse(s).get.value ))
 
 
   val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).
@@ -156,7 +164,7 @@ case class DeTeX(thmList: Map[String,String]) {
 
 object ExampleRun {
   def main(args: Array[String]): Unit = {
-    val first = new SourcesIO("group_theory.tex")
+    val first = new SourcesIO("")
     println(first.parse)
   }
 
