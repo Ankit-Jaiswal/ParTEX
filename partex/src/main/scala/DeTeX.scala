@@ -22,7 +22,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
   val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
   val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
-  val caption: P[String] = P("\\caption{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
+  val caption: P[String] = P("\\caption" ~ sqBox ~ "{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
     label.? ~ "}" ~ (&("\\")|ws.rep)).map((t:(String,Option[String])) => t._1)
 
   def isMeta(b: BodyElem) : Boolean = b match {
@@ -56,7 +56,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
   val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
-    codeBlock | figure | list | environment| paragraph | !"\\end{" ~ command)
+    codeBlock | figure | table | tabular | list | environment| paragraph | !"\\end{" ~ command)
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -107,6 +107,28 @@ case class DeTeX(thmList: Map[String,String]) {
       P((!"\\caption" ~ AnyChar).rep ~ caption).?.parse(s).get.value ,
       P((!"\\label" ~ AnyChar).rep ~ label).?.parse(s).get.value ))
 
+  val table: P[Table] = P("\\begin{table}" ~ (!beginTb ~ AnyChar).rep.! ~ tabular ~
+    (!"\\end{table}" ~ AnyChar).rep.! ~ "\\end{table}").map((t:(String,Table,String)) =>
+    Table(P((!"\\caption" ~ AnyChar).rep ~ caption).?.parse(t._1 +"\n"+ t._3).get.value ,
+      P((!"\\label" ~ AnyChar).rep ~ label).?.parse(t._1 +"\n"+ t._3).get.value ,
+      t._2.tb ))
+
+  val tabular: P[Table] = P(beginTb ~ (!endTb ~ AnyChar).rep.! ~ endTb).map((s: String) =>
+    Table(None, None, s.split('\n').mkString.split("""\\\\""").toVector.map((r: String) =>
+      Rows(r.split("&").toVector.map((c: String) => cell.parse(c).get.value)))))
+  val beginTb: P[Unit] = P("\\begin{" ~ StringIn("longtabu","tabulary","tabularx","tabular*",
+    "tabular") ~ "}" ~ box.rep ~ (&("\\")|ws.rep))
+  val endTb: P[Unit] = P("\\end{" ~ StringIn("longtabu","tabulary","tabularx","tabular*",
+    "tabular") ~ "}" ~ (&("\\")|ws.rep))
+  val cell: P[TableElem] = P(parBox | multiCol | multiRow | paragraph)
+  val parBox: P[ParBox] = P("\\parbox" ~ sqBox ~ curlyBox ~ "{" ~ cell ~ "}").
+    map((c: TableElem) => ParBox(c))
+  val multiCol: P[MultiCol] = P("\\multicolumn" ~ span ~ curlyBox ~ "{" ~ cell ~ "}").
+    map((t:(Int,TableElem)) => MultiCol(t._1,t._2))
+  val multiRow: P[MultiRow] = P("\\multirow" ~ span ~ curlyBox ~ "{" ~ cell ~ "}").
+    map((t:(Int,TableElem)) => MultiRow(t._1,t._2))
+  val span: P[Int] = P("{" ~ num.rep(1).! ~ "}").map(_.toInt)
+
 
   val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).
     map((t:(String,Vector[Body])) => List(t._1,t._2))
@@ -121,22 +143,22 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
-      !("{"|"}"|"$"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
+      !("{"|"}"|"$"|"&"|"\\\\"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
       !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
 
   val reserved: P[String] = P(resvdWord|resvdCmd).!.map((s: String) => "")
-  val resvdWord: P[Unit] = P("\\" ~ StringIn("bigskip","break","centering",
-      "clearpage","cleardoublepage","footnotesize","hfill","indent","justify",
+  val resvdWord: P[Unit] = P("\\" ~ StringIn("bfseries","bigskip","break","centering",
+      "clearpage","cleardoublepage","footnotesize","hfill","hline","itshape","indent","justify",
       "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
       "listoftables","maketitle","medskip","normalsize","noindent","newline",
       "newpage","parindent","parfillskip","parskip","par","raggedleft",
       "ragggedright","rightskip","scriptsize","smallskip","small",
-      "tableofcontents","tiny","vfill","\\*")
+      "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
       | "\\\\" ~ " ".rep )
-  val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","vspace")
-    ~ curlyBox.rep)
+  val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","vspace",
+    "cline","noalign","rowfont") ~ curlyBox.rep)
   val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
     "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
     "textsuperscript","uppercase","underline") ~ cmdName)
