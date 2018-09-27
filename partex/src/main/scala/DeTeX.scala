@@ -56,7 +56,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
   val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
-    codeBlock | figure | table | tabular | list | environment| paragraph | !"\\end{" ~ command)
+    codeBlock | figure | table | tabular | list | environment | paragraph | !"\\end{" ~ command)
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -147,7 +147,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineEq|text)
+  val fragment: P[Fragment] = P(inlineMath | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -173,8 +173,8 @@ case class DeTeX(thmList: Map[String,String]) {
     "textsuperscript","uppercase","underline") ~ cmdName)
   val spSym: P[String] = P("\\" ~ StringIn("#","$","%","^","&","{","}","~").!)
 
-  val inlineEq: P[InlineEq] = P((inlineEnv | singleDollar | roundBracket ).
-    map((s: String)=> InlineEq(s)))
+  val inlineMath: P[InlineMath] = P((inlineEnv | singleDollar | roundBracket ).
+    map((s: String)=> InlineMath(s)))
   val inlineEnv: P[String] = P("\\begin{math}" ~ ws.rep ~ (!"\\end{math}" ~ AnyChar).rep(1).! ~
     ws.rep ~ "\\end{math}")
   val singleDollar : P[String] = P("$" ~ ws.rep ~ (!"$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$")

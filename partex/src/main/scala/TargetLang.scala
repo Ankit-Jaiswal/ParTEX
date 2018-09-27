@@ -55,9 +55,8 @@ object TargetLang {
   case class ParBox(value: TableElem) extends TableElem
 
 
-  sealed trait Fragment {
-    val s : String
-  }
+  sealed trait Fragment
   case class Text(s: String) extends Fragment
-  case class InlineEq(s: String) extends Fragment
+  case class InlineMath(s: String) extends Fragment with Math
+
 }
