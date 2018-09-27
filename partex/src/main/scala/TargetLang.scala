@@ -37,8 +37,15 @@ object TargetLang {
     extends BodyElem with Float with Labelable
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
     extends BodyElem with Float with Labelable
+  sealed trait TexList extends BodyElem {
+    val name: String
+    val xs: Vector[Item]
+  }
 
-  case class List(name: String, xs: Vector[Body]) extends BodyElem
+  case class Ordered(name: String, xs: Vector[Item]) extends TexList
+  case class Unordered(name: String,xs: Vector[Item]) extends TexList
+  case class Custom(name: String,xs: Vector[Item]) extends TexList
+  case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable
 
 
   case class Rows(tr: Vector[TableElem])

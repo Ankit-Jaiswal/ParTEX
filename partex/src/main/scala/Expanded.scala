@@ -38,7 +38,10 @@ object Expanded {
     extends BodyElem with Float with Labelable
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
     extends BodyElem with Float with Labelable
-  sealed trait TexList extends BodyElem
+  sealed trait TexList extends BodyElem {
+    val name: String
+    val xs: Vector[Item]
+  }
 
   case class Ordered(name: String, xs: Vector[Item]) extends TexList
   case class Unordered(name: String,xs: Vector[Item]) extends TexList

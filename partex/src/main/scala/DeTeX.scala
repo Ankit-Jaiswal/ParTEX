@@ -129,10 +129,18 @@ case class DeTeX(thmList: Map[String,String]) {
     map((t:(Int,TableElem)) => MultiRow(t._1,t._2))
   val span: P[Int] = P("{" ~ num.rep(1).! ~ "}").map(_.toInt)
 
-
-  val list: P[List] = P(begin ~ lsItem.rep.map(_.toVector) ~ end).
-    map((t:(String,Vector[Body])) => List(t._1,t._2))
-  val lsItem: P[Body] = P("\\item" ~ box.rep ~ ws.rep ~ body)
+  val list: P[TexList] = P(ordered | unordered | custom)
+  val ordered: P[Ordered] = P("\\begin{" ~ StringIn("enumerate","tasks").! ~ "}" ~
+    box.rep ~ (&("\\")|ws.rep) ~ item.rep.map(_.toVector) ~ end).
+    map((t:(String,Vector[Item])) => Ordered(t._1,t._2))
+  val unordered: P[Unordered] = P("\\begin{" ~ StringIn("itemize","description","labelling").! ~ "}" ~
+    box.rep ~ (&("\\")|ws.rep) ~ item.rep.map(_.toVector) ~ end).
+    map((t:(String,Vector[Item])) => Unordered(t._1,t._2))
+  val custom: P[Custom] = P(begin ~ item.rep.map(_.toVector) ~ end).
+    map((t:(String,Vector[Item])) => Custom(t._1,t._2))
+  val item: P[Item] = P("\\item" ~ ws.rep ~ alias.? ~ ws.rep ~ label.? ~ body ~
+    ws.rep ~ label.? ~ ws.rep).map((t:(Option[String],Option[String],Body,Option[String])) =>
+      Item(t._1, if(t._2.isEmpty){t._4} else {t._2} , t._3))
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
   val end: P[Unit] = P("\\end" ~ curlyBox.rep(1) ~ (&("\\")|ws.rep) )
 
@@ -143,22 +151,23 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
-      !("{"|"}"|"$"|"&"|"\\\\"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
+      !("{"|"}"|"$"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
       !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
 
   val reserved: P[String] = P(resvdWord|resvdCmd).!.map((s: String) => "")
-  val resvdWord: P[Unit] = P("\\" ~ StringIn("bfseries","bigskip","break","centering",
-      "clearpage","cleardoublepage","footnotesize","hfill","hline","itshape","indent","justify",
+  val resvdWord: P[Unit] = P("\\" ~ StringIn("addsec","addpart","addchap","addcontentsline",
+      "bfseries","bigskip","break","centering","clearpage","cleardoublepage",
+      "footnotesize","hfill","hline","itshape","indent","justify",
       "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
       "listoftables","maketitle","medskip","normalsize","noindent","newline",
       "newpage","parindent","parfillskip","parskip","par","raggedleft",
-      "ragggedright","rightskip","scriptsize","smallskip","small",
+      "ragggedright","rightskip","scriptsize","smallskip","small","setcounter",
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
-      | "\\\\" ~ " ".rep )
+      | "\\\\" ~ ws.rep )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","vspace",
-    "cline","noalign","rowfont") ~ curlyBox.rep)
+    "cline","noalign","rowfont","markright","markboth") ~ curlyBox.rep)
   val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
     "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
     "textsuperscript","uppercase","underline") ~ cmdName)
