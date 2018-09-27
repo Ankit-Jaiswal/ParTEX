@@ -58,5 +58,6 @@ object TargetLang {
   sealed trait Fragment
   case class Text(s: String) extends Fragment
   case class InlineMath(s: String) extends Fragment with Math
+  case class Phantom(label: Option[String]) extends Fragment with Labelable
 
 }

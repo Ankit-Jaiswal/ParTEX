@@ -17,7 +17,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val ws = P(" "|"\n"|"\t"|"\\:")
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9') )
-  val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
+  val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]" ~ (&("\\")|ws.rep))
   val box: P[Unit] = P(curlyBox|sqBox)
   val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
   val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
@@ -39,7 +39,7 @@ case class DeTeX(thmList: Map[String,String]) {
     meta ).rep.map(_.toVector)
 
   val meta: P[MetaData] = P(abs | title | author | address | email | date)
-  val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ ws.rep ~ (!"\\end{abstract}" ~ AnyChar).rep.! ~
+  val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ (!"\\end{abstract}" ~ AnyChar).rep.! ~
     "\\end{abstract}").map((t:(Option[String],String)) => Abstract(t._1,t._2))
   val title: P[Title] = P("\\title" ~ alias.? ~ cmdName).map((t:(Option[String],String)) => Title(t._1,t._2))
   val author: P[Author] = P("\\author" ~ cmdName).map((s: String) => Author(s))
@@ -60,7 +60,7 @@ case class DeTeX(thmList: Map[String,String]) {
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
-      "*".? ~ cmdName ~ alias.? ~ (&("\\")|ws.rep) ~ label.?).
+      "*".? ~ cmdName ~ alias.? ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
   val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
@@ -71,11 +71,11 @@ case class DeTeX(thmList: Map[String,String]) {
   val attr: P[String] = P(ws.rep ~ StringIn("scale","height","width","angle").! ~ ws.rep)
   val value: P[String] = P(ws.rep ~ (alpha|num| "."|"{"|"}").rep.! ~ ws.rep)
 
-  val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
+  val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ label.? ~
     body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(thmList(t._1),t._2,t._3,t._4))
   val thmToken: P[Unit] = thmList.keys.toList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
 
-  val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ (&("\\")|ws.rep) ~ label.? ~
+  val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ label.? ~
     body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
   val displaymath: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
@@ -138,8 +138,8 @@ case class DeTeX(thmList: Map[String,String]) {
     map((t:(String,Vector[Item])) => Unordered(t._1,t._2))
   val custom: P[Custom] = P(begin ~ item.rep.map(_.toVector) ~ end).
     map((t:(String,Vector[Item])) => Custom(t._1,t._2))
-  val item: P[Item] = P("\\item" ~ ws.rep ~ alias.? ~ ws.rep ~ label.? ~ body ~
-    ws.rep ~ label.? ~ ws.rep).map((t:(Option[String],Option[String],Body,Option[String])) =>
+  val item: P[Item] = P("\\item" ~ ws.rep ~ alias.? ~ label.? ~ body ~
+    ws.rep ~ label.?).map((t:(Option[String],Option[String],Body,Option[String])) =>
       Item(t._1, if(t._2.isEmpty){t._4} else {t._2} , t._3))
   val begin: P[String] = P("\\begin" ~ cmdName ~ box.rep ~ (&("\\")|ws.rep) )
   val end: P[Unit] = P("\\end" ~ curlyBox.rep(1) ~ (&("\\")|ws.rep) )
@@ -147,11 +147,11 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineMath | text)
+  val fragment: P[Fragment] = P(inlineMath | phantom | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
-      !("{"|"}"|"$"|"\\("|"\\["|"\\item"|"\\includegraphics") ~
+      !StringIn("{","}","$","\\(","\\[","\\item","\\includegraphics","\\phantomsection") ~
       !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
@@ -179,6 +179,9 @@ case class DeTeX(thmList: Map[String,String]) {
     ws.rep ~ "\\end{math}")
   val singleDollar : P[String] = P("$" ~ ws.rep ~ (!"$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$")
   val roundBracket: P[String] = P("\\(" ~ ws.rep ~ (!"\\)" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\)")
+
+  val phantom: P[Phantom] = P("\\phantomsection" ~ ws.rep ~ label.?).
+    map((o: Option[String]) => Phantom(o))
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
