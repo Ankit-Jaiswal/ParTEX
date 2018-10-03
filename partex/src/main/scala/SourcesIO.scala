@@ -26,6 +26,7 @@ class SourcesIO(filename: String) {
   \begin{document}
     \title{How to Structure a LaTeX Document}
     \date{December 2004}
+    \subjclass[2010]{03B15 (primary), 20F12, 20F65 (secondary)}
     \maketitle
 
     \section{Testing}
