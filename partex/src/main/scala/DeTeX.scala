@@ -93,7 +93,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val codeBlock: P[CodeBlock] = P(inputCode|writtenCode)
   val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ codeSpec.? ~ name ~ (&("\\")|ws.rep)).
     map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
-  val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting") ~
+  val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting","alltt") ~
     "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end).
     map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
   val codeSpec: P[Map[String,String]] =
@@ -147,7 +147,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineMath | phantom | text)
+  val fragment: P[Fragment] = P(inlineMath | phantom | quoted | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -156,18 +156,19 @@ case class DeTeX(thmList: Map[String,String]) {
     map(_.reduceLeft(_+_)).
     map((s: String) => Text(s)) )
 
-  val reserved: P[String] = P(resvdWord|resvdCmd).!.map((s: String) => "")
+  val reserved: P[String] = P(resvdWord|resvdCmd|comment).!.map((s: String) => "")
   val resvdWord: P[Unit] = P("\\" ~ StringIn("addsec","addpart","addchap","addcontentsline",
       "bfseries","bigskip","break","centering","clearpage","cleardoublepage",
       "footnotesize","hfill","hline","itshape","indent","justify",
       "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
       "listoftables","maketitle","medskip","normalsize","noindent","newline",
-      "newpage","parindent","parfillskip","parskip","par","raggedleft",
-      "ragggedright","rightskip","scriptsize","smallskip","small","setcounter",
+      "newpage","parindent","parfillskip","parskip","par",
+      "rightskip","scriptsize","smallskip","small","setcounter",
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
-      | "\\\\" ~ ws.rep )
+      | "\\\\" ~ ws.rep | StringIn("~","{}") )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","vspace",
-    "cline","noalign","rowfont","markright","markboth") ~ curlyBox.rep)
+    "cline","comment","noalign","rowfont","markright","markboth") ~ box.rep)
+  val comment: P[Unit] = P("\\begin{comment}" ~ (!"\\end{comment}" ~ AnyChar).rep ~ "\\end{comment}")
   val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
     "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
     "textsuperscript","uppercase","underline") ~ cmdName)
@@ -182,6 +183,12 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val phantom: P[Phantom] = P("\\phantomsection" ~ ws.rep ~ label.?).
     map((o: Option[String]) => Phantom(o))
+
+  val quoted: P[Quoted] = P( "\\begin{quote}" ~ (!"\\end{quote}" ~ AnyChar).rep.! ~ "\\end{quote}" |
+    "\\begin{quotation}" ~(!"\\end{quotation}" ~ AnyChar).rep.! ~ "\\end{quotation}" |
+    "\\begin{verse}" ~ (!"\\end{verse}" ~ AnyChar).rep.! ~ "\\end{verse}" |
+    "``" ~ (!("''" | "\"") ~ AnyChar).rep.! ~ ("''" | "\"") |
+    "`" ~ (!"'" ~ AnyChar).rep.! ~ "'" ).map((s: String) => Quoted(s))
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
