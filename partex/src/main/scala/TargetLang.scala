@@ -63,5 +63,6 @@ object TargetLang {
   case class Citation(s: String) extends Fragment
   case class Hypertarget(l: String, s: String) extends Fragment
   case class Hyperlink(l: String, s: String) extends Fragment
+  case class Reference(s: String) extends Fragment
 
 }

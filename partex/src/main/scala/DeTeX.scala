@@ -1,6 +1,6 @@
 /*****
 STATUS - expansion of target language is in progress.
-       - refrences and \labels are still to be added.
+       - references and \labels are still to be added.
 
 */
 
@@ -147,8 +147,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget | hyperlink |
-    text)
+  val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget |
+    hyperlink | ref | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -201,6 +201,9 @@ case class DeTeX(thmList: Map[String,String]) {
     map((t:(String,String)) => Hypertarget(t._1,t._2))
   val hyperlink: P[Hyperlink] = P(("\\url" ~ cmdName).map((s: String) => Hyperlink(s,s)) |
     (("\\href"|"\\hyperlink") ~ cmdName ~ cmdName).map((t:(String,String)) => Hyperlink(t._1,t._2)) )
+
+  val ref: P[Reference] = P("\\" ~ StringIn("ref","pageref","nameref","autoref","vref","hyperref") ~
+    sqBox.? ~ cmdName).map((s: String) => Reference(s))
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
