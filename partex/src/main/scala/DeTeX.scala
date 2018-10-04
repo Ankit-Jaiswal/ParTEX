@@ -147,7 +147,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
-  val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | text)
+  val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget | hyperlink |
+    text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -162,15 +163,15 @@ case class DeTeX(thmList: Map[String,String]) {
       "doublespacing","footnotesize","frenchspacing","hfill","hline","itshape","indent","justify",
       "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
       "listoftables","maketitle","medskip","normalsize","noindent","newline",
-      "newpage","onehalfspacing","parindent","parfillskip","parskip","par",
-      "rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
+      "newpage","onehalfspacing","parindent","parfillskip","parskip","par","raggedleft",
+      "raggedright","rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
       | "\\\\" ~ ws.rep | StringIn("~","{}") )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","setstretch","vspace",
     "cline","comment","noalign","rowfont","markright","markboth","pagenumbering") ~ box.rep)
   val comment: P[Unit] = P("\\begin{comment}" ~ (!"\\end{comment}" ~ AnyChar).rep ~ "\\end{comment}")
   val resvdEnvToken: P[Unit] = P("\\" ~ ("begin"|"end") ~ "{" ~
-    StringIn("doublespace","spacing") ~ "}")
+    StringIn("doublespace","spacing","flushleft","flushright","center") ~ "}")
 
   val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
     "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
@@ -196,6 +197,10 @@ case class DeTeX(thmList: Map[String,String]) {
   val cite: P[Citation] = P("\\cite" ~ ("year"|"author"|"p*"|"t*"|"p"|"t").? ~
     sqBox.rep ~ cmdName).map((s: String) => Citation(s))
 
+  val hypertarget: P[Hypertarget] = P("\\hypertarget" ~ cmdName ~ cmdName).
+    map((t:(String,String)) => Hypertarget(t._1,t._2))
+  val hyperlink: P[Hyperlink] = P(("\\url" ~ cmdName).map((s: String) => Hyperlink(s,s)) |
+    (("\\href"|"\\hyperlink") ~ cmdName ~ cmdName).map((t:(String,String)) => Hyperlink(t._1,t._2)) )
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))

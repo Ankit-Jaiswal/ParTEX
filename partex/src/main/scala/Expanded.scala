@@ -60,7 +60,8 @@ object Expanded {
   case class Phantom(label: Option[String]) extends Fragment with Labelable
   case class Quoted(s: String) extends Fragment
   case class Citation(s: String) extends Fragment
-  case class Linked(s: String) extends Fragment
+  case class Hypertarget(l: String, s: String) extends Fragment
+  case class Hyperlink(l: String, s: String) extends Fragment
   case class References(s: String) extends Fragment
   case class Note(s: String) extends Fragment
   sealed trait Styled extends Fragment

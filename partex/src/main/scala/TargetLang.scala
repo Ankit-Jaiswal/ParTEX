@@ -61,5 +61,7 @@ object TargetLang {
   case class Phantom(label: Option[String]) extends Fragment with Labelable
   case class Quoted(s: String) extends Fragment
   case class Citation(s: String) extends Fragment
+  case class Hypertarget(l: String, s: String) extends Fragment
+  case class Hyperlink(l: String, s: String) extends Fragment
 
 }
