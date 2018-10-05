@@ -64,5 +64,15 @@ object TargetLang {
   case class Hypertarget(l: String, s: String) extends Fragment
   case class Hyperlink(l: String, s: String) extends Fragment
   case class Reference(s: String) extends Fragment
+  case class Note(s: String) extends Fragment
+  sealed trait Styled extends Fragment
+
+  case class Emph(s: String) extends Styled
+  case class Strong(s: String) extends Styled
+  case class Italic(s: String) extends Styled
+  case class Strikeout(s: String) extends Styled
+  case class Superscript(s: String) extends Styled
+  case class Subscript(s: String) extends Styled
+  case class SmallCaps(s: String) extends Styled
 
 }

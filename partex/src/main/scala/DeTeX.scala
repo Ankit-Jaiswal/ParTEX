@@ -148,7 +148,7 @@ case class DeTeX(thmList: Map[String,String]) {
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
   val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget |
-    hyperlink | ref | text)
+    hyperlink | ref | note | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -160,8 +160,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val reserved: P[String] = P(resvdWord|resvdCmd|comment|resvdEnvToken).!.map((s: String) => "")
   val resvdWord: P[Unit] = P("\\" ~ StringIn("addsec","addpart","addchap","addcontentsline",
       "bfseries","bigskip","break","baselineskip","centering","clearpage","cleardoublepage",
-      "doublespacing","footnotesize","frenchspacing","hfill","hline","itshape","indent","justify",
-      "large","Large","LARGE","huge","Huge","leftskip","listoffigures",
+      "doublespacing","footnotemark","footnotesize","frenchspacing","hfill","hline","itshape",
+      "indent","justify","large","Large","LARGE","huge","Huge","leftskip","listoffigures",
       "listoftables","maketitle","medskip","normalsize","noindent","newline",
       "newpage","onehalfspacing","parindent","parfillskip","parskip","par","raggedleft",
       "raggedright","rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
@@ -204,6 +204,9 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val ref: P[Reference] = P("\\" ~ StringIn("ref","pageref","nameref","autoref","vref","hyperref") ~
     sqBox.? ~ cmdName).map((s: String) => Reference(s))
+
+  val note: P[Note] = P("\\" ~ StringIn("footnotetext","footnote","todo","marginpar","marginnote") ~
+    sqBox.? ~ cmdName ~ sqBox.?).map((s: String) => Note(s))
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))
