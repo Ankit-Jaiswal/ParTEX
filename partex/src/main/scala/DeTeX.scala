@@ -148,7 +148,7 @@ case class DeTeX(thmList: Map[String,String]) {
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
   val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget |
-    hyperlink | ref | note | text)
+    hyperlink | ref | note | styled | text)
 
   val text: P[Text] =
     P( ( reserved | wrapper | spSym |
@@ -160,9 +160,9 @@ case class DeTeX(thmList: Map[String,String]) {
   val reserved: P[String] = P(resvdWord|resvdCmd|comment|resvdEnvToken).!.map((s: String) => "")
   val resvdWord: P[Unit] = P("\\" ~ StringIn("addsec","addpart","addchap","addcontentsline",
       "bfseries","bigskip","break","baselineskip","centering","clearpage","cleardoublepage",
-      "doublespacing","footnotemark","footnotesize","frenchspacing","hfill","hline","itshape",
-      "indent","justify","large","Large","LARGE","huge","Huge","leftskip","listoffigures",
-      "listoftables","maketitle","medskip","normalsize","noindent","newline",
+      "doublespacing","footnotemark","footnotesize","frenchspacing","hfill","hline",
+      "huge","Huge","itshape","indent","justify","large","Large","LARGE",
+      "leftskip","listoffigures","listoftables","maketitle","medskip","normalsize","noindent","newline",
       "newpage","onehalfspacing","parindent","parfillskip","parskip","par","raggedleft",
       "raggedright","rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
@@ -173,9 +173,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val resvdEnvToken: P[Unit] = P("\\" ~ ("begin"|"end") ~ "{" ~
     StringIn("doublespace","spacing","flushleft","flushright","center") ~ "}")
 
-  val wrapper: P[String] = P("\\" ~ StringIn("emph","lowercase","textbf","textit","textnormal",
-    "textrm","textsf","texttt","textup","textsl","textsc","textmd","textlf","textsubscript",
-    "textsuperscript","uppercase","underline") ~ cmdName)
+  val wrapper: P[String] = P("\\" ~ StringIn("lowercase","textnormal","textrm","textsf","texttt",
+    "textup","textsl","textsc","textmd","textlf","uppercase") ~ cmdName)
   val spSym: P[String] = P("\\" ~ StringIn("#","$","%","^","&","{","}","~").!)
 
   val inlineMath: P[InlineMath] = P((inlineEnv | singleDollar | roundBracket ).
@@ -207,6 +206,15 @@ case class DeTeX(thmList: Map[String,String]) {
 
   val note: P[Note] = P("\\" ~ StringIn("footnotetext","footnote","todo","marginpar","marginnote") ~
     sqBox.? ~ cmdName ~ sqBox.?).map((s: String) => Note(s))
+
+  val styled: P[Styled] = P(strong | italics | underline | emph | superscript | subscript)
+
+  val strong: P[Strong] = P("\\textbf{" ~ paragraph ~ "}").map((p: Paragraph) => Strong(p))
+  val italics: P[Italic] = P("\\textit{" ~ paragraph ~ "}").map((p: Paragraph) => Italic(p))
+  val underline: P[Underline] = P("\\underline{" ~ paragraph ~ "}").map((p: Paragraph) => Underline(p))
+  val emph: P[Emph] = P("\\emph{" ~ paragraph ~ "}").map((p: Paragraph) => Emph(p))
+  val superscript: P[Superscript] = P("\\textsuperscript{" ~ paragraph ~ "}").map((p: Paragraph) => Superscript(p))
+  val subscript: P[Subscript] = P("\\textsubscript{" ~ paragraph ~ "}").map((p: Paragraph) => Subscript(p))
 
   val environment: P[Environment] = P( withoutName | withName )
   val withoutName: P[Environment] = P("{" ~ body ~ "}").map((b: Body) => Environment("None",b))

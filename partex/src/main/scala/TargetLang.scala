@@ -67,12 +67,13 @@ object TargetLang {
   case class Note(s: String) extends Fragment
   sealed trait Styled extends Fragment
 
-  case class Emph(s: String) extends Styled
-  case class Strong(s: String) extends Styled
-  case class Italic(s: String) extends Styled
-  case class Strikeout(s: String) extends Styled
-  case class Superscript(s: String) extends Styled
-  case class Subscript(s: String) extends Styled
-  case class SmallCaps(s: String) extends Styled
+  case class Emph(s: Paragraph) extends Styled
+  case class Strong(s: Paragraph) extends Styled
+  case class Italic(s: Paragraph) extends Styled
+  case class Underline(s: Paragraph) extends Styled
+  case class Strikeout(s: Paragraph) extends Styled
+  case class Superscript(s: Paragraph) extends Styled
+  case class Subscript(s: Paragraph) extends Styled
+  case class SmallCaps(s: Paragraph) extends Styled
 
 }
