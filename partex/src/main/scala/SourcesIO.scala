@@ -3,6 +3,7 @@ import fastparse.all._
 
 class SourcesIO(filename: String) {
   import ParsingRules.all.alpha
+  import ParsingRules.all.num
   import ParsingRules.all.curlyBox
   import ParsingRules.all.sqBox
   import ParsingRules.all.cmdName
@@ -82,6 +83,17 @@ class SourcesIO(filename: String) {
   """
 
 
+/**************************      preamble input      ****************************/
+
+  val inputFile: P[String] = P("\\" ~ ("input"|"include") ~ "{" ~
+    (resrcFilename.map((f: String) => scala.io.Source.fromFile(getClass.getResource("/"+f+".tex").getPath).mkString) |
+      resrcFile.map((f: String) => scala.io.Source.fromFile(getClass.getResource("/"+f).getPath).mkString) |
+      path.map((f: String) => scala.io.Source.fromFile(f).mkString) ) ~
+    "}")
+  val resrcFilename: P[String] = P(alpha | num | "_").rep.!
+  val resrcFile: P[String] = P(alpha | num | "_" | ".").rep.!
+  val path: P[String] = P(alpha | num | "_" | "." | "/").rep.!
+
 
 /********************       extracting \newcommands      ************************/
 
@@ -91,10 +103,9 @@ class SourcesIO(filename: String) {
     P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
   val defCmd: P[Unit] = P( StringIn("\\def","\\newcommand","\\renewcommand") )
   val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
-  val argBox: P[Unit] = P("[" ~ num ~ "]" )
+  val argBox: P[Unit] = P("[" ~ num.rep(1) ~ "]" )
   val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
   val definition: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep(1).! ~ "}")
-  val num: P[Unit] = P( CharIn('0' to '9').rep(1) )
 
 /********************     extracting \newtheorems      ************************/
 
@@ -105,7 +116,7 @@ class SourcesIO(filename: String) {
 /********************          pre-processing          ***********************/
 
   val divided = raw.split("""\\begin\{document\}""")
-  val preamble = divided(0)
+  val preamble = inputFile.?.parse(divided(0)).get.value.getOrElse("") + divided(0)
   val rest = "\\begin{document}" + divided(1)
 
   val usrCmdList: Map[String,(Vector[String],String)] =

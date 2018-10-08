@@ -1,6 +1,8 @@
 /*****
-STATUS - expansion of target language is in progress.
-       - references and \labels are still to be added.
+STATUS - parser is complete and running succesfully.
+       - Numbering is yet to be added.
+       - a basic .html output is needed.
+       - a scalatest is also needed to be framed.
 
 */
 
@@ -225,14 +227,5 @@ case class DeTeX(thmList: Map[String,String]) {
     sqBox.rep ~ cmdName ~ box.rep ~ (&("\\")|ws.rep)).
     map((t:(String,String)) => Command(t._1,t._2)) )
   val cmdName: P[String] = P("{" ~ (cmdName | !"}" ~ AnyChar).rep.! ~ "}" )
-
-}
-
-
-object ExampleRun {
-  def main(args: Array[String]): Unit = {
-    val first = new SourcesIO("")
-    println(first.parse)
-  }
 
 }
