@@ -1,11 +1,30 @@
 package partex
+import scalatags.Text.all._
 
 object TargetLang {
 
   sealed trait Labelable
   sealed trait Math
   sealed trait Float
-  case class Document(top: Vector[MetaData], body: Body)
+  case class Document(top: Vector[MetaData], bd: Body){
+    def toHTML: Frag =
+      html(
+        head(
+          scalatags.Text.tags2.title("First Try !"),
+          link(href:="main.css", rel:="stylesheet")
+        ),
+        body(
+          div(id:="topmatter")(
+            ul(`class`:="meta")(
+              for(meta <- top) yield li("I love scala")
+            )
+          ),
+          div(id:="body")(
+            h1("hello world")
+          )
+        )
+      )
+  }
 
   case class Body(elems: Vector[BodyElem])
 
@@ -75,5 +94,16 @@ object TargetLang {
   case class Superscript(s: Paragraph) extends Styled
   case class Subscript(s: Paragraph) extends Styled
   case class SmallCaps(s: Paragraph) extends Styled
+
+}
+
+
+object siteMaker {
+  import java.io.PrintWriter
+  def main(args: Array[String]): Unit = {
+    val input = new SourcesIO("")
+    val output = input.parse.get.value.toHTML.toString.split("><").mkString(">\n<")
+    new PrintWriter("main.html") { write(output); close }
+  }
 
 }
