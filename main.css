@@ -1,8 +1,11 @@
-div#topmatter {
+#topmatter {
   background-color: green;
-  padding: 5px;
+  padding: 10px;
 }
 
-ul.meta {
+.meta {
+  width: 100%;
+  text-align: center;
   color: white;
+  font-size: 18px;
 }

@@ -10,25 +10,34 @@ object TargetLang {
     def toHTML: Frag =
       html(
         head(
-          scalatags.Text.tags2.title("First Try !"),
+          scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet")
         ),
         body(
           div(id:="topmatter")(
-            ul(`class`:="meta")(
-              for(meta <- top) yield li("I love scala")
+            table(`class`:="meta")(tr(
+              for(meta <- top) yield meta.toHTML
+              )
             )
           ),
-          div(id:="body")(
-            h1("hello world")
-          )
+          bd.toHTML
         )
       )
   }
 
-  case class Body(elems: Vector[BodyElem])
 
-  sealed trait MetaData extends BodyElem
+  case class Body(elems: Vector[BodyElem]){
+    def toHTML: Frag =
+      div(`class`:="body")(
+        for(b <- elems) yield b.toHTML
+      )
+  }
+
+
+  sealed trait MetaData extends BodyElem{
+    val s: String
+    def toHTML: Frag = td(s)
+  }
   case class Title(alias: Option[String], s: String) extends MetaData
   case class Abstract(alias: Option[String], s: String) extends MetaData
   case class Author(s: String) extends MetaData
@@ -37,54 +46,145 @@ object TargetLang {
   case class Date(s: String) extends MetaData
   case class Info(s: String) extends MetaData
 
-  sealed trait BodyElem
-  case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem
-  case class Command(name: String, value: String) extends BodyElem
+
+  sealed trait BodyElem{
+    def toHTML: Frag
+  }
+  case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem{
+    def toHTML: Frag =
+      p(`class`:="paragraph")(
+        for(f <- frgs) yield f.toHTML
+      )
+  }
+  case class Command(name: String, value: String) extends BodyElem{
+    def toHTML: Frag = div(`class`:="command")(h3(name+": "+value))
+  }
   case class Heading(name: String, alias: Option[String], label: Option[String],
-    value: String) extends BodyElem with Labelable
+    value: String) extends BodyElem with Labelable{
+      def toHTML: Frag = div(`class`:="heading")(p(`class`:=name)(value))
+  }
   case class Graphics(spec: Option[Map[String,String]], name: String)
-    extends BodyElem with Float
-  case class Environment(name: String, value: Body) extends BodyElem
+    extends BodyElem with Float{
+      def toHTML: Frag = div(`class`:="graphics")(div(`class`:="img")())
+  }
+  case class Environment(name: String, value: Body) extends BodyElem{
+    def toHTML: Frag =
+      div(`class`:="environment")(
+        div(`class`:="name")(name),
+        value.toHTML
+      )
+  }
   case class Theorem(name: String, alias: Option[String], label: Option[String],
-    value: Body) extends BodyElem with Labelable
+    value: Body) extends BodyElem with Labelable{
+      def toHTML: Frag =
+        div(`class`:="theorem")(
+          div(`class`:="name")(name, span(`class`:="alias")(alias)),
+          value.toHTML
+        )
+  }
   case class Proof(alias: Option[String], label: Option[String], value: Body)
-    extends BodyElem with Labelable
+    extends BodyElem with Labelable{
+      def toHTML: Frag =
+        div(`class`:="proof")(
+          div(`class`:="name")("proof", span(`class`:="alias")(alias)),
+          value.toHTML
+        )
+  }
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
-    with Math with Labelable
-  case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem
+    with Math with Labelable{
+      def toHTML: Frag = div(`class`:="displaymath")(value)
+  }
+  case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem{
+    def toHTML: Frag = div(`class`:="codeBlock")(value)
+  }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
-    extends BodyElem with Float with Labelable
+    extends BodyElem with Float with Labelable{
+      def toHTML: Frag =
+        div(`class`:="figure")(
+          g.toHTML,
+          div(`class`:="caption")(cap)
+        )
+  }
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
-    extends BodyElem with Float with Labelable
+    extends BodyElem with Float with Labelable{
+      def toHTML: Frag =
+        div(`class`:="table")(
+          table( for(row <- tb) yield row.toHTML ),
+          div(`class`:="caption")(cap)
+        )
+  }
   sealed trait TexList extends BodyElem {
     val name: String
     val xs: Vector[Item]
+    def toHTML: Frag
   }
 
-  case class Ordered(name: String, xs: Vector[Item]) extends TexList
-  case class Unordered(name: String,xs: Vector[Item]) extends TexList
-  case class Custom(name: String,xs: Vector[Item]) extends TexList
-  case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable
+  case class Ordered(name: String, xs: Vector[Item]) extends TexList{
+    def toHTML: Frag = ol(for(i <- xs) yield i.toHTML)
+  }
+  case class Unordered(name: String,xs: Vector[Item]) extends TexList{
+    def toHTML: Frag = ul(for(i <- xs) yield i.toHTML)
+  }
+  case class Custom(name: String,xs: Vector[Item]) extends TexList{
+    def toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
+  }
+  case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable{
+    def toHTML: Frag =
+      li(`class`:="item")(value.toHTML)
+  }
 
 
-  case class Rows(tr: Vector[TableElem])
-  sealed trait TableElem
-  case class MultiCol(span: Int, value: TableElem) extends TableElem
-  case class MultiRow(span: Int, value: TableElem) extends TableElem
-  case class ParBox(value: TableElem) extends TableElem
+  case class Rows(rs: Vector[TableElem]){
+    def toHTML: Frag = tr(for(e <- rs) yield td(e.toHTML))
+  }
+  sealed trait TableElem {
+    def toHTML: Frag
+  }
+  case class MultiCol(n: Int, value: TableElem) extends TableElem{
+    def toHTML: Frag = span(`class`:="multicol")(value.toHTML)
+  }
+  case class MultiRow(n: Int, value: TableElem) extends TableElem{
+    def toHTML: Frag = span(`class`:="multirow")(value.toHTML)
+  }
+  case class ParBox(value: TableElem) extends TableElem{
+    def toHTML: Frag = span(`class`:="parbox")(value.toHTML)
+  }
 
 
-  sealed trait Fragment
-  case class Text(s: String) extends Fragment
-  case class InlineMath(s: String) extends Fragment with Math
-  case class Phantom(label: Option[String]) extends Fragment with Labelable
-  case class Quoted(s: String) extends Fragment
-  case class Citation(s: String) extends Fragment
-  case class Hypertarget(l: String, s: String) extends Fragment
-  case class Hyperlink(l: String, s: String) extends Fragment
-  case class Reference(s: String) extends Fragment
-  case class Note(s: String) extends Fragment
-  sealed trait Styled extends Fragment
+  sealed trait Fragment{
+    def toHTML: Frag
+  }
+  case class Text(s: String) extends Fragment{
+    def toHTML: Frag = s
+  }
+  case class InlineMath(s: String) extends Fragment with Math{
+    def toHTML: Frag = span(`class`:="inlinemath")(s)
+  }
+  case class Phantom(label: Option[String]) extends Fragment with Labelable{
+    def toHTML: Frag = span(`class`:="phantom")("this")
+  }
+  case class Quoted(s: String) extends Fragment{
+    def toHTML: Frag = "\""+s+"\""
+  }
+  case class Citation(s: String) extends Fragment{
+    def toHTML: Frag = span(`class`:="citation")(s)
+  }
+  case class Hypertarget(l: String, s: String) extends Fragment{
+    def toHTML: Frag = span(`class`:="hypertarget")(s)
+  }
+  case class Hyperlink(l: String, s: String) extends Fragment{
+    def toHTML: Frag = span(`class`:="hyperlink")(s)
+  }
+  case class Reference(s: String) extends Fragment{
+    def toHTML: Frag = span(`class`:="reference")("this")
+  }
+  case class Note(s: String) extends Fragment{
+    def toHTML: Frag = span(`class`:="note")(s)
+  }
+  sealed trait Styled extends Fragment{
+    val s: Paragraph
+    def toHTML: Frag = s.toHTML
+  }
 
   case class Emph(s: Paragraph) extends Styled
   case class Strong(s: Paragraph) extends Styled
