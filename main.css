@@ -107,11 +107,18 @@
 }
 
 .codeBlock {
-  background-color: #fff3e6;
+  background-color: #d9d9d9;
   font-family: monospace;
-  font-size: 16px;
-  margin-left: 100px;
-  margin-right: 100px;
+  font-size: 14px;
+  margin-left: 25px;
+  margin-right: 25px;
+  padding: 10px;
+}
+
+pre {
+  -moz-tab-size: 2;
+  -o-tab-size: 2;
+  tab-size: 2;
 }
 
 .caption {

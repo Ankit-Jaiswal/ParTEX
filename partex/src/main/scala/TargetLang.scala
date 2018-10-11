@@ -99,7 +99,7 @@ object TargetLang {
       def toHTML: Frag = div(`class`:="displaymath")(value)
   }
   case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem{
-    def toHTML: Frag = div(`class`:="codeBlock")(code(value))
+    def toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
     extends BodyElem with Float with Labelable{
@@ -222,7 +222,7 @@ object siteMaker {
   def main(args: Array[String]): Unit = {
     val input = new SourcesIO("")
     val output = input.parse.get.value.toHTML.toString.split("><").mkString(">\n<")
-    new PrintWriter("main.html") { write(output); close }
+    new PrintWriter("main.html") { write("<!DOCTYPE html>\n"+output); close }
   }
 
 }
