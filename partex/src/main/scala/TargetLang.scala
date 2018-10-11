@@ -13,14 +13,14 @@ object TargetLang {
           scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet")
         ),
-        body(
+        body(css("margin"):="0px")(
           div(id:="topmatter")(
             table(`class`:="meta")(tr(
               for(meta <- top) yield meta.toHTML
               )
             )
           ),
-          bd.toHTML
+          div(id:="mainbody")(bd.toHTML)
         )
       )
   }
@@ -61,7 +61,7 @@ object TargetLang {
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
-      def toHTML: Frag = div(`class`:="heading")(p(`class`:=name)(value))
+      def toHTML: Frag = div(`class`:="heading")(span(`class`:=name)(name, ": ", value))
   }
   case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float{
@@ -71,14 +71,14 @@ object TargetLang {
     def toHTML: Frag =
       div(`class`:="environment")(
         div(`class`:="name")(name),
-        value.toHTML
+        div(`class`:="envbody")(value.toHTML)
       )
   }
   case class Theorem(name: String, alias: Option[String], label: Option[String],
     value: Body) extends BodyElem with Labelable{
       def toHTML: Frag =
         div(`class`:="theorem")(
-          div(`class`:="name")(name, span(`class`:="alias")(alias)),
+          div(`class`:="name")(name,"\t\t", span(`class`:="alias")(alias)),
           value.toHTML
         )
   }
@@ -87,7 +87,7 @@ object TargetLang {
       def toHTML: Frag =
         div(`class`:="proof")(
           div(`class`:="name")("proof", span(`class`:="alias")(alias)),
-          value.toHTML
+          div(`class`:="pfbody")(value.toHTML)
         )
   }
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
@@ -95,7 +95,7 @@ object TargetLang {
       def toHTML: Frag = div(`class`:="displaymath")(value)
   }
   case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem{
-    def toHTML: Frag = div(`class`:="codeBlock")(value)
+    def toHTML: Frag = div(`class`:="codeBlock")(code(value))
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
     extends BodyElem with Float with Labelable{
@@ -129,8 +129,7 @@ object TargetLang {
     def toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
   }
   case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable{
-    def toHTML: Frag =
-      li(`class`:="item")(value.toHTML)
+    def toHTML: Frag = li(`class`:="item")(value.toHTML)
   }
 
 
@@ -183,17 +182,33 @@ object TargetLang {
   }
   sealed trait Styled extends Fragment{
     val s: Paragraph
-    def toHTML: Frag = s.toHTML
+    def toHTML: Frag
   }
 
-  case class Emph(s: Paragraph) extends Styled
-  case class Strong(s: Paragraph) extends Styled
-  case class Italic(s: Paragraph) extends Styled
-  case class Underline(s: Paragraph) extends Styled
-  case class Strikeout(s: Paragraph) extends Styled
-  case class Superscript(s: Paragraph) extends Styled
-  case class Subscript(s: Paragraph) extends Styled
-  case class SmallCaps(s: Paragraph) extends Styled
+  case class Emph(s: Paragraph) extends Styled{
+    def toHTML: Frag = em(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Strong(s: Paragraph) extends Styled{
+    def toHTML: Frag = strong(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Italic(s: Paragraph) extends Styled{
+    def toHTML: Frag = span(`class`:="italic")(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Underline(s: Paragraph) extends Styled{
+    def toHTML: Frag = span(`class`:="underline")(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Strikeout(s: Paragraph) extends Styled{
+    def toHTML: Frag = span(`class`:="strikeout")(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Superscript(s: Paragraph) extends Styled{
+    def toHTML: Frag = sup(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class Subscript(s: Paragraph) extends Styled{
+    def toHTML: Frag = sub(for(f <- s.frgs) yield f.toHTML)
+  }
+  case class SmallCaps(s: Paragraph) extends Styled{
+    def toHTML: Frag = span(`class`:="smallcaps")(for(f <- s.frgs) yield f.toHTML)
+  }
 
 }
 

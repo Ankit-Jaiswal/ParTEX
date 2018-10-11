@@ -69,6 +69,7 @@ class SourcesIO(filename: String) {
     \end{theorem}
     }
 
+    \subsection{Tyring Floats}
     This can parse graphics as well
     \begin{figure}[h]
       \includegraphics[width=8cm]{Plot}

@@ -1,11 +1,132 @@
 #topmatter {
-  background-color: green;
-  padding: 10px;
+  background-color: #4d4d4d;
+  padding: 15px;
+  height: 200px;
 }
 
 .meta {
   width: 100%;
   text-align: center;
   color: white;
+  font-size: 20px;
+  text-shadow: 1px 1px 2px #000000;
+  font-weight: bold;
+}
+
+#mainbody {
+  margin-left: 150px;
+  margin-right: 150px;
+  padding: 100px;
   font-size: 18px;
+}
+
+.heading {
+  border-style: double;
+  border-color: #4d4d4d;
+  padding: 2px;
+  padding-left: 20px;
+}
+
+.part {
+  font-size: 35px;
+  font-weight: bolder;
+}
+
+.chapter {
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.section {
+  font-size: 30px;
+  font-weight: bolder;
+}
+
+.subsection {
+  font-size: 20px;
+  font-weight: bolder;
+}
+
+.subsubsection {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.graphics {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: dashed;
+  border-color: #4d4d4d;
+  height: 100px;
+  width: 180px;
+}
+
+.name {
+  font-weight: bold;
+  margin: 0px;
+}
+
+.envbody {
+  padding-left: 20px;
+  border-left: double;
+  border-color: #4d4d4d;
+}
+
+.pfbody {
+  padding-left: 20px;
+  border-left: double;
+  border-color: #4d4d4d;
+}
+
+
+.theorem {
+  padding: 10px;
+  border-style: dashed;
+  border-color: #4d4d4d;
+  margin: 50px;
+}
+
+.displaymath {
+  text-align: center;
+  font-size: 20px;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.codeBlock {
+  background-color: #fff3e6;
+  font-family: monospace;
+  font-size: 16px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.caption {
+  text-align: center;
+  font-style: italic;
+  text-decoration: underline;
+}
+
+.table table {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.table td {
+  padding: 5px;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.underline{
+  text-decoration: underline;
+}
+
+.strikeout{
+  text-decoration:line-through;
 }
