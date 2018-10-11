@@ -1,16 +1,27 @@
 #topmatter {
   background-color: #4d4d4d;
   padding: 15px;
-  height: 200px;
 }
 
-.meta {
+#topmatter table {
   width: 100%;
   text-align: center;
   color: white;
   font-size: 20px;
   text-shadow: 1px 1px 2px #000000;
   font-weight: bold;
+}
+
+#abstract {
+  margin-left: 350px;
+  margin-right: 350px;
+  margin-top: 100px;
+  color: white;
+  text-align: center;
+}
+
+#abstract p {
+  font-size: 18px;
 }
 
 #mainbody {
@@ -99,8 +110,8 @@
   background-color: #fff3e6;
   font-family: monospace;
   font-size: 16px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 100px;
+  margin-right: 100px;
 }
 
 .caption {

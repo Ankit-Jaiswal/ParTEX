@@ -15,9 +15,14 @@ object TargetLang {
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
-            table(`class`:="meta")(tr(
-              for(meta <- top) yield meta.toHTML
-              )
+            table(tr(
+              td(top.collectFirst({case m: Author => m.s})),
+              td(top.collectFirst({case m: Title => m.s})),
+              td(top.collectFirst({case m: Date => m.s})) )
+            ),
+            div(id:="abstract")(
+              h3("Abstract"),
+              p(top.collectFirst({case m: Abstract => m.s}))
             )
           ),
           div(id:="mainbody")(bd.toHTML)
@@ -25,18 +30,9 @@ object TargetLang {
       )
   }
 
-
-  case class Body(elems: Vector[BodyElem]){
-    def toHTML: Frag =
-      div(`class`:="body")(
-        for(b <- elems) yield b.toHTML
-      )
-  }
-
-
   sealed trait MetaData extends BodyElem{
     val s: String
-    def toHTML: Frag = td(s)
+    def toHTML: Frag = s
   }
   case class Title(alias: Option[String], s: String) extends MetaData
   case class Abstract(alias: Option[String], s: String) extends MetaData
@@ -46,6 +42,14 @@ object TargetLang {
   case class Date(s: String) extends MetaData
   case class Info(s: String) extends MetaData
 
+
+
+  case class Body(elems: Vector[BodyElem]){
+    def toHTML: Frag =
+      div(`class`:="body")(
+        for(b <- elems) yield b.toHTML
+      )
+    }
 
   sealed trait BodyElem{
     def toHTML: Frag
