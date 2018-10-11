@@ -17,7 +17,7 @@
   margin-left: 150px;
   margin-right: 150px;
   padding: 100px;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .heading {
@@ -25,6 +25,7 @@
   border-color: #4d4d4d;
   padding: 2px;
   padding-left: 20px;
+  margin-top: 70px;
 }
 
 .part {
@@ -84,12 +85,12 @@
   padding: 10px;
   border-style: dashed;
   border-color: #4d4d4d;
-  margin: 50px;
+  margin: 25px;
 }
 
 .displaymath {
   text-align: center;
-  font-size: 20px;
+  font-size: 18px;
   margin-top: 25px;
   margin-bottom: 25px;
 }
