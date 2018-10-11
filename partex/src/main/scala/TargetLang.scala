@@ -1,5 +1,6 @@
 package partex
 import scalatags.Text.all._
+import java.io.PrintWriter
 
 object TargetLang {
 
@@ -7,6 +8,11 @@ object TargetLang {
   sealed trait Math
   sealed trait Float
   case class Document(top: Vector[MetaData], bd: Body){
+    def getHTML = {
+      val content = this.toHTML.toString.split("><").mkString(">\n<")
+      new PrintWriter("main.html") { write("<!DOCTYPE html>\n"+content); close }
+    }
+
     def toHTML: Frag =
       html(
         head(
@@ -218,7 +224,6 @@ object TargetLang {
 
 
 object siteMaker {
-  import java.io.PrintWriter
   def main(args: Array[String]): Unit = {
     val input = new SourcesIO("")
     val output = input.parse.get.value.toHTML.toString.split("><").mkString(">\n<")
