@@ -4,3 +4,4 @@ out/
 target/
 .idea/
 .idea_modules/
+*.html
