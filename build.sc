@@ -1,6 +1,6 @@
 import mill._, scalalib._
 
-object partex extends SbtModule{
+object partex extends ScalaModule{
   def scalaVersion="2.12.6"
 
   def ivyDeps = Agg(

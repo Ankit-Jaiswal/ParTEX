@@ -1,5 +1,6 @@
 package partex
 import fastparse.all._
+import java.io.PrintWriter
 
 class SourcesIO(filename: String) {
   import ParsingRules.all.alpha
@@ -8,96 +9,10 @@ class SourcesIO(filename: String) {
   import ParsingRules.all.sqBox
   import ParsingRules.all.cmdName
 
-  val raw = if (filename != "") {
-    val file = getClass.getResource("/"+filename)
-    scala.io.Source.fromFile(file.getPath).mkString }
-  else
-  """
-  \documentclass[master.tex]{subfiles}
-  \author{Ankit Jaiswal}
-  \newcommand{\foo}{foobar}
-  \newcommand{\jc}{John \foo Cena}
-  \newcommand{\name}[2]{My first name is #1 and second name is #2}
-  \newcommand{\withDefault}[2][books]{my friends are #1 and #2}
+  val file = if (filename != "") { getClass.getResource("/"+filename) }
+    else { getClass.getResource("/mydoc.tex") }
 
-  \newtheorem{defn*}{Definition}[section]
-  \newtheorem{theorem}{Theorem}
-  %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
-
-  \begin{document}
-    \title{How to Structure a LaTeX Document}
-    \date{December 2004}
-    \subjclass[2010]{03B15 (primary), 20F12, 20F65 (secondary)}
-    \begin{abstract}
-    Parsing can be fun and this page exactly demostrate that.
-    But hey, there is no output without input. That's why I am writing this
-    down for it to behave as an abstarct, thus an input :)
-    \end{abstract}
-
-    \maketitle
-
-    \section{Testing}
-    This follows from \jc the second part of the \textit{remark} above.
-    % parsing comments
-    \withDefault{Abhijeet}
-    Now for some remakrs \% about \foo centralizers. %one more comment.
-    \vspace{1cm}
-    \begin{rmk*}[1.1.3]
-      This is a example of nested environment. \name{Ankit}{Jaiswal} \\
-      Also test the line break token. \withDefault[Bhavna]{Abhijeet}
-      \begin{enumerate}
-      \item If $A \subgroup G$, \medskip then $A$ is abelian if and only if $A \subset
-        C_G(A)$.
-      \item Furthermore, if $A \subgroup Z(G)$, then $A \normsubgroup G$. \newline
-        This follows using \emph{basic} commutativity arguments, which are as follows:
-        \begin{itemize}
-          % testing nested list
-          \item First One.
-          % testing comments.
-          \item Second One.
-        \end{itemize}
-      \end{enumerate}
-    \end{rmk*}
-    \begin{defn*}[definition of the page]
-        For $A \subset G$, we set $N_G(A) := \{g \in G | gAg^{-1} = A\}$ and
-        $C_G(A) := \{g \in G | gag^{-1} = a, \forall a \in A\}$.
-    \end{defn*}
-    Note that $C_G(A) \subset N_G(A)$ and $Z(G) = C_G(G)$.
-
-
-    \section{math section}
-    \begin{equation}
-    if x = 2 - x then 2x = 2, hence x = 1
-    \end{equation}
-
-    {\tiny\begin{theorem}
-    If the \emph{tiny} is followed immediately by begin this fails.
-    \end{theorem}
-    }
-
-    \subsection{Tyring Floats}
-    This can parse graphics as well
-    \begin{figure}[h]
-      \includegraphics[width=8cm]{Plot}
-    \end{figure}
-
-    \begin{tabular}{ c c c }
-     cell1 & cell2 & cell3 \\
-     cell4 & cell5 & cell6 \\ [1ex]
-     cell7 & cell8 & cell9 \\
-    \end{tabular}
-
-    Lets check some code blocks. I know this wont be look good. But real document
-    do have a lot plain text material which gives a nice visual appeal.
-
-    \begin{lstlisting}
-    void main() {
-      printf("Hello, World!\n");
-    }
-    \end{lstlisting}
-  \end{document}
-  """
-
+  val raw = scala.io.Source.fromFile(file.getPath).mkString
 
 /**************************      preamble input      ****************************/
 
@@ -197,5 +112,22 @@ class SourcesIO(filename: String) {
 
 
   def parse = DeTeX(thmList).document.parse(preamble + docString)
+
+  def writeTo(file: String) = {
+    val content = this.parse match {
+      case Parsed.Success(value,_) => value.toHTML.toString.split("><").mkString(">\n<")
+      case _: Parsed.Failure => "<html><head><script>alert('Parser Failed!')</script></head></html>"
+    }
+    new PrintWriter(file) { write("<!DOCTYPE html>\n"+content); close }
+  }
+
+}
+
+
+object siteMaker {
+  def main(args: Array[String]): Unit = {
+    val input = new SourcesIO("")
+    input.writeTo("mydoc.html")
+  }
 
 }
