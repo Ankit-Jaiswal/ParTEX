@@ -158,7 +158,7 @@ object TargetLang {
     def toHTML: Frag
   }
   case class Text(s: String) extends Fragment{
-    def toHTML: Frag = s
+    def toHTML: Frag = s /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(s: String) extends Fragment with Math{
     def toHTML: Frag = span(`class`:="inlinemath")(s)
@@ -170,7 +170,7 @@ object TargetLang {
     def toHTML: Frag = "\""+s+"\""
   }
   case class Citation(s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="citation")(s)
+    def toHTML: Frag = span(`class`:="citation")(sup(strong(s)))
   }
   case class Hypertarget(l: String, s: String) extends Fragment{
     def toHTML: Frag = span(`class`:="hypertarget")(s)

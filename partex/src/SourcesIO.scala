@@ -126,7 +126,7 @@ class SourcesIO(filename: String) {
 
 object siteMaker {
   def main(args: Array[String]): Unit = {
-    val input = new SourcesIO("")
+    val input = new SourcesIO("polymath.tex")
     input.writeTo("mydoc.html")
   }
 

@@ -1,7 +1,7 @@
 /*****
 STATUS - parser is complete and running succesfully.
+       - a basic .html output is added as a method to SourcesIO.
        - Numbering is yet to be added.
-       - a basic .html output is needed.
        - a scalatest is also needed to be framed.
 
 */
