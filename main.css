@@ -141,6 +141,10 @@ pre {
   padding: 0.3em;
 }
 
+.text {
+  white-space: pre-line;
+}
+
 .italic {
   font-style: italic;
 }
