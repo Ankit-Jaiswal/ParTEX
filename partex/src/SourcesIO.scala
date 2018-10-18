@@ -17,9 +17,11 @@ class SourcesIO(filename: String) {
 /**************************      preamble input      ****************************/
 
   val inputFile: P[String] = P("\\" ~ ("input"|"include") ~ "{" ~
-    (resrcFilename.map((f: String) => scala.io.Source.fromFile(getClass.getResource("/"+f+".tex").getPath).mkString) |
-      resrcFile.map((f: String) => scala.io.Source.fromFile(getClass.getResource("/"+f).getPath).mkString) |
-      path.map((f: String) => scala.io.Source.fromFile(f).mkString) ) ~
+    (resrcFilename.map((f: String) =>
+      scala.io.Source.fromFile(getClass.getResource("/"+f+".tex").getPath).mkString) |
+    resrcFile.map((f: String) =>
+      scala.io.Source.fromFile(getClass.getResource("/"+f).getPath).mkString) |
+    path.map((f: String) => scala.io.Source.fromFile(f).mkString) ) ~
     "}")
   val resrcFilename: P[String] = P(alpha | num | "_").rep.!
   val resrcFile: P[String] = P(alpha | num | "_" | ".").rep.!
@@ -51,13 +53,13 @@ class SourcesIO(filename: String) {
   val rest = "\\begin{document}" + divided(1)
 
   val usrCmdList: Map[String,(Vector[String],String)] =
-    macroParser.parse(preamble) match {
+    macroParser.parse(preamble+rest) match {
       case Parsed.Success(value,_) => value
       case _: Parsed.Failure => Map()
     }
 
   val thmList: Map[String,String] =
-    nwthmParser.parse(preamble) match {
+    nwthmParser.parse(preamble+rest) match {
     case Parsed.Success(value,_) => value
     case _: Parsed.Failure => Map()
   }
@@ -115,8 +117,10 @@ class SourcesIO(filename: String) {
 
   def writeTo(file: String) = {
     val content = this.parse match {
-      case Parsed.Success(value,_) => value.toHTML.toString.split("><").mkString(">\n<")
-      case _: Parsed.Failure => "<html><head><script>alert('Parser Failed!')</script></head></html>"
+      case Parsed.Success(value,_) =>
+        value.toHTML.toString.split("><").mkString(">\n<")
+      case _: Parsed.Failure =>
+        "<html><head><script>alert('Parser Failed!')</script></head></html>"
     }
     new PrintWriter(file) { write("<!DOCTYPE html>\n"+content); close }
   }

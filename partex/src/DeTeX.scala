@@ -170,7 +170,8 @@ case class DeTeX(thmList: Map[String,String]) {
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
       | "\\\\" ~ ws.rep | StringIn("~","{}") )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","setstretch","vspace",
-    "cline","comment","noalign","rowfont","markright","markboth","pagenumbering") ~ box.rep)
+    "cline","comment","noalign","rowfont","markright","markboth","pagenumbering","def",
+    "newcommand","renewcommand") ~ box.rep)
   val comment: P[Unit] = P("\\begin{comment}" ~ (!"\\end{comment}" ~ AnyChar).rep ~ "\\end{comment}")
   val resvdEnvToken: P[Unit] = P("\\" ~ ("begin"|"end") ~ "{" ~
     StringIn("doublespace","spacing","flushleft","flushright","center") ~ "}")

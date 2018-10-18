@@ -158,7 +158,8 @@ object TargetLang {
     def toHTML: Frag
   }
   case class Text(s: String) extends Fragment{
-    def toHTML: Frag = s /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
+    def toHTML: Frag = span(`class`:="text")(s)
+    /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(s: String) extends Fragment with Math{
     def toHTML: Frag = span(`class`:="inlinemath")(s)
