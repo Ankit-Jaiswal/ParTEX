@@ -7,6 +7,8 @@ STATUS - parser is complete and running succesfully.
 */
 
 package partex
+import java.util.Calendar
+import java.text.SimpleDateFormat
 
 object ParsingRules {
   val all = DeTeX(Map())
@@ -43,11 +45,13 @@ case class DeTeX(thmList: Map[String,String]) {
   val meta: P[MetaData] = P(abs | title | author | address | email | date)
   val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ (!"\\end{abstract}" ~ AnyChar).rep.! ~
     "\\end{abstract}").map((t:(Option[String],String)) => Abstract(t._1,t._2))
-  val title: P[Title] = P("\\title" ~ alias.? ~ cmdName).map((t:(Option[String],String)) => Title(t._1,t._2))
+  val title: P[Title] = P("\\title" ~ alias.? ~ cmdName).map((t:(Option[String],String)) =>
+    Title(t._1,text.parse(t._2).get.value.s))
   val author: P[Author] = P("\\author" ~ cmdName).map((s: String) => Author(s))
   val address: P[Address] = P("\\address" ~ cmdName).map((s: String) => Address(s))
   val email: P[Email] = P("\\email" ~ cmdName).map((s: String) => Email(s))
-  val date: P[Date] = P("\\date" ~ cmdName).map((s: String) => Date(s))
+  val date: P[Date] = P("\\date" ~ cmdName).map((s: String) =>
+    Date(s.replace("\\today", new SimpleDateFormat("d-M-y").format(Calendar.getInstance().getTime()))))
   val metaToken: P[Unit] = P("\\" ~
     StringIn("begin{abstract}","title{","author{","address{","email{","date{"))
   val beginDoc: P[Unit] = P("\\begin{document}" ~ (&("\\")|ws.rep))
@@ -153,7 +157,7 @@ case class DeTeX(thmList: Map[String,String]) {
     hyperlink | ref | note | styled | text)
 
   val text: P[Text] =
-    P( ( reserved | wrapper | spSym |
+    P( ( reserved | wrapper | spSym | linebreak |
       !StringIn("{","}","$","\\(","\\[","\\item","\\phantomsection") ~
       !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
@@ -168,7 +172,7 @@ case class DeTeX(thmList: Map[String,String]) {
       "newpage","onehalfspacing","parindent","parfillskip","parskip","par","raggedleft",
       "raggedright","rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
       "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
-      | "\\\\" ~ ws.rep | StringIn("~","{}") )
+      | StringIn("~","{}") )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","setstretch","vspace",
     "cline","comment","noalign","rowfont","markright","markboth","pagenumbering","def",
     "newcommand","renewcommand") ~ box.rep)
@@ -179,6 +183,7 @@ case class DeTeX(thmList: Map[String,String]) {
   val wrapper: P[String] = P("\\" ~ StringIn("lowercase","textnormal","textrm","textsf","texttt",
     "textup","textsl","textsc","textmd","textlf","uppercase") ~ cmdName)
   val spSym: P[String] = P("\\" ~ StringIn("#","$","%","^","&","{","}","~").!)
+  val linebreak: P[String] = P("\\\\" ~ ws.rep).!.map((_:String) => "\n")
 
   val inlineMath: P[InlineMath] = P((inlineEnv | singleDollar | roundBracket ).
     map((s: String)=> InlineMath(s)))

@@ -16,9 +16,9 @@ object TargetLang {
         body(css("margin"):="0px")(
           div(id:="topmatter")(
             table(tr(
-              td(top.collectFirst({case m: Author => m.s})),
-              td(top.collectFirst({case m: Title => m.s})),
-              td(top.collectFirst({case m: Date => m.s})) )
+              td(width:="25%")(top.collectFirst({case m: Author => m.s})),
+              td(width:="50%")(top.collectFirst({case m: Title => m.s})),
+              td(width:="25%")(top.collectFirst({case m: Date => m.s})) )
             ),
             div(id:="abstract")(
               h3("Abstract"),

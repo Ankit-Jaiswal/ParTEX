@@ -12,6 +12,7 @@
   font-family: sans-serif;
   text-shadow: 0.1em 0.1em 0.2em #000000;
   font-weight: bold;
+  white-space: pre-line;
 }
 
 #abstract {
@@ -24,6 +25,7 @@
 
 #abstract p {
   font-size: 1.2em;
+  white-space: pre-line;
 }
 
 #mainbody {
