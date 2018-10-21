@@ -16,14 +16,11 @@ object TargetLang {
         body(css("margin"):="0px")(
           div(id:="topmatter")(
             table(tr(
-              td(width:="25%")(top.collectFirst({case m: Author => m.s})),
-              td(width:="50%")(top.collectFirst({case m: Title => m.s})),
-              td(width:="25%")(top.collectFirst({case m: Date => m.s})) )
+              td(width:="25%")(top.collectFirst({case m: Author => m.toHTML})),
+              td(width:="50%")(top.collectFirst({case m: Title => m.toHTML})),
+              td(width:="25%")(top.collectFirst({case m: Date => m.toHTML})) )
             ),
-            div(id:="abstract")(
-              h3("Abstract"),
-              p(top.collectFirst({case m: Abstract => m.s}))
-            )
+            top.collectFirst({case m: Abstract => m.toHTML})
           ),
           div(id:="mainbody")(bd.toHTML)
         )
@@ -31,17 +28,34 @@ object TargetLang {
   }
 
   sealed trait MetaData extends BodyElem{
-    val s: String
+    def toHTML: Frag
+  }
+  case class Title(alias: Option[String], s: String) extends MetaData{
     def toHTML: Frag = s
   }
-  case class Title(alias: Option[String], s: String) extends MetaData
-  case class Abstract(alias: Option[String], s: String) extends MetaData
-  case class Author(s: String) extends MetaData
-  case class Address(s: String) extends MetaData
-  case class Email(s: String) extends MetaData
-  case class Date(s: String) extends MetaData
-  case class Info(s: String) extends MetaData
+  case class Author(s: String) extends MetaData{
+    def toHTML: Frag = s
+  }
+  case class Address(s: String) extends MetaData{
+    def toHTML: Frag = s
+  }
+  case class Email(s: String) extends MetaData{
+    def toHTML: Frag = s
+  }
+  case class Date(s: String) extends MetaData{
+    def toHTML: Frag = s
+  }
+  case class Info(s: String) extends MetaData{
+    def toHTML: Frag = s
+  }
 
+  case class Abstract(alias: Option[String], p: Paragraph) extends MetaData{
+    def toHTML: Frag =
+      div(id:="abstract")(
+        h3("Abstract"),
+        p.toHTML
+      )
+  }
 
 
   case class Body(elems: Vector[BodyElem]){
@@ -65,7 +79,7 @@ object TargetLang {
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
-      def toHTML: Frag = div(`class`:="heading")(span(`class`:=name)(name, ": ", value))
+      def toHTML: Frag = div(`class`:="heading")(span(`class`:=name)(value))
   }
   case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float{

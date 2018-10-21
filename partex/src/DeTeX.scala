@@ -43,8 +43,8 @@ case class DeTeX(thmList: Map[String,String]) {
     meta ).rep.map(_.toVector)
 
   val meta: P[MetaData] = P(abs | title | author | address | email | date)
-  val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ (!"\\end{abstract}" ~ AnyChar).rep.! ~
-    "\\end{abstract}").map((t:(Option[String],String)) => Abstract(t._1,t._2))
+  val abs: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ paragraph ~
+    "\\end{abstract}").map((t:(Option[String],Paragraph)) => Abstract(t._1,t._2))
   val title: P[Title] = P("\\title" ~ alias.? ~ cmdName).map((t:(Option[String],String)) =>
     Title(t._1,text.parse(t._2).get.value.s))
   val author: P[Author] = P("\\author" ~ cmdName).map((s: String) => Author(s))
