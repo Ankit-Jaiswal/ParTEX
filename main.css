@@ -5,6 +5,10 @@
 }
 
 #topmatter table {
+  background-color: #4d4d4d;
+  position: fixed;
+  left: 0;
+  top: 0;
   width: 100%;
   text-align: center;
   color: white;
@@ -29,7 +33,24 @@
   margin-right: 15%;
   font-size: 1em;
   font-family: serif;
-  padding-bottom: 10em;
+  margin-bottom: 10em;
+}
+
+#footer {
+  bottom: 0;
+  left: 0;
+  background-color: #4d4d4d;
+  color: white;
+  font-size: 0.9em;
+  padding: 5em;
+}
+
+#footer a{
+  color: white;
+}
+
+.paragraph {
+  text-align: justify;
 }
 
 .heading {
@@ -141,6 +162,10 @@ pre {
 
 .text {
   white-space: pre-line;
+}
+
+.notemark a{
+  text-decoration: none;
 }
 
 .italic {

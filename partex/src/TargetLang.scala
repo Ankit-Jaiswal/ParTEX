@@ -2,6 +2,7 @@ package partex
 import scalatags.Text.all._
 
 object TargetLang {
+  val foot = new scalatags.text.Builder
 
   sealed trait Labelable
   sealed trait Math
@@ -22,7 +23,12 @@ object TargetLang {
             ),
             top.collectFirst({case m: Abstract => m.toHTML})
           ),
-          div(id:="mainbody")(bd.toHTML)
+          div(id:="mainbody")(bd.toHTML),
+          div(id:="footer")(
+            ol(
+              for(f <- foot.children.take(foot.childIndex)) yield li(f)
+            )
+          )
         )
       )
   }
@@ -79,7 +85,11 @@ object TargetLang {
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
-      def toHTML: Frag = div(`class`:="heading")(span(`class`:=name)(value))
+      def toHTML: Frag =
+        div(`class`:="heading")(
+          span(`class`:=name)( value, alias.map((l: String) => "\t\t["+l+"]") )/*,
+          label.map((l: String) => a(name:=l)()).getOrElse("")*/
+        )
   }
   case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float{
@@ -96,7 +106,7 @@ object TargetLang {
     value: Body) extends BodyElem with Labelable{
       def toHTML: Frag =
         div(`class`:="theorem")(
-          div(`class`:="name")(name,"\t\t", span(`class`:="alias")(alias)),
+          div(`class`:="name")(name, alias.map((l: String) => "\t\t["+l+"]")),
           value.toHTML
         )
   }
@@ -104,7 +114,7 @@ object TargetLang {
     extends BodyElem with Labelable{
       def toHTML: Frag =
         div(`class`:="proof")(
-          div(`class`:="name")("proof", span(`class`:="alias")(alias)),
+          div(`class`:="name")("proof", alias.map((l: String) => "\t\t["+l+"]")),
           div(`class`:="pfbody")(value.toHTML)
         )
   }
@@ -191,13 +201,16 @@ object TargetLang {
     def toHTML: Frag = span(`class`:="hypertarget")(s)
   }
   case class Hyperlink(l: String, s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="hyperlink")(s)
+    def toHTML: Frag = span(`class`:="hyperlink")(a(href:=l)(s))
   }
   case class Reference(s: String) extends Fragment{
     def toHTML: Frag = span(`class`:="reference")("this")
   }
-  case class Note(s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="note")(s)
+  case class Note(p: Paragraph) extends Fragment{
+    def toHTML: Frag = {
+      p.toHTML.applyTo(foot)
+      span(`class`:="notemark")(a(href:="#footer")(sup("[?]")))
+    }
   }
   sealed trait Styled extends Fragment{
     val s: Paragraph

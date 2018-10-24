@@ -213,7 +213,7 @@ case class DeTeX(thmList: Map[String,String]) {
     sqBox.? ~ cmdName).map((s: String) => Reference(s))
 
   val note: P[Note] = P("\\" ~ StringIn("footnotetext","footnote","todo","marginpar","marginnote") ~
-    sqBox.? ~ cmdName ~ sqBox.?).map((s: String) => Note(s))
+    sqBox.? ~ "{" ~ paragraph ~ "}" ~ sqBox.?).map((p: Paragraph) => Note(p))
 
   val styled: P[Styled] = P(strong | italics | underline | emph | superscript | subscript)
 
