@@ -16,11 +16,11 @@ object TargetLang {
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
-            table(tr(
+            a(href:="")(table(tr(
               td(width:="25%")(top.collectFirst({case m: Author => m.toHTML})),
               td(width:="50%")(top.collectFirst({case m: Title => m.toHTML})),
-              td(width:="25%")(top.collectFirst({case m: Date => m.toHTML})) )
-            ),
+              td(width:="25%")(top.collectFirst({case m: Date => m.toHTML}))
+            ))),
             top.collectFirst({case m: Abstract => m.toHTML})
           ),
           div(id:="mainbody")(bd.toHTML),
