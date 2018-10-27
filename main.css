@@ -131,10 +131,14 @@
 .codeBlock {
   background-color: #d9d9d9;
   font-family: monospace;
-  font-size: 1em;
+  font-size: 1.1em;
   margin-left: 1.5em;
   margin-right: 1.5em;
   padding: 0.6em;
+  overflow-x: auto;
+  border-style: ridge;
+  border-width: medium;
+  border-color: grey;
 }
 
 pre {
@@ -162,6 +166,10 @@ pre {
 
 .text {
   white-space: pre-line;
+}
+
+.inlinemath {
+  font-family: monospace;
 }
 
 .notemark a{

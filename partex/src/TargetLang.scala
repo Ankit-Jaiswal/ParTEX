@@ -122,7 +122,7 @@ object TargetLang {
     with Math with Labelable{
       def toHTML: Frag = div(`class`:="displaymath")(value)
   }
-  case class CodeBlock(spec: Option[Map[String,String]], value: String) extends BodyElem{
+  case class CodeBlock(value: String) extends BodyElem{
     def toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])

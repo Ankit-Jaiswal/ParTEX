@@ -97,14 +97,11 @@ case class DeTeX(thmList: Map[String,String]) {
     P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
   val codeBlock: P[CodeBlock] = P(inputCode|writtenCode)
-  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ codeSpec.? ~ name ~ (&("\\")|ws.rep)).
-    map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
+  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ sqBox.? ~ name ~ (&("\\")|ws.rep)).
+    map((s: String) => CodeBlock(s))
   val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting","alltt") ~
-    "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end).
-    map((t:(Option[Map[String,String]],String)) => CodeBlock(t._1,t._2))
-  val codeSpec: P[Map[String,String]] =
-    P("[" ~ (key ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
-  val key: P[String] = P(ws.rep ~ StringIn("language","label","caption").! ~ ws.rep)
+    "*".? ~ "}" ~ sqBox.? ~ ws.rep ~ code ~ end).
+    map((s: String) => CodeBlock(s))
   val code: P[String] = P(!("\\end{" ~ StringIn("verbatim","lstlisting") ~ "*".? ~ "}") ~ AnyChar).rep.!
 
   val figure: P[Figure] = P("\\begin{" ~ StringIn("SCfigure","wrapfigure","figure") ~ "}" ~

@@ -117,8 +117,10 @@ class SourcesIO(filename: String) {
 
   def writeTo(file: String) = {
     val content = this.parse match {
-      case Parsed.Success(value,_) =>
-        value.toHTML.toString.split("><").mkString(">\n<")
+      case Parsed.Success(value,_) => value.toHTML.toString
+        .replaceAllLiterally("<span class=\"text\"></span>","")
+        .replaceAllLiterally("><",">\n<")
+
       case _: Parsed.Failure =>
         "<html><head><script>alert('Parser Failed!')</script></head></html>"
     }
