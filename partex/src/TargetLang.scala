@@ -154,11 +154,7 @@ object TargetLang {
       )
   }
   case class BibItem(name: String, value: Body){
-    def toHTML: Frag =
-      li(
-        span(`class`:="bibItemName")(name),
-        value.toHTML
-      )
+    def toHTML: Frag = li(value.toHTML)
   }
 
   case class Ordered(name: String, xs: Vector[Item]) extends TexList{
