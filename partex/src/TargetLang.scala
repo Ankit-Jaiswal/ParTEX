@@ -146,6 +146,20 @@ object TargetLang {
     val xs: Vector[Item]
     def toHTML: Frag
   }
+  case class Bibliography(xs: Vector[BibItem]) extends BodyElem {
+    def toHTML: Frag =
+      div(`class`:="bibliography")(
+        h2(`class`:="bibtitle")("References"),
+        ol(for(i <- xs) yield i.toHTML)
+      )
+  }
+  case class BibItem(name: String, value: Body){
+    def toHTML: Frag =
+      li(
+        span(`class`:="bibItemName")(name),
+        value.toHTML
+      )
+  }
 
   case class Ordered(name: String, xs: Vector[Item]) extends TexList{
     def toHTML: Frag = ol(for(i <- xs) yield i.toHTML)

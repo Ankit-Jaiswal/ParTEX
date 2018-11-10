@@ -124,6 +124,7 @@
 .displaymath {
   text-align: center;
   font-size: 1.1em;
+  font-family: monospace;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
@@ -140,6 +141,11 @@
   border-width: medium;
   border-color: grey;
 }
+
+.bibliography {
+  margin-top: 5em;
+}
+
 
 pre {
   -moz-tab-size: 2;

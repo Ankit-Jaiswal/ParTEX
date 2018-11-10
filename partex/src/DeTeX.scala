@@ -62,7 +62,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
   val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
-    codeBlock | figure | table | tabular | list | environment | paragraph | !"\\end{" ~ command)
+    codeBlock | figure | table | tabular | list | bibliography |
+    environment | paragraph | !("\\end{"|"\\bibitem{") ~ command)
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -150,6 +151,14 @@ case class DeTeX(thmList: Map[String,String]) {
   val paragraph: P[Paragraph] = P(fragment.rep(1).map(_.toVector).
     map((frgs: Vector[Fragment]) => Paragraph(frgs)))
 
+  val bibliography: P[Bibliography] = P("\\begin{thebibliography}" ~ box.rep ~
+    (&("\\")|ws.rep) ~ bibItem.rep.map(_.toVector) ~ end).
+    map((xs: Vector[BibItem]) => Bibliography(xs))
+  val bibItem: P[BibItem] = P("\\bibitem" ~ cmdName ~ ws.rep ~ body).
+    map((t:(String,Body)) => BibItem(t._1,t._2))
+
+
+
   val fragment: P[Fragment] = P(inlineMath | phantom | quoted | cite | hypertarget |
     hyperlink | ref | note | styled | text)
 
@@ -217,7 +226,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val strong: P[Strong] = P("\\textbf{" ~ paragraph ~ "}").map((p: Paragraph) => Strong(p))
   val italics: P[Italic] = P("\\textit{" ~ paragraph ~ "}").map((p: Paragraph) => Italic(p))
   val underline: P[Underline] = P("\\underline{" ~ paragraph ~ "}").map((p: Paragraph) => Underline(p))
-  val emph: P[Emph] = P("\\emph{" ~ paragraph ~ "}").map((p: Paragraph) => Emph(p))
+  val emph: P[Emph] = P("\\emph{" ~ paragraph ~ "}" | "{\\em" ~ paragraph ~ "}").
+    map((p: Paragraph) => Emph(p))
   val superscript: P[Superscript] = P("\\textsuperscript{" ~ paragraph ~ "}").map((p: Paragraph) => Superscript(p))
   val subscript: P[Subscript] = P("\\textsubscript{" ~ paragraph ~ "}").map((p: Paragraph) => Subscript(p))
 
