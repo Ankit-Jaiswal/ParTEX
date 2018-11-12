@@ -12,7 +12,8 @@ object TargetLang {
       html(
         head(
           scalatags.Text.tags2.title("First Look !"),
-          link(href:="main.css", rel:="stylesheet")
+          link(href:="main.css", rel:="stylesheet"),
+          script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML")
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
@@ -120,7 +121,7 @@ object TargetLang {
   }
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
     with Math with Labelable{
-      def toHTML: Frag = div(`class`:="displaymath")(value)
+      def toHTML: Frag = div(`class`:="displaymath")("\\["+value+"\\]")
   }
   case class CodeBlock(value: String) extends BodyElem{
     def toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
@@ -196,7 +197,7 @@ object TargetLang {
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(s: String) extends Fragment with Math{
-    def toHTML: Frag = span(`class`:="inlinemath")(s)
+    def toHTML: Frag = span(`class`:="inlinemath")("\\("+s+"\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
     def toHTML: Frag = span(`class`:="phantom")("this")

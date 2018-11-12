@@ -124,7 +124,6 @@
 .displaymath {
   text-align: center;
   font-size: 1.1em;
-  font-family: monospace;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
@@ -174,8 +173,8 @@ pre {
   white-space: pre-line;
 }
 
-.inlinemath {
-  font-family: monospace;
+.bibliography .text {
+  white-space: normal;
 }
 
 .notemark a{
