@@ -50,7 +50,7 @@ class SourcesIO(filename: String) {
 
   val divided = raw.split("""\\begin\{document\}""")
   val preamble = inputFile.?.parse(divided(0)).get.value.getOrElse("") + divided(0)
-  val rest = "\\begin{document}" + divided(1)
+  val rest = "\\begin{document}" + divided(1).split('\n').map(rmvComments).mkString("\n")
 
   val usrCmdList: Map[String,(Vector[String],String)] =
     macroParser.parse(preamble+rest) match {
@@ -67,17 +67,31 @@ class SourcesIO(filename: String) {
 
 /***********************       resolving raw file       **********************/
 
+  val scanner: P[String] = P(resolver ~ AnyChar.rep.!).map((t:(String,String)) => t._1+t._2)
+
+  val resolver: P[String] = P((!cmdToken ~ AnyChar).rep.! ~ substitutor).
+    map((t:(String,String)) => t._1 + t._2).
+    rep.map(_.toVector).map((xs: Vector[String]) => if(xs.isEmpty) {""} else {xs.reduceLeft(_+_)})
+
+  val substitutor: P[String] = P(cmdToken.! ~ boxPara ~ params).
+    map((t:(String,Vector[String],Vector[String])) =>
+    scanner.parse(resolveDef(t._1,t._2,t._3)).get.value)
+
   val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-  val calledCmd =
-    P((!cmdToken ~ AnyChar).rep ~ (cmdToken ~ !alpha).! ~ boxPara ~ params).rep.map(_.toVector)
-  val cmdToken: P[Unit] = cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
+  val cmdToken: P[Unit] = P(cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s)) ~ !alpha)
   val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
   val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
+  def resolveDef(k: String,default: Vector[String],para: Vector[String]): String = {
+    val params = if (default.length == 0) {usrCmdList(k)._1 ++ para} else {default++para}
+
+    params.foldLeft(usrCmdList(k)._2)((d: String,p: String) =>
+      d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
+  }
 
   /**********************        main processing        ************************/
 
-  def docString = resolve(rest.split('\n').map(rmvComments).mkString("\n"))
+  def docString = scanner.parse(rest).get.value
 
   def rmvComments(l: String) =
     if (l.startsWith("%")) ""
@@ -85,33 +99,6 @@ class SourcesIO(filename: String) {
     .findFirstMatchIn(l)
     .map((m) => m.before.toString + m.group(0).head)
     .getOrElse(l)
-
-  def resolve(s: String): String = {
-    val calledCmdList = calledCmd.parse(s) match {
-      case Parsed.Success(value,_) => value
-      case _: Parsed.Failure => Vector()
-    }
-
-    val res = calledCmdList.foldLeft(s)(substitute)
-
-    if (res == s) res else resolve(res)
-  }
-
-  def substitute(l: String,t:(String,Vector[String],Vector[String])) =
-    if (t._2.length == 0)
-    l.replaceAllLiterally(t._1 ++ wrap(t._3),
-      resolveDef(t._1, usrCmdList(t._1)._1 ++ t._3) )
-    else
-    l.replaceAllLiterally(t._1 ++ boxwrap(t._2) ++ wrap(t._3),
-      resolveDef(t._1, t._2 ++ t._3) )
-
-  def resolveDef(k: String,params: Vector[String]): String =
-    params.foldLeft(usrCmdList(k)._2)((d: String,p: String) =>
-      d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
-
-  def wrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"{"++s++"}")
-  def boxwrap(xs: Vector[String]) = xs.foldLeft("")((l: String,s: String) => l++"["++s++"]")
-
 
   def parse = DeTeX(thmList).document.parse(preamble + docString)
 
