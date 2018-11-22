@@ -8,7 +8,7 @@ object TargetLang {
   sealed trait Math
   sealed trait Float
   case class Document(top: Vector[MetaData], bd: Body){
-    def toHTML: Frag =
+    val toHTML: Frag =
       html(
         head(
           scalatags.Text.tags2.title("First Look !"),
@@ -35,29 +35,29 @@ object TargetLang {
   }
 
   sealed trait MetaData extends BodyElem{
-    def toHTML: Frag
+    val toHTML: Frag
   }
   case class Title(alias: Option[String], s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
   case class Author(s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
   case class Address(s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
   case class Email(s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
   case class Date(s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
   case class Info(s: String) extends MetaData{
-    def toHTML: Frag = s
+    val toHTML: Frag = s
   }
 
   case class Abstract(alias: Option[String], p: Paragraph) extends MetaData{
-    def toHTML: Frag =
+    val toHTML: Frag =
       div(id:="abstract")(
         h3("Abstract"),
         p.toHTML
@@ -66,27 +66,54 @@ object TargetLang {
 
 
   case class Body(elems: Vector[BodyElem]){
-    def toHTML: Frag =
+    def isHeading(b: BodyElem) = b match {
+      case _: Heading => true
+      case _ => false
+    }
+    val headList = elems.filter(isHeading).asInstanceOf[Vector[Heading]]
+
+    def subsecBlock(t:(Heading,String)) = {
+      val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
+        .takeWhile((h: Heading) => h.name!="section")
+
+      t +: slice.filter((h: Heading) => h.name=="subsection").map((h: Heading) => (h,t._2+".")).zipWithIndex
+        .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
+        .map(
+          (t:(Heading,String)) => t +:
+            slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!="subsection")
+              .map((h: Heading) => (h,t._2+".")).zipWithIndex
+              .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
+        ).flatten
+      }
+
+
+    val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
+      .map(subsecBlock).flatten.toMap
+
+    val toHTML: Frag =
       div(`class`:="body")(
         for(b <- elems) yield b.toHTML
       )
+
+
     }
 
   sealed trait BodyElem{
-    def toHTML: Frag
+    val toHTML: Frag
   }
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem{
-    def toHTML: Frag =
+    val toHTML: Frag =
       p(`class`:="paragraph")(
         for(f <- frgs) yield f.toHTML
       )
   }
   case class Command(name: String, value: String) extends BodyElem{
-    def toHTML: Frag = div(`class`:="command")(h3(name+": "+value))
+    val toHTML: Frag = div(`class`:="command")(h3(name+": "+value))
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
-      def toHTML: Frag =
+      val toHTML: Frag =
         div(`class`:="heading")(
           span(`class`:=name)( value, alias.map((l: String) => "\t\t["+l+"]") )/*,
           label.map((l: String) => a(name:=l)()).getOrElse("")*/
@@ -94,10 +121,10 @@ object TargetLang {
   }
   case class Graphics(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float{
-      def toHTML: Frag = div(`class`:="graphics")(div(`class`:="img")())
+      val toHTML: Frag = div(`class`:="graphics")(div(`class`:="img")())
   }
   case class Environment(name: String, value: Body) extends BodyElem{
-    def toHTML: Frag =
+    val toHTML: Frag =
       div(`class`:="environment")(
         div(`class`:="name")(name),
         div(`class`:="envbody")(value.toHTML)
@@ -105,7 +132,7 @@ object TargetLang {
   }
   case class Theorem(name: String, alias: Option[String], label: Option[String],
     value: Body) extends BodyElem with Labelable{
-      def toHTML: Frag =
+      val toHTML: Frag =
         div(`class`:="theorem")(
           div(`class`:="name")(name, alias.map((l: String) => "\t\t["+l+"]")),
           value.toHTML
@@ -113,7 +140,7 @@ object TargetLang {
   }
   case class Proof(alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable{
-      def toHTML: Frag =
+      val toHTML: Frag =
         div(`class`:="proof")(
           div(`class`:="name")("proof", alias.map((l: String) => "\t\t["+l+"]")),
           div(`class`:="pfbody")(value.toHTML)
@@ -121,14 +148,14 @@ object TargetLang {
   }
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
     with Math with Labelable{
-      def toHTML: Frag = div(`class`:="displaymath")("\\["+value+"\\]")
+      val toHTML: Frag = div(`class`:="displaymath")("\\["+value+"\\]")
   }
   case class CodeBlock(value: String) extends BodyElem{
-    def toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
+    val toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
     extends BodyElem with Float with Labelable{
-      def toHTML: Frag =
+      val toHTML: Frag =
         div(`class`:="figure")(
           g.toHTML,
           div(`class`:="caption")(cap)
@@ -136,7 +163,7 @@ object TargetLang {
   }
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
     extends BodyElem with Float with Labelable{
-      def toHTML: Frag =
+      val toHTML: Frag =
         div(`class`:="table")(
           table( for(row <- tb) yield row.toHTML ),
           div(`class`:="caption")(cap)
@@ -145,112 +172,112 @@ object TargetLang {
   sealed trait TexList extends BodyElem {
     val name: String
     val xs: Vector[Item]
-    def toHTML: Frag
+    val toHTML: Frag
   }
   case class Bibliography(xs: Vector[BibItem]) extends BodyElem {
-    def toHTML: Frag =
+    val toHTML: Frag =
       div(`class`:="bibliography")(
         h2(`class`:="bibtitle")("References"),
         ol(for(i <- xs) yield i.toHTML)
       )
   }
   case class BibItem(name: String, value: Body){
-    def toHTML: Frag = li(value.toHTML)
+    val toHTML: Frag = li(value.toHTML)
   }
 
   case class Ordered(name: String, xs: Vector[Item]) extends TexList{
-    def toHTML: Frag = ol(for(i <- xs) yield i.toHTML)
+    val toHTML: Frag = ol(for(i <- xs) yield i.toHTML)
   }
   case class Unordered(name: String,xs: Vector[Item]) extends TexList{
-    def toHTML: Frag = ul(for(i <- xs) yield i.toHTML)
+    val toHTML: Frag = ul(for(i <- xs) yield i.toHTML)
   }
   case class Custom(name: String,xs: Vector[Item]) extends TexList{
-    def toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
+    val toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
   }
   case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable{
-    def toHTML: Frag = li(`class`:="item")(value.toHTML)
+    val toHTML: Frag = li(`class`:="item")(value.toHTML)
   }
 
 
   case class Rows(rs: Vector[TableElem]){
-    def toHTML: Frag = tr(for(e <- rs) yield td(e.toHTML))
+    val toHTML: Frag = tr(for(e <- rs) yield td(e.toHTML))
   }
   sealed trait TableElem {
-    def toHTML: Frag
+    val toHTML: Frag
   }
   case class MultiCol(n: Int, value: TableElem) extends TableElem{
-    def toHTML: Frag = span(`class`:="multicol")(value.toHTML)
+    val toHTML: Frag = span(`class`:="multicol")(value.toHTML)
   }
   case class MultiRow(n: Int, value: TableElem) extends TableElem{
-    def toHTML: Frag = span(`class`:="multirow")(value.toHTML)
+    val toHTML: Frag = span(`class`:="multirow")(value.toHTML)
   }
   case class ParBox(value: TableElem) extends TableElem{
-    def toHTML: Frag = span(`class`:="parbox")(value.toHTML)
+    val toHTML: Frag = span(`class`:="parbox")(value.toHTML)
   }
 
 
   sealed trait Fragment{
-    def toHTML: Frag
+    val toHTML: Frag
   }
   case class Text(s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="text")(s)
+    val toHTML: Frag = span(`class`:="text")(s)
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(s: String) extends Fragment with Math{
-    def toHTML: Frag = span(`class`:="inlinemath")("\\("+s+"\\)")
+    val toHTML: Frag = span(`class`:="inlinemath")("\\("+s+"\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
-    def toHTML: Frag = span(`class`:="phantom")("this")
+    val toHTML: Frag = span(`class`:="phantom")("this")
   }
   case class Quoted(s: String) extends Fragment{
-    def toHTML: Frag = "\""+s+"\""
+    val toHTML: Frag = "\""+s+"\""
   }
   case class Citation(s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="citation")(sup(strong(s)))
+    val toHTML: Frag = span(`class`:="citation")(sup(strong(s)))
   }
   case class Hypertarget(l: String, s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="hypertarget")(s)
+    val toHTML: Frag = span(`class`:="hypertarget")(s)
   }
   case class Hyperlink(l: String, s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="hyperlink")(a(href:=l)(s))
+    val toHTML: Frag = span(`class`:="hyperlink")(a(href:=l)(s))
   }
   case class Reference(s: String) extends Fragment{
-    def toHTML: Frag = span(`class`:="reference")("this")
+    val toHTML: Frag = span(`class`:="reference")("this")
   }
   case class Note(p: Paragraph) extends Fragment{
-    def toHTML: Frag = {
+    val toHTML: Frag = {
       p.toHTML.applyTo(foot)
       span(`class`:="notemark")(a(href:="#footer")(sup("[?]")))
     }
   }
   sealed trait Styled extends Fragment{
     val s: Paragraph
-    def toHTML: Frag
+    val toHTML: Frag
   }
 
   case class Emph(s: Paragraph) extends Styled{
-    def toHTML: Frag = em(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = em(for(f <- s.frgs) yield f.toHTML)
   }
   case class Strong(s: Paragraph) extends Styled{
-    def toHTML: Frag = strong(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = strong(for(f <- s.frgs) yield f.toHTML)
   }
   case class Italic(s: Paragraph) extends Styled{
-    def toHTML: Frag = span(`class`:="italic")(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = span(`class`:="italic")(for(f <- s.frgs) yield f.toHTML)
   }
   case class Underline(s: Paragraph) extends Styled{
-    def toHTML: Frag = span(`class`:="underline")(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = span(`class`:="underline")(for(f <- s.frgs) yield f.toHTML)
   }
   case class Strikeout(s: Paragraph) extends Styled{
-    def toHTML: Frag = span(`class`:="strikeout")(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = span(`class`:="strikeout")(for(f <- s.frgs) yield f.toHTML)
   }
   case class Superscript(s: Paragraph) extends Styled{
-    def toHTML: Frag = sup(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = sup(for(f <- s.frgs) yield f.toHTML)
   }
   case class Subscript(s: Paragraph) extends Styled{
-    def toHTML: Frag = sub(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = sub(for(f <- s.frgs) yield f.toHTML)
   }
   case class SmallCaps(s: Paragraph) extends Styled{
-    def toHTML: Frag = span(`class`:="smallcaps")(for(f <- s.frgs) yield f.toHTML)
+    val toHTML: Frag = span(`class`:="smallcaps")(for(f <- s.frgs) yield f.toHTML)
   }
 
 }

@@ -91,7 +91,7 @@ class SourcesIO(filename: String) {
 
   /**********************        main processing        ************************/
 
-  def docString = scanner.parse(rest).get.value
+  val docString = scanner.parse(rest).get.value
 
   def rmvComments(l: String) =
     if (l.startsWith("%")) ""
@@ -100,10 +100,10 @@ class SourcesIO(filename: String) {
     .map((m) => m.before.toString + m.group(0).head)
     .getOrElse(l)
 
-  def parse = DeTeX(thmList).document.parse(preamble + docString)
+  val parsed = DeTeX(thmList).document.parse(preamble + docString)
 
   def writeTo(file: String) = {
-    val content = this.parse match {
+    val content = this.parsed match {
       case Parsed.Success(value,_) => value.toHTML.toString
         .replaceAllLiterally("<span class=\"text\"></span>","")
         .replaceAllLiterally("><",">\n<")
