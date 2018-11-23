@@ -8,12 +8,17 @@ object TargetLang {
   sealed trait Math
   sealed trait Float
   case class Document(top: Vector[MetaData], bd: Body){
+    def mapToJSobjectString(m: Map[Heading,String]): String =
+      "{" + m.map((t:(Heading,String)) => "\""+t._1.name+t._1.value+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
+
+
     val toHTML: Frag =
       html(
         head(
           scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet"),
-          script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML")
+          script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"),
+          script("const headNum = " , raw(mapToJSobjectString(bd.headNum)) , ";")
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
@@ -113,9 +118,17 @@ object TargetLang {
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
+      val idValue = name + value.split(" ").mkString("_")
       val toHTML: Frag =
         div(`class`:="heading")(
-          span(`class`:=name)( value, alias.map((l: String) => "\t\t["+l+"]") )/*,
+          span(`class`:=name)(
+            span(id:=idValue)(script(
+              raw("document.getElementById(\""),idValue, raw("\").innerHTML = "),
+              raw("headNum[\""),name+value,raw("\"]")
+            )),
+            value,
+            alias.map((l: String) => "\t\t["+l+"]")
+          )/*,
           label.map((l: String) => a(name:=l)()).getOrElse("")*/
         )
   }

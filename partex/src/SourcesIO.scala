@@ -109,7 +109,7 @@ class SourcesIO(filename: String) {
         .replaceAllLiterally("><",">\n<")
 
       case _: Parsed.Failure =>
-        "<html><head><script>alert('Parser Failed!')</script></head></html>"
+        "<html><head><script>alert('Parser Failed!');</script></head></html>"
     }
     new PrintWriter(file) { write("<!DOCTYPE html>\n"+content); close }
   }
