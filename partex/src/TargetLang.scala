@@ -31,7 +31,11 @@ object TargetLang {
 
     val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
       .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
-      .map(subsecBlock).flatten.toMap
+      .map(subsecBlock).flatten.toMap ++
+      headList.filter((h: Heading) => h.name == "chapter").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap ++
+      headList.filter((h: Heading) => h.name == "part").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap
 
     def mapToJSobjectString(m: Map[Heading,String]): String =
       "{" + m.map((t:(Heading,String)) => "\""+t._1.name+t._1.value+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
