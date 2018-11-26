@@ -61,6 +61,11 @@
   margin-top: 4em;
 }
 
+.heading span span {
+  display: inline-block;
+  width: 5%;
+}
+
 .part {
   font-size: 2.2em;
   font-weight: bolder;
