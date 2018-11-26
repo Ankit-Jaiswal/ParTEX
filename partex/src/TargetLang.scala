@@ -7,7 +7,32 @@ object TargetLang {
   sealed trait Labelable
   sealed trait Math
   sealed trait Float
+
   case class Document(top: Vector[MetaData], bd: Body){
+    def isHeading(b: BodyElem) = b match {
+      case _: Heading => true
+      case _ => false
+    }
+    val headList = bd.elems.filter(isHeading).asInstanceOf[Vector[Heading]]
+
+    def subsecBlock(t:(Heading,String)) = {
+      val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
+        .takeWhile((h: Heading) => h.name!="section")
+
+      t +: slice.filter((h: Heading) => h.name=="subsection").map((h: Heading) => (h,t._2+".")).zipWithIndex
+        .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
+        .map(
+          (t:(Heading,String)) => t +:
+            slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!="subsection")
+              .map((h: Heading) => (h,t._2+".")).zipWithIndex
+              .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
+        ).flatten
+      }
+
+    val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
+      .map(subsecBlock).flatten.toMap
+
     def mapToJSobjectString(m: Map[Heading,String]): String =
       "{" + m.map((t:(Heading,String)) => "\""+t._1.name+t._1.value+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
 
@@ -18,7 +43,7 @@ object TargetLang {
           scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet"),
           script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"),
-          script("const headNum = " , raw(mapToJSobjectString(bd.headNum)) , ";")
+          script("const headNum = " , raw(mapToJSobjectString(headNum)) , ";")
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
@@ -71,37 +96,10 @@ object TargetLang {
 
 
   case class Body(elems: Vector[BodyElem]){
-    def isHeading(b: BodyElem) = b match {
-      case _: Heading => true
-      case _ => false
-    }
-    val headList = elems.filter(isHeading).asInstanceOf[Vector[Heading]]
-
-    def subsecBlock(t:(Heading,String)) = {
-      val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
-        .takeWhile((h: Heading) => h.name!="section")
-
-      t +: slice.filter((h: Heading) => h.name=="subsection").map((h: Heading) => (h,t._2+".")).zipWithIndex
-        .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
-        .map(
-          (t:(Heading,String)) => t +:
-            slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!="subsection")
-              .map((h: Heading) => (h,t._2+".")).zipWithIndex
-              .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
-        ).flatten
-      }
-
-
-    val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
-      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
-      .map(subsecBlock).flatten.toMap
-
     val toHTML: Frag =
       div(`class`:="body")(
         for(b <- elems) yield b.toHTML
       )
-
-
     }
 
   sealed trait BodyElem{
