@@ -4,7 +4,9 @@ import scalatags.Text.all._
 object TargetLang {
   val foot = new scalatags.text.Builder
 
-  sealed trait Labelable
+  sealed trait Labelable {
+    val label: Option[String]
+  }
   sealed trait Math
   sealed trait Float
 
@@ -13,6 +15,11 @@ object TargetLang {
       case _: Heading => true
       case _ => false
     }
+    def isLabelable(b: BodyElem) = b match {
+      case _: Labelable => true
+      case _ => false
+    }
+
     val headList = bd.elems.filter(isHeading).asInstanceOf[Vector[Heading]]
 
     def subsecBlock(t:(Heading,String)) = {
@@ -37,9 +44,19 @@ object TargetLang {
       headList.filter((h: Heading) => h.name == "part").zipWithIndex
       .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap
 
-    def mapToJSobjectString(m: Map[Heading,String]): String =
-      "{" + m.map((t:(Heading,String)) => "\""+t._1.name+t._1.value+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
+    val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
 
+    val labelNum = bd.elems.filter(isLabelable).asInstanceOf[Vector[Labelable]]
+      .filter((l: Labelable) => l.label != None)
+      .map((l: Labelable) => (l.label.get, getNum(l))).toMap
+
+    def getNum(l: Labelable) = l match {
+      case h: Heading => headNum(h)
+      case _ => "00"
+    }
+
+    def mapToJSobjectString(m: Map[String,String]): String =
+      "{" + m.map((t:(String,String)) => "\""+t._1+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
 
     val toHTML: Frag =
       html(
@@ -47,7 +64,8 @@ object TargetLang {
           scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet"),
           script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"),
-          script("const headNum = " , raw(mapToJSobjectString(headNum)) , ";")
+          script("const headNum = ", raw(mapToJSobjectString(headNumByName)), ";"),
+          script("const labelNum = ", raw(mapToJSobjectString(labelNum)), ";")
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
@@ -257,7 +275,12 @@ object TargetLang {
     val toHTML: Frag = span(`class`:="hyperlink")(a(href:=l)(s))
   }
   case class Reference(s: String) extends Fragment{
-    val toHTML: Frag = span(`class`:="reference")("this")
+    val toHTML: Frag = span(id:="ref"+s, `class`:="reference")(
+      script(
+        raw("document.getElementById(\"ref"),s,raw("\").innerHTML = "),
+        raw("labelNum[\""),s,raw("\"]")
+      )
+    )
   }
   case class Note(p: Paragraph) extends Fragment{
     val toHTML: Frag = {
