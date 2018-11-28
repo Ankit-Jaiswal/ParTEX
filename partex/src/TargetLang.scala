@@ -15,8 +15,8 @@ object TargetLang {
       case _: Heading => true
       case _ => false
     }
-    def isLabelable(b: BodyElem) = b match {
-      case _: Labelable => true
+    def hasLabel(b: BodyElem) = b match {
+      case l: Labelable => if(l.label!=None) {true} else {false}
       case _ => false
     }
 
@@ -46,8 +46,7 @@ object TargetLang {
 
     val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
 
-    val labelNum = bd.elems.filter(isLabelable).asInstanceOf[Vector[Labelable]]
-      .filter((l: Labelable) => l.label != None)
+    val labelNum = bd.elems.filter(hasLabel).asInstanceOf[Vector[Labelable]]
       .map((l: Labelable) => (l.label.get, getNum(l))).toMap
 
     def getNum(l: Labelable) = l match {
@@ -56,7 +55,7 @@ object TargetLang {
     }
 
     def mapToJSobjectString(m: Map[String,String]): String =
-      "{" + m.map((t:(String,String)) => "\""+t._1+"\""+": "+"\""+t._2+"\"").mkString(", ") + "}"
+      m.map((t:(String,String)) => "\""+t._1+"\""+": "+"\""+t._2+"\"").mkString("{", ", ", "};")
 
     val toHTML: Frag =
       html(
@@ -64,12 +63,12 @@ object TargetLang {
           scalatags.Text.tags2.title("First Look !"),
           link(href:="main.css", rel:="stylesheet"),
           script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"),
-          script("const headNum = ", raw(mapToJSobjectString(headNumByName)), ";"),
-          script("const labelNum = ", raw(mapToJSobjectString(labelNum)), ";")
+          script("const headNum = ", raw(mapToJSobjectString(headNumByName)) ),
+          script("const labelNum = ", raw(mapToJSobjectString(labelNum)) )
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
-            a(href:="")(table(tr(
+            a(href:="#topmatter")(table(tr(
               td(width:="25%")(top.collectFirst({case m: Author => m.toHTML})),
               td(width:="50%")(top.collectFirst({case m: Title => m.toHTML})),
               td(width:="25%")(top.collectFirst({case m: Date => m.toHTML}))
@@ -183,7 +182,7 @@ object TargetLang {
     with Math with Labelable{
       val toHTML: Frag = div(`class`:="displaymath")("\\["+value+"\\]")
   }
-  case class CodeBlock(value: String) extends BodyElem{
+  case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
     val toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])

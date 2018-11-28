@@ -97,13 +97,14 @@ case class DeTeX(thmList: Map[String,String]) {
   val sqBracket : P[(Option[String],String)] =
     P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
-  val codeBlock: P[CodeBlock] = P(inputCode|writtenCode)
-  val inputCode: P[CodeBlock] = P("\\lstinputlisting" ~ sqBox.? ~ name ~ (&("\\")|ws.rep)).
-    map((s: String) => CodeBlock(s))
-  val writtenCode: P[CodeBlock] = P("\\begin{" ~ StringIn("verbatim","lstlisting","alltt") ~
-    "*".? ~ "}" ~ sqBox.? ~ ws.rep ~ code ~ end).
-    map((s: String) => CodeBlock(s))
+  val codeBlock: P[CodeBlock] = P(inputCode|writtenCode).
+    map((t:(Option[String],String)) =>
+    CodeBlock(t._1.getOrElse("").split(',').find(_.contains("label")).map(_.split('=')(1).filter(_ != ' ').mkString) , t._2))
+  val inputCode: P[(Option[String],String)] = P("\\lstinputlisting" ~ codeSpec.? ~ name ~ (&("\\")|ws.rep))
+  val writtenCode: P[(Option[String],String)] = P("\\begin{" ~ StringIn("verbatim","lstlisting","alltt") ~
+    "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end)
   val code: P[String] = P(!("\\end{" ~ StringIn("verbatim","lstlisting") ~ "*".? ~ "}") ~ AnyChar).rep.!
+  val codeSpec: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
 
   val figure: P[Figure] = P("\\begin{" ~ StringIn("SCfigure","wrapfigure","figure") ~ "}" ~
     (!end ~ AnyChar).rep.! ~ end).map((s: String) =>
