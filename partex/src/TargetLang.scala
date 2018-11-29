@@ -4,6 +4,7 @@ import scalatags.Text.all._
 object TargetLang {
   val foot = new scalatags.text.Builder
 
+  sealed trait AllElem
   sealed trait Labelable {
     val label: Option[String]
   }
@@ -11,16 +12,20 @@ object TargetLang {
   sealed trait Float
 
   case class Document(top: Vector[MetaData], bd: Body){
-    def isHeading(b: BodyElem) = b match {
-      case _: Heading => true
-      case _ => false
-    }
-    def hasLabel(b: BodyElem) = b match {
-      case l: Labelable => if(l.label!=None) {true} else {false}
-      case _ => false
-    }
-
     val headList = bd.elems.filter(isHeading).asInstanceOf[Vector[Heading]]
+
+    val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
+      .map(subsecBlock).flatten.toMap ++
+      headList.filter((h: Heading) => h.name == "chapter").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap ++
+      headList.filter((h: Heading) => h.name == "part").zipWithIndex
+      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap
+
+    val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
+
+    val labelNum = bd.elems.flatMap(hasLabel)
+      .map((l: Labelable) => (l.label.get, getNum(l))).toMap
 
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
@@ -36,18 +41,22 @@ object TargetLang {
         ).flatten
       }
 
-    val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
-      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
-      .map(subsecBlock).flatten.toMap ++
-      headList.filter((h: Heading) => h.name == "chapter").zipWithIndex
-      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap ++
-      headList.filter((h: Heading) => h.name == "part").zipWithIndex
-      .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap
+    def isHeading(b: BodyElem) = b match {
+      case _: Heading => true
+      case _ => false
+    }
 
-    val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
-
-    val labelNum = bd.elems.filter(hasLabel).asInstanceOf[Vector[Labelable]]
-      .map((l: Labelable) => (l.label.get, getNum(l))).toMap
+    def hasLabel(e: AllElem): Vector[Labelable] = e match {
+      case x: Paragraph => x.frgs.flatMap(hasLabel)
+      case x: TexList => x.xs.flatMap(hasLabel)
+      case x: Environment => x.value.elems.flatMap(hasLabel)
+      case x: Theorem => if(x.label!=None) {Vector(x)} else {Vector()} ++
+        x.value.elems.flatMap(hasLabel)
+      case x: Proof => if(x.label!=None) {Vector(x)} else {Vector()} ++
+        x.value.elems.flatMap(hasLabel)
+      case x: Labelable => if(x.label!=None) {Vector(x)} else {Vector()}
+      case _ => Vector()
+    }
 
     def getNum(l: Labelable) = l match {
       case h: Heading => headNum(h)
@@ -123,7 +132,7 @@ object TargetLang {
       )
     }
 
-  sealed trait BodyElem{
+  sealed trait BodyElem extends AllElem{
     val toHTML: Frag
   }
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem{
@@ -226,7 +235,7 @@ object TargetLang {
   case class Custom(name: String,xs: Vector[Item]) extends TexList{
     val toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
   }
-  case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable{
+  case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable with AllElem{
     val toHTML: Frag = li(`class`:="item")(value.toHTML)
   }
 
@@ -248,7 +257,7 @@ object TargetLang {
   }
 
 
-  sealed trait Fragment{
+  sealed trait Fragment extends AllElem{
     val toHTML: Frag
   }
   case class Text(s: String) extends Fragment{
