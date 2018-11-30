@@ -42,9 +42,12 @@ class SourcesIO(filename: String) {
 
 /********************     extracting \newtheorems      ************************/
 
-  val nwthmParser: P[Map[String,String]] = P(nwthm.rep).map(_.toVector).map(_.toMap)
-  val nwthm: P[(String,String)] = P((!"\\newtheorem{" ~ AnyChar).rep ~
-    "\\newtheorem" ~ cmdName ~ sqBox.? ~ cmdName ~ sqBox.?)
+  val nwthmParser: P[Map[String,(Option[String],String,Option[String])]] =
+    P(nwthm.rep).map(_.toVector).map(_.toMap)
+  val nwthm: P[(String,(Option[String],String,Option[String]))] =
+    P((!"\\newtheorem{" ~ AnyChar).rep ~
+    "\\newtheorem" ~ cmdName ~ (counter.? ~ cmdName ~ counter.?))
+  val counter: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
 
 /********************          pre-processing          ***********************/
 
@@ -58,7 +61,7 @@ class SourcesIO(filename: String) {
       case _: Parsed.Failure => Map()
     }
 
-  val thmList: Map[String,String] =
+  val thmList: Map[String,(Option[String],String,Option[String])] =
     nwthmParser.parse(preamble+rest) match {
     case Parsed.Success(value,_) => value
     case _: Parsed.Failure => Map()

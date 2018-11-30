@@ -14,7 +14,7 @@ object ParsingRules {
   val all = DeTeX(Map())
 }
 
-case class DeTeX(thmList: Map[String,String]) {
+case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   import fastparse.all._
   import TargetLang._
 
@@ -79,7 +79,8 @@ case class DeTeX(thmList: Map[String,String]) {
   val value: P[String] = P(ws.rep ~ (alpha|num| "."|"{"|"}").rep.! ~ ws.rep)
 
   val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ label.? ~
-    body ~ end).map((t:(String,Option[String],Option[String],Body)) => Theorem(thmList(t._1),t._2,t._3,t._4))
+    body ~ end).map((t:(String,Option[String],Option[String],Body)) =>
+    Theorem(thmList(t._1)._2,thmList(t._1)._1,thmList(t._1)._3,t._2,t._3,t._4))
   val thmToken: P[Unit] = thmList.keys.toList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
 
   val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ label.? ~

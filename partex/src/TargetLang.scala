@@ -171,8 +171,9 @@ object TargetLang {
         div(`class`:="envbody")(value.toHTML)
       )
   }
-  case class Theorem(name: String, alias: Option[String], label: Option[String],
-    value: Body) extends BodyElem with Labelable{
+  case class Theorem(name: String, counter: Option[String], numberBy: Option[String],
+    alias: Option[String], label: Option[String], value: Body)
+    extends BodyElem with Labelable{
       val toHTML: Frag =
         div(`class`:="theorem")(
           div(`class`:="name")(name, alias.map((l: String) => "\t\t["+l+"]")),
