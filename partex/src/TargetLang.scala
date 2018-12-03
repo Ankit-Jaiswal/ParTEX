@@ -27,6 +27,24 @@ object TargetLang {
     val labelNum = bd.elems.flatMap(hasLabel)
       .map((l: Labelable) => (l.label.get, getNum(l))).toMap
 
+    val thmNum = bd.elems.filter(isThm).asInstanceOf[Vector[Theorem]]
+      .groupBy((t: Theorem) => t.counter.getOrElse(t.name)).values.toVector
+      .map((xs: Vector[Theorem]) => (xs.find(_.counter==None).get.numberBy, xs))
+      .flatMap(
+        (t:(Option[String],Vector[Theorem])) =>
+        t._2.groupBy(currHead(t._1,_)).mapValues(_.zipWithIndex)
+        .flatMap(
+          (tt:(String,Vector[(Theorem,Int)])) =>
+          tt._2.map((p:(Theorem,Int)) => (p._1, tt._1+"."+(p._2+1).toString))
+        )
+      )
+
+    val thmNumByName = thmNum.map((t:(Theorem,String)) =>
+      (t._1.name+t._1.value.elems.collectFirst({
+        case b: Paragraph =>
+        b.frgs.collect({case x:Text => x.s.take(40).split('\n').mkString}).mkString
+      }).getOrElse("") -> t._2))
+
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
         .takeWhile((h: Heading) => h.name!="section")
@@ -41,8 +59,21 @@ object TargetLang {
         ).flatten
       }
 
+    def currHead(h: Option[String],t: Theorem) =
+      h.map((s: String) =>
+        bd.elems.takeWhile(_!=t).reverse.find((b: BodyElem) => b match {
+          case e: Heading => if(e.name==s) {true} else {false}
+          case _ => {false}
+        }).asInstanceOf[Option[Heading]].map(headNum(_)).getOrElse("")
+      ).getOrElse("")
+
     def isHeading(b: BodyElem) = b match {
       case _: Heading => true
+      case _ => false
+    }
+
+    def isThm(b: BodyElem) = b match {
+      case _: Theorem => true
       case _ => false
     }
 

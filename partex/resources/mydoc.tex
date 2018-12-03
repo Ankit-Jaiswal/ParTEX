@@ -6,7 +6,11 @@
 \newcommand{\withDefault}[2][books]{my friends are #1 and #2}
 
 \newtheorem{defn*}{Definition}[section]
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{col}[theorem]{Colrollary}
+\newtheorem{lem}[theorem]{Lemma}
+\newtheorem{notes}[defn*]{Notes}
+\newtheorem{aloo}{Aloo}
 %%%%%%%%%%%%%% BEGIN CONTENT: %%%%%%%%%%%%%%
 
 \begin{document}
@@ -24,6 +28,12 @@
   \section{Testing}
   This follows from \jc the second part of the \textit{remark} above.
   % parsing comments
+  \begin{defn*}
+    test and testing.
+  \end{defn*}
+  \begin{aloo}
+  test and test
+  \end{aloo}
   \withDefault{Abhijeet}
   Now for some remakrs \% about \foo centralizers. %one more comment.
   \vspace{1cm}
