@@ -12,7 +12,7 @@ object TargetLang {
   sealed trait Float
 
   case class Document(top: Vector[MetaData], bd: Body){
-    val headList = bd.elems.filter(isHeading).asInstanceOf[Vector[Heading]]
+    val headList = bd.elems.collect({case x: Heading => x}).asInstanceOf[Vector[Heading]]
 
     val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
       .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
@@ -27,7 +27,7 @@ object TargetLang {
     val labelNum = bd.elems.flatMap(hasLabel)
       .map((l: Labelable) => (l.label.get, getNum(l))).toMap
 
-    val thmNum = bd.elems.filter(isThm).asInstanceOf[Vector[Theorem]]
+    val thmNum = bd.elems.collect({case x: Theorem => x}).asInstanceOf[Vector[Theorem]]
       .groupBy((t: Theorem) => t.counter.getOrElse(t.name)).values.toVector
       .map((xs: Vector[Theorem]) => (xs.find(_.counter==None).get.numberBy, xs))
       .flatMap(
@@ -37,13 +37,29 @@ object TargetLang {
           (tt:(String,Vector[(Theorem,Int)])) =>
           tt._2.map((p:(Theorem,Int)) => (p._1, tt._1+"."+(p._2+1).toString))
         )
-      )
+      ).toMap
 
     val thmNumByName = thmNum.map((t:(Theorem,String)) =>
       (t._1.name+t._1.value.elems.collectFirst({
         case b: Paragraph =>
-        b.frgs.collect({case x:Text => x.s.take(40).split('\n').mkString}).mkString
+        b.frgs.collect({case x:Text => x.s.take(20).split('\n').mkString}).mkString
       }).getOrElse("") -> t._2))
+
+    val eqNum = bd.elems.collect({case x: DisplayMath => x})
+      .asInstanceOf[Vector[DisplayMath]].zipWithIndex
+      .map((t:(DisplayMath,Int)) => (t._1,(t._2+1).toString)).toMap
+
+    val codeNum = bd.elems.collect({case x: CodeBlock => x})
+      .asInstanceOf[Vector[CodeBlock]].zipWithIndex
+      .map((t:(CodeBlock,Int)) => (t._1,(t._2+1).toString)).toMap
+
+    val figNum = bd.elems.collect({case x: Figure => x})
+      .asInstanceOf[Vector[Figure]].filter(_.cap.nonEmpty).zipWithIndex
+      .map((t:(Figure,Int)) => (t._1,(t._2+1).toString)).toMap
+
+    val tableNum = bd.elems.collect({case x: Table => x})
+      .asInstanceOf[Vector[Table]].filter(_.cap.nonEmpty).zipWithIndex
+      .map((t:(Table,Int)) => (t._1,(t._2+1).toString)).toMap
 
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
@@ -59,7 +75,7 @@ object TargetLang {
         ).flatten
       }
 
-    def currHead(h: Option[String],t: Theorem) =
+    def currHead(h: Option[String],t: BodyElem) =
       h.map((s: String) =>
         bd.elems.takeWhile(_!=t).reverse.find((b: BodyElem) => b match {
           case e: Heading => if(e.name==s) {true} else {false}
@@ -67,35 +83,49 @@ object TargetLang {
         }).asInstanceOf[Option[Heading]].map(headNum(_)).getOrElse("")
       ).getOrElse("")
 
-    def isHeading(b: BodyElem) = b match {
-      case _: Heading => true
-      case _ => false
-    }
-
-    def isThm(b: BodyElem) = b match {
-      case _: Theorem => true
-      case _ => false
-    }
-
     def hasLabel(e: AllElem): Vector[Labelable] = e match {
       case x: Paragraph => x.frgs.flatMap(hasLabel)
       case x: TexList => x.xs.flatMap(hasLabel)
       case x: Environment => x.value.elems.flatMap(hasLabel)
       case x: Theorem => if(x.label!=None) {Vector(x)} else {Vector()} ++
         x.value.elems.flatMap(hasLabel)
-      case x: Proof => if(x.label!=None) {Vector(x)} else {Vector()} ++
+      case x: Item => if(x.label!=None) {Vector(x)} else {Vector()} ++
         x.value.elems.flatMap(hasLabel)
       case x: Labelable => if(x.label!=None) {Vector(x)} else {Vector()}
       case _ => Vector()
     }
 
     def getNum(l: Labelable) = l match {
-      case h: Heading => headNum(h)
-      case _ => "00"
+      case x: Heading => headNum(x)
+//      case x: Theorem => thmNum(x)
+      case x: DisplayMath => eqNum(x)
+//      case x: CodeBlock => codeNum(x)
+      case x: Figure => figNum(x)
+      case x: Table => tableNum(x)
+/*      case x: Phantom => bd.elems.find(hasFrag(x,_))
+        .map(currHead(Some("section"),_)).getOrElse("")
+      case x: Item => getList(x,bd).map((_.xs.indexOf(x)+1))
+        .map(_.toString).getOrElse("") */
+      case _ => "01"
     }
 
+    def hasFrag(x: Fragment,be: BodyElem): Boolean = be match {
+      case e: Paragraph => e.frgs.contains(x)
+      case e: Environment => e.value.elems.exists(hasFrag(x,_))
+      case e: Proof => e.value.elems.exists(hasFrag(x,_))
+      case e: TexList => e.xs.exists(_.value.elems.exists(hasFrag(x,_)))
+      case _ => false
+    }
+
+    def getList(x: Item,b: Body): Option[TexList] =
+      b.elems.collect({
+        case e: TexList => if(e.xs.contains(x)) {Some(e)} else {None}
+        case e: Environment => getList(x,e.value)
+        case e: Proof => getList(x,e.value)
+      }).flatten.headOption
+
     def mapToJSobjectString(m: Map[String,String]): String =
-      m.map((t:(String,String)) => "\""+t._1+"\""+": "+"\""+t._2+"\"").mkString("{", ", ", "};")
+      m.map((t:(String,String)) => "\""+t._1+"\": " + "\""+t._2+"\"").mkString("{", ", ", "};")
 
     val toHTML: Frag =
       html(
@@ -104,7 +134,24 @@ object TargetLang {
           link(href:="main.css", rel:="stylesheet"),
           script(src:="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"),
           script("const headNum = ", raw(mapToJSobjectString(headNumByName)) ),
-          script("const labelNum = ", raw(mapToJSobjectString(labelNum)) )
+          script("const labelNum = ", raw(mapToJSobjectString(labelNum)) ),
+          script("const thmNum = ", raw(mapToJSobjectString(thmNumByName)) ),
+          script(
+            "const eqNum = ",
+            raw(mapToJSobjectString(eqNum.map((t:(DisplayMath,String)) => (t._1.value.take(20),t._2))))
+          ),
+          script(
+            "const codeNum = ",
+            raw(mapToJSobjectString(codeNum.map((t:(CodeBlock,String)) => (t._1.value.take(20),t._2))))
+          ),
+          script(
+            "const figNum = ",
+            raw(mapToJSobjectString(figNum.map((t:(Figure,String)) => (t._1.cap.get,t._2))))
+          ),
+          script(
+            "const tableNum = ",
+            raw(mapToJSobjectString(tableNum.map((t:(Table,String)) => (t._1.cap.get,t._2))))
+          )
         ),
         body(css("margin"):="0px")(
           div(id:="topmatter")(
@@ -177,13 +224,14 @@ object TargetLang {
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
-      val idValue = name + value.split(" ").mkString("_")
+      val key = name+value
+      val idValue = key.split(" ").mkString("_")
       val toHTML: Frag =
         div(`class`:="heading")(
           span(`class`:=name)(
             span(id:=idValue)(script(
-              raw("document.getElementById(\""),idValue, raw("\").innerHTML = "),
-              raw("headNum[\""),name+value,raw("\"]")
+              raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+              raw("headNum[\""),key,raw("\"];")
             )),
             value,
             alias.map((l: String) => "\t\t["+l+"]")
@@ -205,9 +253,23 @@ object TargetLang {
   case class Theorem(name: String, counter: Option[String], numberBy: Option[String],
     alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable{
+      val key = name +
+        value.elems.collectFirst({
+          case b: Paragraph =>
+          b.frgs.collect({case x:Text => x.s.take(20).split('\n').mkString}).mkString
+        }).getOrElse("")
+      val idValue = key.split(" ").mkString("_")
+
       val toHTML: Frag =
         div(`class`:="theorem")(
-          div(`class`:="name")(name, alias.map((l: String) => "\t\t["+l+"]")),
+          div(`class`:="name")(
+            name,
+            span(id:=idValue)(script(
+              raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+              raw("thmNum[\""),key,raw("\"];")
+            )),
+            alias.map((l: String) => "\t\t["+l+"]")
+          ),
           value.toHTML
         )
   }
@@ -315,10 +377,11 @@ object TargetLang {
     val toHTML: Frag = span(`class`:="hyperlink")(a(href:=l)(s))
   }
   case class Reference(s: String) extends Fragment{
-    val toHTML: Frag = span(id:="ref"+s, `class`:="reference")(
+    val idValue = "ref"+s.split(" ").mkString("_")
+    val toHTML: Frag = span(id:=idValue, `class`:="reference")(
       script(
-        raw("document.getElementById(\"ref"),s,raw("\").innerHTML = "),
-        raw("labelNum[\""),s,raw("\"]")
+        raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+        raw("labelNum[\""),s,raw("\"];")
       )
     )
   }
