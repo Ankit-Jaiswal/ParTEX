@@ -26,7 +26,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
   val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
   val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
-  val caption: P[String] = P("\\caption" ~ sqBox ~ "{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
+  val caption: P[String] = P("\\caption" ~ sqBox.? ~ "{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
     label.? ~ "}" ~ (&("\\")|ws.rep)).map((t:(String,Option[String])) => t._1)
 
   def isMeta(b: BodyElem) : Boolean = b match {

@@ -126,6 +126,12 @@
   margin: 2em;
 }
 
+.theorem .name span {
+  display: inline-block;
+  width: 5%;
+  padding-left: 0.5em;
+}
+
 .displaymath {
   text-align: center;
   font-size: 1.1em;
@@ -133,7 +139,12 @@
   margin-bottom: 1.5em;
 }
 
-.codeBlock {
+.displaymath div {
+  float: right;
+  width: 5em;
+}
+
+.codeBlock pre {
   background-color: #d9d9d9;
   font-family: monospace;
   font-size: 1.1em;
@@ -144,6 +155,14 @@
   border-style: ridge;
   border-width: medium;
   border-color: grey;
+}
+
+.codeBlock div {
+  text-align: center;
+}
+
+.figure div {
+  text-align: center;
 }
 
 .bibliography {
@@ -163,11 +182,15 @@ pre {
   text-decoration: underline;
 }
 
-.table table {
+.table {
+  text-align: center;
   margin-top: 3em;
   margin-bottom: 3em;
+}
+
+.table table {
   margin-left: auto;
-  margin-right: auto;
+  margin-right: auto;  
 }
 
 .table td {

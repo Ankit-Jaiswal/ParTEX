@@ -73,16 +73,23 @@
   \subsection{Tyring Floats}
   This can parse graphics as well and label like in \ref{pehla}.
   \begin{figure}[h]
-    \includegraphics[width=8cm]{Plot}
+      \centering
+      \includegraphics{aloo.jpg}
+      \caption{FigCaption}
+      \label{fig:my_label}
   \end{figure}
 
   \subsubsection{specific case: Tables}
   Trying tables
-  \begin{tabular}{ c c c }
-   cell1 & cell2 & cell3 \\
-   cell4 & cell5 & cell6 \\ [1ex]
-   cell7 & cell8 & cell9 \\
-  \end{tabular}
+  \begin{table}[]
+      \centering
+      \begin{tabular}{c|c}
+          1 & 2 & 3 \\
+          4 & 5 & 6
+      \end{tabular}
+      \caption{TabCaption}
+      \label{tab:my_label}
+  \end{table}
 
   Lets check some code blocks. I know this wont be look good. But real document
   do have a lot plain text material which gives a nice visual appeal.

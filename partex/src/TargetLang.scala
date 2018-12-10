@@ -32,7 +32,7 @@ object TargetLang {
         t._2.groupBy(currHead(t._1,_)).mapValues(_.zipWithIndex)
         .flatMap(
           (tt:(String,Vector[(Theorem,Int)])) =>
-          tt._2.map((p:(Theorem,Int)) => (p._1, tt._1+"."+(p._2+1).toString))
+          tt._2.map((p:(Theorem,Int)) => (p._1, tt._1+(p._2+1).toString))
         )
       ).toMap
 
@@ -44,19 +44,19 @@ object TargetLang {
 
     val eqNum = bd.elems.collect({case x: DisplayMath => x})
       .asInstanceOf[Vector[DisplayMath]].zipWithIndex
-      .map((t:(DisplayMath,Int)) => (t._1,(t._2+1).toString)).toMap
+      .map((t:(DisplayMath,Int)) => (t._1,"("+(t._2+1)+")")).toMap
 
     val codeNum = bd.elems.collect({case x: CodeBlock => x})
       .asInstanceOf[Vector[CodeBlock]].zipWithIndex
-      .map((t:(CodeBlock,Int)) => (t._1,(t._2+1).toString)).toMap
+      .map((t:(CodeBlock,Int)) => (t._1,"Listing "+(t._2+1))).toMap
 
     val figNum = bd.elems.collect({case x: Figure => x})
       .asInstanceOf[Vector[Figure]].filter(_.cap.nonEmpty).zipWithIndex
-      .map((t:(Figure,Int)) => (t._1,(t._2+1).toString)).toMap
+      .map((t:(Figure,Int)) => (t._1,"Figure "+(t._2+1))).toMap
 
     val tableNum = bd.elems.collect({case x: Table => x})
       .asInstanceOf[Vector[Table]].filter(_.cap.nonEmpty).zipWithIndex
-      .map((t:(Table,Int)) => (t._1,(t._2+1).toString)).toMap
+      .map((t:(Table,Int)) => (t._1,"Table "+(t._2+1))).toMap
 
     val labelNum = bd.elems.flatMap(hasLabel)
       .map((l: Labelable) => (l.label.get, getNum(l).getOrElse("02"))).toMap
@@ -80,7 +80,7 @@ object TargetLang {
         bd.elems.takeWhile(_!=t).reverse.find((b: BodyElem) => b match {
           case e: Heading => if(e.name==s) {true} else {false}
           case _ => {false}
-        }).asInstanceOf[Option[Heading]].map(headNum(_)).getOrElse("")
+        }).asInstanceOf[Option[Heading]].map(headNum(_)+".").getOrElse("")
       ).getOrElse("")
 
     def hasLabel(e: AllElem): Vector[Labelable] = e match {
@@ -102,10 +102,9 @@ object TargetLang {
       case x: CodeBlock => codeNum.get(x)
       case x: Figure => figNum.get(x)
       case x: Table => tableNum.get(x)
-/*      case x: Phantom => bd.elems.find(hasFrag(x,_))
-        .map(currHead(Some("section"),_)).getOrElse("")
-      case x: Item => getList(x,bd).map((_.xs.indexOf(x)+1))
-        .map(_.toString).getOrElse("") */
+      case x: Item => getList(x,bd).map((_.xs.indexOf(x)+1)).map(_.toString)
+      case x: Phantom => bd.elems.find(hasFrag(x,_)).
+        map(currHead(Some("section"),_))
       case _ => Some("01")
     }
 
@@ -138,11 +137,13 @@ object TargetLang {
           script("const thmNum = ", raw(mapToJSobjectString(thmNumByName)) ),
           script(
             "const eqNum = ",
-            raw(mapToJSobjectString(eqNum.map((t:(DisplayMath,String)) => (t._1.value.take(20),t._2))))
+            raw(mapToJSobjectString(eqNum.map((t:(DisplayMath,String)) =>
+            (t._1.value.take(20).split('\n').mkString,t._2))))
           ),
           script(
             "const codeNum = ",
-            raw(mapToJSobjectString(codeNum.map((t:(CodeBlock,String)) => (t._1.value.take(20),t._2))))
+            raw(mapToJSobjectString(codeNum.map((t:(CodeBlock,String)) =>
+            (t._1.value.take(20).split('\n').mkString,t._2))))
           ),
           script(
             "const figNum = ",
@@ -283,17 +284,44 @@ object TargetLang {
   }
   case class DisplayMath(label: Option[String], value: String) extends BodyElem
     with Math with Labelable{
-      val toHTML: Frag = div(`class`:="displaymath")("\\["+value+"\\]")
+      val key = value.take(20).split('\n').mkString
+      val idValue = key.split(" ").mkString("_")
+      val toHTML: Frag =
+        div(`class`:="displaymath")(
+          div(id:=idValue)(script(
+            raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+            raw("eqNum[\""),key,raw("\"];")
+          )),
+          "\\["+value+"\\]"
+        )
   }
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
-    val toHTML: Frag = div(`class`:="codeBlock")(pre(code(value)))
+    val key = value.take(20).split('\n').mkString
+    val idValue = key.split(" ").mkString("_")
+    val toHTML: Frag =
+      div(`class`:="codeBlock")(
+        pre(code(value)),
+        div(id:=idValue)(script(
+          raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+          raw("codeNum[\""),key,raw("\"];")
+        ))
+      )
   }
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
         div(`class`:="figure")(
           g.toHTML,
-          div(`class`:="caption")(cap)
+          cap.map((c: String) => {
+            val idValue = c.split(" ").mkString("_")
+            div(
+              span(id:=idValue)(script(
+                raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+                raw("figNum[\""),c,raw("\"];")
+              )),
+              span(": ",c)
+            )
+          }).getOrElse("")
         )
   }
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
@@ -301,7 +329,16 @@ object TargetLang {
       val toHTML: Frag =
         div(`class`:="table")(
           table( for(row <- tb) yield row.toHTML ),
-          div(`class`:="caption")(cap)
+          cap.map((c: String) => {
+            val idValue = c.split(" ").mkString("_")
+            div(
+              span(id:=idValue)(script(
+                raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+                raw("tableNum[\""),c,raw("\"];")
+              )),
+              span(": ",c)
+            )
+          }).getOrElse("")
         )
   }
   sealed trait TexList extends BodyElem {
