@@ -103,10 +103,10 @@ class SourcesIO(filename: String) {
     .map((m) => m.before.toString + m.group(0).head)
     .getOrElse(l)
 
-  val parsed = DeTeX(thmList).document.parse(preamble + docString)
+  def parse = DeTeX(thmList).document.parse(preamble + docString)
 
   def writeTo(file: String) = {
-    val content = this.parsed match {
+    val content = this.parse match {
       case Parsed.Success(value,_) => value.toHTML.toString
         .replaceAllLiterally("<span class=\"text\"></span>","")
         .replaceAllLiterally("><",">\n<")

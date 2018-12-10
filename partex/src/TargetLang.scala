@@ -24,9 +24,6 @@ object TargetLang {
 
     val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
 
-    val labelNum = bd.elems.flatMap(hasLabel)
-      .map((l: Labelable) => (l.label.get, getNum(l))).toMap
-
     val thmNum = bd.elems.collect({case x: Theorem => x}).asInstanceOf[Vector[Theorem]]
       .groupBy((t: Theorem) => t.counter.getOrElse(t.name)).values.toVector
       .map((xs: Vector[Theorem]) => (xs.find(_.counter==None).get.numberBy, xs))
@@ -60,6 +57,9 @@ object TargetLang {
     val tableNum = bd.elems.collect({case x: Table => x})
       .asInstanceOf[Vector[Table]].filter(_.cap.nonEmpty).zipWithIndex
       .map((t:(Table,Int)) => (t._1,(t._2+1).toString)).toMap
+
+    val labelNum = bd.elems.flatMap(hasLabel)
+      .map((l: Labelable) => (l.label.get, getNum(l).getOrElse("02"))).toMap
 
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
@@ -96,17 +96,17 @@ object TargetLang {
     }
 
     def getNum(l: Labelable) = l match {
-      case x: Heading => headNum(x)
-//      case x: Theorem => thmNum(x)
-      case x: DisplayMath => eqNum(x)
-//      case x: CodeBlock => codeNum(x)
-      case x: Figure => figNum(x)
-      case x: Table => tableNum(x)
+      case x: Heading => headNum.get(x)
+      case x: Theorem => thmNum.get(x)
+      case x: DisplayMath => eqNum.get(x)
+      case x: CodeBlock => codeNum.get(x)
+      case x: Figure => figNum.get(x)
+      case x: Table => tableNum.get(x)
 /*      case x: Phantom => bd.elems.find(hasFrag(x,_))
         .map(currHead(Some("section"),_)).getOrElse("")
       case x: Item => getList(x,bd).map((_.xs.indexOf(x)+1))
         .map(_.toString).getOrElse("") */
-      case _ => "01"
+      case _ => Some("01")
     }
 
     def hasFrag(x: Fragment,be: BodyElem): Boolean = be match {
