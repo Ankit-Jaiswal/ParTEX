@@ -31,7 +31,7 @@
 #mainbody {
   margin-left: 15%;
   margin-right: 15%;
-  font-size: 1em;
+  font-size: 17px;
   font-family: serif;
   margin-bottom: 10em;
 }
@@ -128,8 +128,8 @@
 
 .theorem .name span {
   display: inline-block;
-  width: 5%;
-  padding-left: 0.5em;
+  width: 4%;
+  padding-left: 0.2em;
 }
 
 .displaymath {
@@ -147,7 +147,7 @@
 .codeBlock pre {
   background-color: #d9d9d9;
   font-family: monospace;
-  font-size: 1.1em;
+  font-size: 0.8em;
   margin-left: 1.5em;
   margin-right: 1.5em;
   padding: 0.6em;
@@ -190,7 +190,7 @@ pre {
 
 .table table {
   margin-left: auto;
-  margin-right: auto;  
+  margin-right: auto;
 }
 
 .table td {

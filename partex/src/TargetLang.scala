@@ -234,10 +234,10 @@ object TargetLang {
               raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
               raw("headNum[\""),key,raw("\"];")
             )),
+            label.map((l: String) => a(attr("name"):=l)()),
             value,
             alias.map((l: String) => "\t\t["+l+"]")
-          )/*,
-          label.map((l: String) => a(name:=l)()).getOrElse("")*/
+          )
         )
   }
   case class Graphics(spec: Option[Map[String,String]], name: String)
@@ -264,6 +264,7 @@ object TargetLang {
       val toHTML: Frag =
         div(`class`:="theorem")(
           div(`class`:="name")(
+            label.map((l: String) => a(attr("name"):=l)()),
             name,
             span(id:=idValue)(script(
               raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
@@ -278,6 +279,7 @@ object TargetLang {
     extends BodyElem with Labelable{
       val toHTML: Frag =
         div(`class`:="proof")(
+          label.map((l: String) => a(attr("name"):=l)()),
           div(`class`:="name")("proof", alias.map((l: String) => "\t\t["+l+"]")),
           div(`class`:="pfbody")(value.toHTML)
         )
@@ -292,6 +294,7 @@ object TargetLang {
             raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
             raw("eqNum[\""),key,raw("\"];")
           )),
+          label.map((l: String) => a(attr("name"):=l)()),
           "\\["+value+"\\]"
         )
   }
@@ -300,6 +303,7 @@ object TargetLang {
     val idValue = key.split(" ").mkString("_")
     val toHTML: Frag =
       div(`class`:="codeBlock")(
+        label.map((l: String) => a(attr("name"):=l)()),
         pre(code(value)),
         div(id:=idValue)(script(
           raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
@@ -311,6 +315,7 @@ object TargetLang {
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
         div(`class`:="figure")(
+          label.map((l: String) => a(attr("name"):=l)()),
           g.toHTML,
           cap.map((c: String) => {
             val idValue = c.split(" ").mkString("_")
@@ -328,6 +333,7 @@ object TargetLang {
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
         div(`class`:="table")(
+          label.map((l: String) => a(attr("name"):=l)()),
           table( for(row <- tb) yield row.toHTML ),
           cap.map((c: String) => {
             val idValue = c.split(" ").mkString("_")
@@ -367,7 +373,11 @@ object TargetLang {
     val toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
   }
   case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable with AllElem{
-    val toHTML: Frag = li(`class`:="item")(value.toHTML)
+    val toHTML: Frag =
+      li(`class`:="item")(
+        value.toHTML,
+        label.map((l: String) => a(attr("name"):=l)())
+      )
   }
 
 
@@ -399,7 +409,10 @@ object TargetLang {
     val toHTML: Frag = span(`class`:="inlinemath")("\\("+s+"\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
-    val toHTML: Frag = span(`class`:="phantom")("this")
+    val toHTML: Frag =
+      span(`class`:="phantom")(
+        label.map((l: String) => a(attr("name"):=l)())
+      )
   }
   case class Quoted(s: String) extends Fragment{
     val toHTML: Frag = "\""+s+"\""
@@ -415,12 +428,13 @@ object TargetLang {
   }
   case class Reference(s: String) extends Fragment{
     val idValue = "ref"+s.split(" ").mkString("_")
-    val toHTML: Frag = span(id:=idValue, `class`:="reference")(
-      script(
-        raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-        raw("labelNum[\""),s,raw("\"];")
+    val toHTML: Frag =
+      span(`class`:="reference")(
+        a(id:=idValue, href:="#"+s)(script(
+          raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+          raw("labelNum[\""),s,raw("\"];")
+        ))
       )
-    )
   }
   case class Note(p: Paragraph) extends Fragment{
     val toHTML: Frag = {
