@@ -7,8 +7,6 @@ STATUS - parser is complete and running succesfully.
 */
 
 package partex
-import java.util.Calendar
-import java.text.SimpleDateFormat
 
 object ParsingRules {
   val all = DeTeX(Map())
@@ -50,8 +48,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val author: P[Author] = P("\\author" ~ cmdName).map((s: String) => Author(s))
   val address: P[Address] = P("\\address" ~ cmdName).map((s: String) => Address(s))
   val email: P[Email] = P("\\email" ~ cmdName).map((s: String) => Email(s))
-  val date: P[Date] = P("\\date" ~ cmdName).map((s: String) =>
-    Date(s.replace("\\today", new SimpleDateFormat("d-M-y").format(Calendar.getInstance().getTime()))))
+  val date: P[Date] = P("\\date" ~ cmdName).map((s: String) => Date(s))
   val metaToken: P[Unit] = P("\\" ~
     StringIn("begin{abstract}","title{","author{","address{","email{","date{"))
   val beginDoc: P[Unit] = P("\\begin{document}" ~ (&("\\")|ws.rep))
