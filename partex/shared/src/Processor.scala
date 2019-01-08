@@ -1,4 +1,4 @@
-package partex
+package partex.shared
 import fastparse.all._
 
 object Processor {
@@ -17,6 +17,8 @@ object Processor {
     .map((s: String) => (s,2))
   val path: P[(String,Int)] = P(alpha | num | "_" | "." | "/").rep.!
     .map((s: String) => (s,3))
+
+  def extPreamble(s: String) = inputFile.?.parse(s).get.value
 
 /********************       extracting \newcommands      ************************/
   val macroParser: P[Map[String,(Vector[String],String)]] =
@@ -86,6 +88,16 @@ object Processor {
       .getOrElse(l)
 
     def parse = DeTeX(thmList).document.parse(preamble + docString)
+
+    def content = this.parse match {
+      case Parsed.Success(value,_) => value.toHTML.toString
+        .replaceAllLiterally("<span class=\"text\"></span>","")
+        .replaceAllLiterally("><",">\n<")
+
+      case _: Parsed.Failure =>
+        "<html><head><script>alert('Parser Failed!');</script></head></html>"
+    }
+
   }
 
 }
