@@ -87,9 +87,15 @@ object Processor {
       .map((m) => m.before.toString + m.group(0).head)
       .getOrElse(l)
 
-    def parse = DeTeX(thmList).document.parse(preamble + docString)
+    val parsed = DeTeX(thmList).document.parse(preamble + docString)
 
-    def content = this.parse match {
+    val message = parsed match {
+      case Parsed.Success(value,_) => "Parsing Successful :) , please go ahead and convert it to a webpage."
+      case _: Parsed.Failure => "Parsing Failed :( , Make sure uploaded file is a valid .tex file."
+    }
+
+
+    val content = parsed match {
       case Parsed.Success(value,_) => value.toHTML.toString
         .replaceAllLiterally("<span class=\"text\"></span>","")
         .replaceAllLiterally("><",">\n<")

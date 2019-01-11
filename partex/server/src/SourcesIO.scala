@@ -1,8 +1,9 @@
 package partex.server
 import java.io.PrintWriter
-import partex.shared.Processor
 
 class SourcesIO(filename: String) {
+  import partex.shared.Processor
+
   val file = if (filename != "") { getClass.getResource("/"+filename) }
     else { getClass.getResource("/mydoc.tex") }
 
@@ -29,6 +30,7 @@ object siteMaker {
   def main(args: Array[String]): Unit = {
     val input = new SourcesIO("polymath.tex")
     input.writeTo("mydoc.html")
+//    println(input.parser.parse)
   }
 
 }
