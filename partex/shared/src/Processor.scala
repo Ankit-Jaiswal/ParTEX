@@ -90,8 +90,8 @@ object Processor {
     val parsed = DeTeX(thmList).document.parse(preamble + docString)
 
     val message = parsed match {
-      case Parsed.Success(value,_) => "Parsing Successful :) , please go ahead and convert it to a webpage."
-      case _: Parsed.Failure => "Parsing Failed :( , Make sure uploaded file is a valid .tex file."
+      case Parsed.Success(value,_) => "Parsing Successful :) , please go ahead and convert it to its html version."
+      case _: Parsed.Failure => "Parsing Failed :( , Make sure uploaded file is a valid .tex file by compiling it using a LaTeX engine."
     }
 
 

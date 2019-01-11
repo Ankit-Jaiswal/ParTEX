@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>A new TEX viewer</title>
+  </head>
+  <body>
+    <input type="file" id="iobutton" multiple/>
+    <output id="out" ></output>
+
+    <script type="text/javascript">
+        function handleFile(evt) {
+          var myfile = evt.target.files[0];
+          var reader = new FileReader;
+          reader.onload = function(e) {
+            document.getElementById('out').innerHTML =
+              '<p>' + reader.result + '</p>'
+          }
+          reader.readAsText(myfile);
+        }
+        document.getElementById('iobutton').addEventListener('change',handleFile,false);
+    </script>
+  </body>
+</html>

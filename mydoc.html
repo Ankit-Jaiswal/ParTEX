@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>First Look !</title>
+<link href="main.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script>const headNum = {"sectionTesting": "1", "sectionTyring code blocks": "3", "subsubsectionspecific case: Tables": "2.1.1", "subsectionspecific case of code style": "3.1", "subsectionTyring Floats": "2.1", "sectionmath section": "2"};</script>
+<script>const labelNum = {"pehla": "1", "fig:my_label": "Figure 1", "tab:my_label": "Table 1"};</script>
+<script>const thmNum = {"Aloo  test and test  ": "1", "Definition    test and testin": "1.1", "DefinitionFor , we set  and      .  ": "1.2"};</script>
+<script>const eqNum = {"if x = 2 - x then 2x": "(1)"};</script>
+<script>const codeNum = {"void main() {    pr": "Listing 1"};</script>
+<script>const figNum = {"FigCaption": "Figure 1"};</script>
+<script>const tableNum = {"TabCaption": "Table 1"};</script>
+</head>
+<body style="margin: 0px;">
+<div id="topmatter">
+<a href="#topmatter">
+<table>
+<tr>
+<td style="width: 25%;">Ankit Jaiswal</td>
+<td style="width: 50%;">How to Structure a LaTeX Document</td>
+<td style="width: 25%;">December 2004</td>
+</tr>
+</table>
+</a>
+<div id="abstract">
+<h3>Abstract</h3>
+<p class="paragraph">
+<span class="text">
+  Parsing can be fun and this page exactly demostrate that.
+  But hey, there is no output without input. That's why I am writing this
+  down for it to behave as an abstarct, thus an input :)
+  </span>
+</p>
+</div>
+</div>
+<div id="mainbody">
+<div class="body">
+<div class="command">
+<h3>subjclass: 03B15 (primary), 20F12, 20F65 (secondary)</h3>
+</div>
+<p class="paragraph">
+<span class="text">
+
+  </span>
+</p>
+<div class="heading">
+<span class="section">
+<span id="sectionTesting">
+<script>document.getElementById("sectionTesting").innerHTML = headNum["sectionTesting"];</script>
+</span>Testing</span>
+</div>
+<p class="paragraph">
+<span class="text">This follows from John foobar Cena the second part of the </span>
+<span class="italic">
+<span class="text">remark</span>
+</span>
+<span class="text"> above.
+  
+  </span>
+</p>
+<div class="theorem">
+<div class="name">Definition<span id="Definition____test_and_testin">
+<script>document.getElementById("Definition____test_and_testin").innerHTML = thmNum["Definition    test and testin"];</script>
+</span>
+</div>
+<div class="body">
+<p class="paragraph">
+<span class="text">
+    test and testing.
+  </span>
+</p>
+</div>
+</div>
+<div class="theorem">
+<div class="name">Aloo<span id="Aloo__test_and_test">
+<script>document.getElementById("Aloo__test_and_test").innerHTML = thmNum["Aloo  test and test  "];</script>
+</span>
+</div>
+<div class="body">
+<p class="paragraph">
+<span class="text">
+  test and test
+  </span>
+</p>
+</div>
+</div>
+<p class="paragraph">
+<span class="text">my friends are books and Abhijeet
+  Now for some remakrs % about foobar centralizers. 
+  
+  </span>
+</p>
+<div class="environment">
+<div class="name">rmk*</div>
+<div class="envbody">
+<div class="body">
+<p class="paragraph">
+<span class="text">This is a example of nested environment. My first name is Ankit and second name is Jaiswal 
+Also test the line break token. my friends are Bhavna and Abhijeet
+    </span>
+</p>
+<ol>
+<li class="item">
+<div class="body">
+<p class="paragraph">
+<span class="text">If </span>
+<span class="inlinemath">\(A \subgroup G\)</span>
+<span class="text">,  then </span>
+<span class="inlinemath">\(A\)</span>
+<span class="text"> is abelian if and only if </span>
+<span class="inlinemath">\(A \subset
+      C_G(A)\)</span>
+<span class="text">.
+    </span>
+</p>
+</div>
+<a name="pehla">
+</a>
+</li>
+<li class="item">
+<div class="body">
+<p class="paragraph">
+<span class="text">Furthermore, if </span>
+<span class="inlinemath">\(A \subgroup Z(G)\)</span>
+<span class="text">, then </span>
+<span class="inlinemath">\(A \normsubgroup G\)</span>
+<span class="text">. 
+      This follows using </span>
+<em>
+<span class="text">basic</span>
+</em>
+<span class="text"> commutativity arguments, which are as follows:
+      </span>
+</p>
+<ul>
+<li class="item">
+<div class="body">
+<p class="paragraph">
+<span class="text">First One.
+        
+        </span>
+</p>
+</div>
+</li>
+<li class="item">
+<div class="body">
+<p class="paragraph">
+<span class="text">Second One.
+      </span>
+</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="theorem">
+<div class="name">Definition<span id="DefinitionFor_,_we_set__and______.">
+<script>document.getElementById("DefinitionFor_,_we_set__and______.").innerHTML = thmNum["DefinitionFor , we set  and      .  "];</script>
+</span>		[definition of the page]</div>
+<div class="body">
+<p class="paragraph">
+<span class="text">For </span>
+<span class="inlinemath">\(A \subset G\)</span>
+<span class="text">, we set </span>
+<span class="inlinemath">\(N_G(A) := \{g \in G | gAg^{-1} = A\}\)</span>
+<span class="text"> and
+      </span>
+<span class="inlinemath">\(C_G(A) := \{g \in G | gag^{-1} = a, \forall a \in A\}\)</span>
+<span class="text">.
+  </span>
+</p>
+</div>
+</div>
+<p class="paragraph">
+<span class="text">Note that </span>
+<span class="inlinemath">\(C_G(A) \subset N_G(A)\)</span>
+<span class="text"> and </span>
+<span class="inlinemath">\(Z(G) = C_G(G)\)</span>
+<span class="text">.
+
+
+  </span>
+</p>
+<div class="heading">
+<span class="section">
+<span id="sectionmath_section">
+<script>document.getElementById("sectionmath_section").innerHTML = headNum["sectionmath section"];</script>
+</span>math section</span>
+</div>
+<div class="displaymath">
+<div id="if_x_=_2_-_x_then_2x">
+<script>document.getElementById("if_x_=_2_-_x_then_2x").innerHTML = eqNum["if x = 2 - x then 2x"];</script>
+</div>\[if x = 2 - x then 2x = 2, hence x = 1
+  \]</div>
+<div class="environment">
+<div class="name">None</div>
+<div class="envbody">
+<div class="body">
+<p class="paragraph">
+</p>
+<div class="theorem">
+<div class="name">Theorem<span id="Theorem__If_the__is_followed_immedia">
+<script>document.getElementById("Theorem__If_the__is_followed_immedia").innerHTML = thmNum["Theorem  If the  is followed immedia"];</script>
+</span>
+</div>
+<div class="body">
+<p class="paragraph">
+<span class="text">
+  If the </span>
+<em>
+<span class="text">tiny</span>
+</em>
+<span class="text"> is followed immediately by begin this fails.
+  </span>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="heading">
+<span class="subsection">
+<span id="subsectionTyring_Floats">
+<script>document.getElementById("subsectionTyring_Floats").innerHTML = headNum["subsectionTyring Floats"];</script>
+</span>Tyring Floats</span>
+</div>
+<p class="paragraph">
+<span class="text">This can parse graphics as well and label like in </span>
+<span class="reference">
+<a id="refpehla" href="#pehla">
+<script>document.getElementById("refpehla").innerHTML = labelNum["pehla"];</script>
+</a>
+</span>
+<span class="text">.
+  </span>
+</p>
+<div class="figure">
+<a name="fig:my_label">
+</a>
+<div class="graphics">
+<div class="img">
+</div>
+</div>
+<div>
+<span id="FigCaption">
+<script>document.getElementById("FigCaption").innerHTML = figNum["FigCaption"];</script>
+</span>
+<span>: FigCaption</span>
+</div>
+</div>
+<div class="heading">
+<span class="subsubsection">
+<span id="subsubsectionspecific_case:_Tables">
+<script>document.getElementById("subsubsectionspecific_case:_Tables").innerHTML = headNum["subsubsectionspecific case: Tables"];</script>
+</span>specific case: Tables</span>
+</div>
+<p class="paragraph">
+<span class="text">Trying tables
+  </span>
+</p>
+<div class="table">
+<a name="tab:my_label">
+</a>
+<table>
+<tr>
+<td>
+<p class="paragraph">
+<span class="text">1 </span>
+</p>
+</td>
+<td>
+<p class="paragraph">
+<span class="text"> 2 </span>
+</p>
+</td>
+<td>
+<p class="paragraph">
+<span class="text"> 3 </span>
+</p>
+</td>
+</tr>
+<tr>
+<td>
+<p class="paragraph">
+<span class="text">          4 </span>
+</p>
+</td>
+<td>
+<p class="paragraph">
+<span class="text"> 5 </span>
+</p>
+</td>
+<td>
+<p class="paragraph">
+<span class="text"> 6      </span>
+</p>
+</td>
+</tr>
+</table>
+<div>
+<span id="TabCaption">
+<script>document.getElementById("TabCaption").innerHTML = tableNum["TabCaption"];</script>
+</span>
+<span>: TabCaption</span>
+</div>
+</div>
+<p class="paragraph">
+<span class="text">Lets check some code blocks. I know this wont be look good. But real document
+  do have a lot plain text material which gives a nice visual appeal.
+
+</span>
+</p>
+<div class="heading">
+<span class="section">
+<span id="sectionTyring_code_blocks">
+<script>document.getElementById("sectionTyring_code_blocks").innerHTML = headNum["sectionTyring code blocks"];</script>
+</span>Tyring code blocks</span>
+</div>
+<div class="codeBlock">
+<pre>
+<code>void main() {
+    printf(&quot;Hello, World!\n&quot;);
+  }
+  </code>
+</pre>
+<div id="void_main()_{____pr">
+<script>document.getElementById("void_main()_{____pr").innerHTML = codeNum["void main() {    pr"];</script>
+</div>
+</div>
+<div class="heading">
+<span class="subsection">
+<span id="subsectionspecific_case_of_code_style">
+<script>document.getElementById("subsectionspecific_case_of_code_style").innerHTML = headNum["subsectionspecific case of code style"];</script>
+</span>specific case of code style</span>
+</div>
+<p class="paragraph">
+<span class="text">This is to test the latex Numbering.
+</span>
+</p>
+</div>
+</div>
+<div id="footer">
+<ol>
+</ol>
+</div>
+</body>
+</html>

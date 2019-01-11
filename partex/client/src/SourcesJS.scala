@@ -38,7 +38,8 @@ class SourcesJS(raw: String) {
   }
 
   def convert(e: dom.Event): Unit = {
-    document.documentElement.innerHTML = parser.content.split("<html>")(1).split("</html>")(0)
+//    document.documentElement.innerHTML = parser.content.split("<html>")(1).split("</html>")(0)
+    document.getElementById("box").innerHTML = parser.content
   }
 
 }
