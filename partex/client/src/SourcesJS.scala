@@ -15,9 +15,7 @@ object Reader {
   def handleFile(file: dom.File): Unit = {
     reader.onload = (e: dom.Event) => {
       val rawSrc = new SourcesJS(reader.result.asInstanceOf[String])
-      document.getElementById("out").appendChild(
-        button(id:="parser")("Parse").render
-      )
+      document.getElementById("out").innerHTML = button(id:="parser")("Parse").toString
       document.getElementById("parser").addEventListener("click",rawSrc.parse)
     }
     reader.readAsText(file)

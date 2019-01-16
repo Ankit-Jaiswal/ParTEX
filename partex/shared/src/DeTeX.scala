@@ -64,7 +64,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
-      "*".? ~ cmdName ~ alias.? ~ label.?).
+      "*".? ~ cmdName ~ (&("\\")|ws.rep) ~ alias.? ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
   val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
@@ -75,12 +75,12 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val attr: P[String] = P(ws.rep ~ StringIn("scale","height","width","angle").! ~ ws.rep)
   val value: P[String] = P(ws.rep ~ (alpha|num| "."|"{"|"}").rep.! ~ ws.rep)
 
-  val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ alias.? ~ label.? ~
+  val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ (&("\\")|ws.rep) ~ alias.? ~ label.? ~
     body ~ end).map((t:(String,Option[String],Option[String],Body)) =>
     Theorem(thmList(t._1)._2,thmList(t._1)._1.map(thmList(_)._2),thmList(t._1)._3,t._2,t._3,t._4))
   val thmToken: P[Unit] = thmList.keys.toList.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s))
 
-  val proof: P[Proof] = P("\\begin{proof}" ~ alias.? ~ label.? ~
+  val proof: P[Proof] = P("\\begin{proof}" ~ (&("\\")|ws.rep) ~ alias.? ~ label.? ~
     body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
   val displaymath: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
@@ -162,7 +162,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
     hyperlink | ref | note | styled | text)
 
   val text: P[Text] =
-    P( ( reserved | wrapper | spSym | linebreak |
+    P( ( reserved | wrapper | spSym | linebreak | quoteSym |
       !StringIn("{","}","$","\\(","\\[","\\item","\\phantomsection") ~
       !command ~ AnyChar.! ).rep(1).
     map(_.reduceLeft(_+_)).
@@ -174,9 +174,9 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
       "doublespacing","footnotemark","footnotesize","frenchspacing","hfill","hline",
       "huge","Huge","itshape","indent","justify","large","Large","LARGE",
       "leftskip","listoffigures","listoftables","maketitle","medskip","normalsize","noindent","newline",
-      "newpage","onehalfspacing","parindent","parfillskip","parskip","par","raggedleft",
+      "newpage","onehalfspacing","parindent","parfillskip","parskip","par","quad","raggedleft",
       "raggedright","rightskip","scriptsize","singlespacing","smallskip","small","setcounter",
-      "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*")
+      "tableofcontents","tabularnewline","textwidth","tiny","vfill","\\*",":")
       | StringIn("~","{}") )
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","setstretch","vspace",
     "cline","comment","noalign","rowfont","markright","markboth","pagenumbering","def",
@@ -188,6 +188,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val wrapper: P[String] = P("\\" ~ StringIn("lowercase","textnormal","textrm","textsf","texttt",
     "textup","textsl","textsc","textmd","textlf","uppercase") ~ cmdName)
   val spSym: P[String] = P("\\" ~ StringIn("#","$","%","^","&","{","}","~").!)
+  val quoteSym: P[String] = P(("``").!.map((s: String) => "\"") | ("`").!.map((s: String) => "'"))
   val linebreak: P[String] = P("\\\\" ~ ws.rep).!.map((_:String) => "\n")
 
   val inlineMath: P[InlineMath] = P((inlineEnv | singleDollar | roundBracket ).

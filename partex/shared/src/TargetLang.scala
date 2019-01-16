@@ -138,7 +138,7 @@ object TargetLang {
           script(
             "const eqNum = ",
             raw(mapToJSobjectString(eqNum.map((t:(DisplayMath,String)) =>
-            (t._1.value.take(20).split('\n').mkString,t._2))))
+            (t._1.value.split('\n').mkString,t._2))))
           ),
           script(
             "const codeNum = ",
@@ -232,7 +232,7 @@ object TargetLang {
           span(`class`:=name)(
             span(id:=idValue)(script(
               raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-              raw("headNum[\""),key,raw("\"];")
+              raw("headNum[\""),raw(key),raw("\"];")
             )),
             label.map((l: String) => a(attr("name"):=l)()),
             value,
@@ -268,7 +268,7 @@ object TargetLang {
             name,
             span(id:=idValue)(script(
               raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-              raw("thmNum[\""),key,raw("\"];")
+              raw("thmNum[\""),raw(key),raw("\"];")
             )),
             alias.map((l: String) => "\t\t["+l+"]")
           ),
@@ -292,7 +292,7 @@ object TargetLang {
         div(`class`:="displaymath")(
           div(id:=idValue)(script(
             raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-            raw("eqNum[\""),key,raw("\"];")
+            raw("eqNum[\""),raw(key),raw("\"];")
           )),
           label.map((l: String) => a(attr("name"):=l)()),
           "\\["+value+"\\]"
@@ -307,7 +307,7 @@ object TargetLang {
         pre(code(value)),
         div(id:=idValue)(script(
           raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-          raw("codeNum[\""),key,raw("\"];")
+          raw("codeNum[\""),raw(key),raw("\"];")
         ))
       )
   }
@@ -322,7 +322,7 @@ object TargetLang {
             div(
               span(id:=idValue)(script(
                 raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-                raw("figNum[\""),c,raw("\"];")
+                raw("figNum[\""),raw(c),raw("\"];")
               )),
               span(": ",c)
             )
@@ -340,7 +340,7 @@ object TargetLang {
             div(
               span(id:=idValue)(script(
                 raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-                raw("tableNum[\""),c,raw("\"];")
+                raw("tableNum[\""),raw(c),raw("\"];")
               )),
               span(": ",c)
             )
@@ -432,7 +432,7 @@ object TargetLang {
       span(`class`:="reference")(
         a(id:=idValue, href:="#"+s)(script(
           raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-          raw("labelNum[\""),s,raw("\"];")
+          raw("labelNum[\""),raw(s),raw("\"];")
         ))
       )
   }

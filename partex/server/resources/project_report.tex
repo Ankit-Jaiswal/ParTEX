@@ -1,0 +1,395 @@
+\documentclass[12pt,a4paper,final,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\author{Jaiswal, Ankit Kumar}
+
+\newtheorem{dfn}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{pf}{Proof}
+
+\begin{document}
+\title{Extension of Rational to Real using Dedekind's Cuts}
+\date{May, 2013}
+\maketitle
+
+\begin{abstract}
+This report contains the bare bones of Dedekind's cut, with an attempt to define real numbers out of rational numbers, with a view to elaborate the reason for choosing this approach. This is in accordance with the view of the consolidated project to grasp the formation of real in its entirety. We assume familiarity with Elementary Set Theory, Natural \& Rational number constructed via Peano's Axioms and the fact that set of rational is a field.
+\end{abstract}
+
+\section{Introduction}
+We all have seen upto now, natural numbers ($\mathbb{N}$) being constructed from ``Naive Set Theory" and integers ($\mathbb{Z}$) and rational numbers ($\mathbb{Q}$) further being constructed from natural numbers with an interesting pattern, i.e.
+\begin{equation}\label{eq1}
+\mathbb{N}\:\subset \mathbb{Z}\:\subset \mathbb{Q}
+\end{equation}
+In a similar way, we will construct real numbers out of rational numbers which of course isn't obvious to see. But, all we need is a pattern among rational numbers which could be uniquely associated to every element in the set of real numbers ($\mathbb{R}$) (We do know what kinds of numbers to include; the numbers which we are using in the name of real numbers since childhood).
+In 1872, a German mathematician ``Richard Dedekind" discovered one such pattern and popularly his approach is known as ``Dedekind's Cuts"; and we will proceed the same way as contained in the books referred ($-$ list of reference is mentioned in the last).
+
+\textbf{NOTE:} The word ``number" would mean rational numbers unless otherwise specified.
+
+\section{Cuts}
+\begin{dfn}\label{def1}
+A set $\xi$ of rational numbers is called as a \textbf{cut}, if
+\begin{enumerate}
+\item it contains at least one rational number, but not all of them;
+\item every rational number of the set is smaller than every rational number not belonging to the set;
+\item it does not contain a greatest rational number (i.e. a number which is greater than any other number of the set).
+\end{enumerate}
+A number contained in the Cut is termed as \textbf{lower number} for $\xi$ and for numbers not belonging to the cut, \textbf{upper number} is used.
+\end{dfn}
+Also,
+\begin{dfn}\label{def2}
+Let $\xi$ and $\eta$ be two cuts, then $\xi\:=\:\eta$ ;
+if every lower number for $\xi$ is a lower number for $\eta$ and every lower number of $\eta$ is a lower number for $\xi$.
+\end{dfn}
+
+Now here comes a simple but important theorem;
+
+\begin{thm}\label{thm1}
+If X is an upper number for a cut $\xi$ and $X_1$ is some rational number such that $X_1 > X$ then, $X_1$ is also an upper number for $\xi$.
+\end{thm}
+\textbf{Proof:} Let's assume that $X_1$ is not an upper number for $\xi$, which from Definition \ref{def1} implies, $X_1 \in \xi$ and also $X_1 < X$ . But according to Theorem's conditions $X_1 > X$, which contradicts $X_1 \in \xi$. Hence, $X_1$ is an upper number.
+
+\medskip
+
+\begin{thm}\label{thm2}
+If $X$  is a lower number for $\xi$ and $X_1$ is some Rational Number such that, $X_1 < X$ then,
+$X_1$ is also a lower number for $\xi$.
+\end{thm}
+\textbf{Proof:} Let's assume that $X_1$ is not a lower number for $\xi$, which from Definition \ref{def1} implies, $X_1 \notin \xi$ and also $X_1 > X$ . But according to Theorem's conditions $X_1 < X$, which contradicts $X_1 \notin \xi$. Hence, $X_1$ is a lower number.
+
+\bigskip
+\bigskip
+
+Now, if we wish to show that a given set of rational number is a cut, we need to show only the following:
+\begin{enumerate}
+ \item The set is not empty and there is a rational number not belonging to it.
+ \item With every number it contains, the set also contains all numbers smaller than that number.
+ \item with every number it contains, the set also contains a greater one.
+\end{enumerate}
+
+In order to substitute numbers (known till now) with ``cuts", we should be able to do all operations defined on numbers, over cuts. Some of them are ordering, addition, multiplication etc.
+\bigskip
+
+\subsection{Ordering}
+\begin{dfn}\label{def3}
+If $\xi$ and $\eta$ are cuts, then $\xi > \eta$; if there exist a lower number for $\xi$ which is an upper number for $\eta$.
+\end{dfn}
+
+\begin{dfn}\label{def4}
+If $\xi$ and $\eta$ are cuts, then $\xi < \eta$; if there exist an upper number for $\xi$ which is a lower number for $\eta$.
+\end{dfn}
+
+With this, we can show that cuts too follow the rule of trichotomy under ordering, like numbers. And the same has been shown as a theorem.
+
+\begin{thm}\label{thm3}
+For any given $\xi$, $\eta$, exactly one of\quad $\xi$=$\eta$, $\xi > \eta$, $\xi < \eta$\quad is the case.
+\end{thm}
+\textbf{Proof:} Let's check whether can two of them be simultaneously true. The statements $\xi = \eta$ \& $\xi < \eta$ , simultaneously are incompatible by Definition \ref{def2} and \ref{def3}. Similarly, the statements $\xi = \eta$ \& $\xi < \eta$ simultaneously are incompatible. But if we had $\xi>\eta$ \& $\xi<\eta$ then for sure we can say that there exists a lower number $X$ and an upper number $Y$ for $\xi$ such that $X$ is an upper number for $\eta$ and $Y$ is a lower number for $\eta$. Now, this implies $X<Y$ and $X>Y$ simultaneously; which is not possible. Hence we can say that two of them can't be true at the same time. Similarly, all of them can't be true simultaneously as two at a time is not possible. Therefore we can have at most one of the three cases true.
+
+If $\xi \neq \eta$ , then it's obvious that their lower numbers do not coincides, i.e. either some lower number for $\xi$ is an upper number for $\eta$, in which case, it follows that $\xi > \eta$ ; or some lower number for $\eta$ is an upper number for $\xi$, in which case, it follows that $\xi < \eta$. This implies, at least one of them is true. But among these three at most one can be true. Hence, one of them has to be true at a time.
+
+\bigskip
+
+\subsection{Addition}
+Before defining addition of cuts, there is one theorem which is helpful in our approach towards defining it. From the axiomatic point of view of addition of numbers, it is necessary to obtain a unique number on addition of two numbers. Following theorem fulfils this condition.
+\begin{thm}\label{thm4}
+Let $\xi$ and $\eta$ be two cuts and also let X be a lower number for $\xi$ and Y a lower number for $\eta$.
+\begin{enumerate}
+\item Then the set $\zeta$ of all rational number which are representable in the form $X + Y$, is itself a cut.
+\item No number of this set can be written as a sum of an upper number for $\xi$ and an upper number for $\eta$.
+\end{enumerate}
+\end{thm}
+\textbf{Proof:} Consider any lower numbers $X_1$ \&\ $X_2$ for $\xi$ and any lower numbers $Y_1$ \&\ $Y_2$ for $\eta$. Also consider any upper number $X_3$ for $\xi$ and any upper number $Y_3$ for $\eta$; with following relation.
+\begin{equation}
+X_1<X_2<X_3\qquad \&\ \qquad Y_1<Y_2<Y_3 \nonumber
+\end{equation}
+
+We can always find such numbers because of the properties of cuts.
+
+In order to prove $\zeta$ a cut, it is sufficient to show that it satisfies the three points of Definition \ref{def1}. \\
+\begin{enumerate}
+\item Since $\xi$ and $\eta$ are cuts, means both are non-empty. And by given condition, sum of their elements belongs to the set $\zeta$. Also $\exists$ a number $Z=X_3+Y_3$ which doesn't belong to $\zeta$ (according to given condition).
+\item Now consider all numbers less than $X_1+Y_1$, i.e. $Z<X_1+Y_1$ or $\frac{Z}{X_1+Y_1} < 1$ . This statement can be used to draw the following :
+\begin{equation}
+X_1\dfrac{Z}{X_1+Y_1} < X_1\cdot1 \qquad \&\ \qquad Y_1\dfrac{Z}{X_1+Y_1} < Y_1\cdot1 \nonumber
+\end{equation}
+By Theorem \ref{thm2} and by given condition, the number
+\begin{equation}
+( X_1\dfrac{Z}{X_1+Y_1} + Y_1\dfrac{Z}{X_1+Y_1} ) \in \zeta \nonumber
+\end{equation}
+which implies that $Z\in \zeta$.
+\item For every $X_1\in \xi$, $\exists$ a greater lower number $X_2$ and since it is a lower number for $\xi$, $(X_2+Y_1) \in \zeta$ even though $X_2+Y_1 > X_1+Y_1$.
+\end{enumerate}
+From 1, 2 and 3, we can conclude that the set $\zeta$ is a cut.\\ \medskip
+
+Now consider lower numbers for $\zeta$, from the first part of this theorem it could be represented as the sum of the lower numbers of both $\xi$ and $\eta$ i.e. of the form $X_1+Y_1$. And any such number can't be represented by the form $X_3+Y_3$, i.e. $X_1+Y_1 \neq X_3+Y_3$ as $X_1+Y_1 < X_3+Y_3$ (from the given relation).
+So, this proves the theorem.
+\bigskip
+
+\begin{dfn}\label{def5}
+The cut constructed in Theorem \ref{thm4} is denoted by $\xi+\eta$ and is called the sum of $\xi$ and $\eta$.
+\end{dfn}
+\begin{thm} (Commutative Law of Addition):
+$\xi+\eta = \eta+\xi$.
+\end{thm}
+\textbf{Proof:} Every X+Y is a Y+X, and vice versa; where X and Y are lower numbers for $\xi$ and $\eta$, respectively.
+
+\begin{thm} (Associative Law of Addition):
+$(\xi+\eta)+\zeta = \xi(\eta+\zeta)$
+\end{thm}
+\textbf{Proof:} Every (X+Y)+Z is a X+(Y+Z), and vice versa; where X and Y are lower numbers for $\xi$ and $\eta$, respectively.
+
+There is yet another interesting property of property of cuts, which may be useful result to use.
+
+\begin{thm}\label{thm7}
+Given any positive Rational number A, and given a cut, then there exists a lower number X and an upper number U for the cut such that
+\begin{equation}
+U-X = A. \nonumber
+\end{equation}
+\end{thm}
+\textbf{Proof:} Let $X_1$ be some lower number and $Y_1$ be some upper number, and consider all rational numbers of the form $X_1+nA$ (where n is an integer) such that $X_1+nA > Y_1$. By Theorem \ref{thm1}, this number is an upper number. Consider a set S=\{$n\in\mathbb{N}$ | $X_1+nA$ is an uper number for $\xi$\} and since it is a set of natural number then it must have a least natural number, say u. This implies $X_1 + (u-1)A$ is a lower number. Therefore letting\: $U=X_1+uA$ and $X=X_1+(u-1)A$\: proves this.
+
+\medskip
+
+\begin{thm}\label{thm8}
+If \quad $\xi > \eta$ \quad then,\quad $\xi+\zeta > \eta+\zeta$.
+\end{thm}
+\textbf{Proof:} If $\xi>\eta$, then according to the definition \ref{def3} there exists a Rational number such that $Y\in\xi$ but $Y\notin\eta$. If $\xi$ is cut then, $\exists$ a rational number $X\in\xi$ such that, $X>Y$. By Theorem \ref{thm7} we can let $X-Y=U-Z$; where U \&\ Z are suitable upper and lower number for $\zeta$. The equation $X-Y=U-Z$ is equivalent to $X+Z=U+Y$ and $X+Z$ is a lower number for $(\xi+\zeta)$ and $U+Y$ is an upper number for $(\eta+\zeta)$ (by theorem \ref{thm4}). Hence, it is one such number which belongs to $(\xi+\zeta)$ but doesn't belong to $(\eta+\zeta)$. Therefore $\xi+\zeta > \eta+\zeta$.
+
+\bigskip
+\bigskip
+\bigskip
+
+\subsection{Multiplication}
+Before defining multiplication of cuts, there is one theorem which is helpful in our approach towards defining it. From the axiomatic point of view of multiplication of numbers, it is necessary to obtain a unique number on multiplication of two numbers. Following theorem fulfils this condition.
+\begin{thm}\label{thm9}
+Let $\xi$ and $\eta$ be cuts and also X be a lower number for $\xi$, whereas Y be a lower number for $\eta$.
+\begin{enumerate}
+\item Then the set $\zeta$ of all rational number which are representable in the form $X\cdot Y$, is itself a cut.
+\item No number of this set can be written as a product of an upper number for $\xi$ and an upper number for $\eta$.
+\end{enumerate}
+\end{thm}
+\textbf{Proof:} Consider any lower numbers $X_1$ \&\ $X_2$ for $\xi$ and any lower numbers $Y_1$ \&\ $Y_2$ for $\eta$. Also consider any upper number $X_3$ for $\xi$ and any upper number $Y_3$ for $\eta$; with following relation.
+\begin{equation}
+X_1<X_2<X_3\qquad \&\ \qquad Y_1<Y_2<Y_3 \nonumber
+\end{equation}
+We can always find such numbers because of the properties of cuts.
+
+In order to prove $\zeta$ a cut, it is sufficient to show that it satisfies the three points of Definition \ref{def1}. \\
+\begin{enumerate}
+\item Since $\xi$ and $\eta$ are cuts, means both are non-empty. And by given condition, product of their elements belongs to the set $\zeta$. Also $\exists$ a number $Z=X_3\cdot Y_3$ which doesn't belong to $\zeta$ (according to given condition).
+\item Now consider all numbers less than $X_1\cdot Y_1$, i.e. $Z<X_1\cdot Y_1$ or $\frac{Z}{X_1} < Y_1$. This implies $\frac{Z}{X_1}$ is a lower number for $\eta$. Therefore its product with $X_1$ will belong to $\zeta$, which implies $Z\in \zeta$ (as $X_1\dfrac{Z}{X_1} = Z$ ).
+\item For every $X_1\in \xi$, $\exists$ a greater lower number $X_2$ and since it is a lower number for $\xi$, $(X_2\cdot Y_1) \in \zeta$ even though $X_2\cdot Y_1 > X_1\cdot Y_1$.
+\end{enumerate}
+From 1, 2 and 3, we can conclude that the set $\zeta$ is a cut.\\
+
+Now consider lower numbers for $\zeta$, from the first part of this theorem it could be represented as the product of the lower numbers of both $\xi$ and $\eta$ i.e. of the form $X_1\cdot Y_1$. And any such number can't be represented by the form $X_3\cdot Y_3$, i.e. $X_1\cdot Y_1 \neq X_3\cdot Y_3$ as $X_1\cdot Y_1 < X_3\cdot Y_3$ (from the given relation).
+So, this proves the theorem.
+\bigskip
+
+\begin{dfn}\label{def6}
+The cut constructed in Theorem \ref{thm9} is denoted by $\xi\cdot \eta$ (however the dot is usually omitted), and is called the product of $\xi$ and $\eta$.
+\end{dfn}
+\begin{thm} (Commutative Law of Multiplication):
+$\xi\cdot \eta$ = $\eta\cdot \eta$
+\end{thm}
+\textbf{Proof:} Every XY is a YX, and vice versa; where X and Y are lower numbers for $\xi$ and $\eta$, respectively.
+
+\begin{thm} (Associative Law of Multiplication):
+$(\xi\cdot \eta)\cdot \zeta$ = $\xi\cdot (\eta\cdot \zeta)$
+\end{thm}
+\textbf{Proof:} Every (XY)Z is a X(YZ), and vice versa; where X,Y\&\ Z are lower numbers for $\xi$, $\eta$ and $\zeta$.
+
+\begin{thm} (Distributive Law of Multiplication):
+$\xi\cdot (\eta+\zeta)$ = $\xi\cdot \eta + \xi\cdot \zeta$
+\end{thm}
+\textbf{Proof:}Let X,Y\&\ Z be the lower numbers for $\xi$, $\eta$ and $\zeta$.\\
+From Definition \ref{def5} and \ref{def6}, lower number for $\xi\cdot (\eta+\zeta)$ will be of the form $X(Y+Z)$ which is equal to $XY + XZ$ (as Distributive Law holds over Rational number) which is the lower number for $\xi\cdot \eta + \xi\cdot \zeta$ (by Definition \ref{def5} and \ref{def6}). this implies that every lower number for $(\xi\cdot(\eta+\zeta))$ is a lower number for $(\xi\cdot \eta + \xi\cdot \zeta)$. Hence, $(\xi\cdot (\eta+\zeta)) \subset (\xi\cdot \eta + \xi\cdot \zeta)$.
+
+
+From Definition \ref{def5} and \ref{def6}, lower number for $(\xi\cdot \eta + \xi\cdot \zeta)$ will be of the form $XY+X_1Z$ (where $X_1\in \xi$ and may be different from $X$). Now if we let $X=min(X,X_1)$ then, $XY+XZ$ is also a lower number for $\xi$ which is equal to $X(Y+Z)$, where $X(Y+Z)$ is a lower number for $\xi\cdot(\eta+\zeta)$ (by Definition \ref{def5} and \ref{def6}). Hence, $(\xi\cdot \eta+\xi\cdot \zeta) \subset (\xi\cdot(\eta+\zeta))$
+
+From above two paragraph we can conclude that $(\xi\cdot (\eta+\zeta)) = (\xi\cdot \eta + \xi\cdot \zeta)$.
+
+\bigskip
+\bigskip
+\bigskip
+
+\section{Rational and Integral cuts}
+We are almost one step far from defining real Numbers. In the previous section we have seen how to construct a cut, which just ask for a set of Rational number to satisfy three axioms of Definition \ref{def1}; but the question is ``how to associate uniquely a cut to a rational and what sort of cut will be suitable?". May be following theorem would help.
+\begin{thm} \label{thm10}
+For any given rational number $R$, the set of all rational numbers $<R$ constitutes a cut.
+\end{thm}
+\textbf{Proof:} Let the set defined above be $S$.In order to prove $\zeta$ a cut, it is sufficient to show that it satisfies the three points of Definition \ref{def1}.
+\begin{enumerate}
+\item For every R, $\exists$ a $X<R$ \&\ $X_1>R$ (where $X,X_1$ $\in$ $\mathbb{Q}$) which makes $X$ to belong in $S$ and $X_1$ not to belong in $S$.
+\item consider number less than any number $X\in S$; i.e. $Z<X$, but $X<R$, which implies $Z\in S$ for every $Z<X$.
+\item since there exists infinite rational number between any two Rational numbers, i.e. for every $X<R$, $\exists$ a $X_2\in \mathbb{Q}$ such that $X<X_2<R$ and by given condition $X_2\in S$.
+\end{enumerate}
+From 1, 2 and 3 we can conclude that $S$ is a cut. \\
+Also, it's clear that this cut $S$ uniquely identifies R and hence, it is denoted by \textbf{R*}.
+
+\bigskip
+
+\begin{dfn} \label{def7}
+The cut constructed in Theorem \ref{thm10} is called as \textbf{rational cut} and is denoted by \textbf{R*}. And if R happens to be an integer then, the cut so constructed is called as \textbf{integral cut} and it is then denoted by \textbf{r*}. And if R is a natural number then the cut will be called as \textbf{natural cut}.
+\end{dfn}
+
+\subsection{Properties}
+Here are some interesting properties of rational cuts which are among the motivations in choosing cuts for defining all sorts of numbers (means rational) and hence are stated as theorems.
+
+\begin{thm} \label{thm11}
+If
+
+$
+\begin{array}{lll}
+X<Y \qquad or & X=Y \qquad or & X>Y \\
+X\text{*}<Y\text{*} \quad or & X\text{*}=Y\text{*} \quad or & X\text{*}>Y\text{* ;}
+\end{array}
+$
+
+ vice versa.
+\end{thm}
+
+\textbf{Proof:} If $X<Y$ then for sure $X\in Y$* and by Definition \ref{def7} $X\notin X$*. Hence, by Definition \ref{def3} $X$*$<$ $Y$*. Similarly, result for other two cases can also be proved.
+
+\bigskip
+
+\begin{thm} \label{thm12} The following holds
+
+$
+\begin{array}{rcl}
+(X+Y)\text{*} & = & (X\text{*} + Y\text{*}) \\
+(X\cdot Y)\text{*} & = & (X\text{*}\cdot Y\text{*})
+\end{array}
+$
+\end{thm}
+\textbf{Proof:} Let $X_1$ and $Y_1$ be arbitrary lowers number for $X$* and $Y$*, respectively.
+\begin{enumerate}
+\item From definition \ref{def5}, lower number for ($X$* + $Y$*) will be of the form $X_1+Y_1$, where $X_1<X$ \&\ $Y_1<Y$. Because of the property of rational number, $X_1+Y_1 < X+Y$. Also by Definition \ref{def5} $(X_1+Y_1)$ is a lower number for ($X+Y$)*. This implies $(X\text{*} + Y\text{*}) \subset (X+Y)\text{*}$.
+\medskip
+\item Let $Z$ be a arbitrary lower number for ($X+Y$)* for which $Z<(X+Y)$ or in other sense $\frac{Z}{X+Y}<1$. This statement can be used to draw the following :
+\begin{equation}
+X_1\dfrac{Z}{X_1+Y_1} < X_1\cdot1 \qquad \&\ \qquad Y_1\dfrac{Z}{X_1+Y_1} < Y_1\cdot1 \nonumber
+\end{equation}
+Then obviously $X_1\dfrac{Z}{X_1+Y_1}$ \&\ $Y_1\dfrac{Z}{X_1+Y_1}$ are lower number for $X$* and $Y$*, respectively and their sum must belong to $(X\text{*}+Y\text{*})$. Since $Z = X\dfrac{Z}{X+Y}+Y\dfrac{Z}{X+Y}$, $Z \in (X\text{*}+Y\text{*})$. Hence, $(X+Y)\text{*} \subset (X\text{*} + Y\text{*})$.
+\medskip
+\item From Definition \ref{def6}, lower number for ($X$*$\cdot$ $Y$*) will be of the form $X_1\cdot Y_1$ for which $X_1\cdot Y_1 < X\cdot Y$ (as $X_1<X$ and $Y_1<Y$). By Definition \ref{def6}, $(X_1\cdot Y_1)$ is a lower number for ($X\cdot Y$)*. Hence, $(X\text{*}\cdot Y\text{*}) \subset (X\cdot Y)\text{*}$.
+\medskip
+\item Let $Z$ be a arbitrary lower number for ($X\cdot Y$)* i.e. $Z<(X\cdot Y)$. Since ($X\cdot Y$)* is a cut, therefore $\exists$ a greater lower $Z_1\in (X\cdot Y)$* for every $Z$  . This implies  $Z<Z_1<(X\cdot Y)$ and this relation can be written as
+\begin{equation}
+\frac{Z}{Z_1} < 1 \quad \&\ \quad \frac{Z_1}{Y} < X \nonumber
+\end{equation}
+The number $\frac{Z_1}{Y}$ is a lower number for $X$* whereas $Y\frac{Z}{Z_1}$ is for $Y$* (as $\frac{Z}{Z_1} < 1$).
+This implies $Z\in (X$*$\cdot Y$*) and $(X\cdot Y)\text{*} \subset (X\text{*}\cdot Y\text{*})$.
+\end{enumerate}
+From 1 and 2, $(X+Y)\text{*} = (X\text{*} + Y\text{*})$ , and \\
+from 3 and 4, $(X\cdot Y)\text{*} = (X\text{*}\cdot Y\text{*})$.
+
+\bigskip
+
+\section{Real Numbers}
+Now we get the intuition in our mind that cut is a good candidate to be set as a real number and following definition defines  natural numbers to rational numbers, the same way.
+\begin{dfn} \label{def8} The symbol $X$ will now denote the cut $X$*, with following replacement.
+\begin{itemize}
+\item The term \textbf{natural numbers} ($\mathbb{N}$) will henceforth be used instead of natural cuts.
+\item The term \textbf{integers} ($\mathbb{Z}$) will henceforth be used instead of integral cuts.
+\item The term \textbf{rational number} ($\mathbb{Q}$) will henceforth be used instead of rational cuts.
+\end{itemize}
+\end{dfn}
+
+Because of such replacement, interesting results arises, some of which needed to be proved; hence, is stated as theorems.
+
+\begin{thm} \label{thm13}
+The rational numbers are those cuts for which there exists a least upper number.
+\end{thm}
+\textbf{Proof:} By Definition \ref{def8}, rational numbers are rational cuts, i.e. if the number is \textbf{X}, then \textbf{X}=$X$* , which implies for every $Z<X$, $Z\in X$* but $X \notin X$* (where $Z$ is a rational number(old one)). This implies X is the least upper number.
+
+\medskip
+
+\begin{dfn} \label{def9}
+Any cut which is not a rational number is called an \textbf{irrational number}. In other words, \textbf{irrational number} are those cuts for which there doesn't exists a least upper number.
+\end{dfn}
+Two irrational numbers could be added, multiplied and ordered as they are cuts.
+
+
+Now we are ready to define real numbers because we have already defined rational and irrational number.
+
+\begin{dfn} \label{def10}
+A \textbf{real number} is a cut. In other words, collection of all rational and irrational numbers is called as \textbf{real number set} ($\mathbb{R}$).
+\end{dfn}
+\bigskip
+
+There is yet another important definition which will enable us to identify cut as a number and element of a cut, i.e. number as a cut; any time.
+\begin{dfn} \label{def11}
+Let $\xi$ and X be a cut. Then X is a lower number for $\xi$ if and only if, $X<\xi$ and hence is an upper number if, $X\geq \xi$ .
+\end{dfn}
+
+\bigskip
+\bigskip
+\bigskip
+
+\section{Dedekind's Fundamental Theorem}
+\begin{thm} \label{thm14}
+Let there be given any division of all real numbers into two classes with the following properties:
+\begin{enumerate}
+\item There exists a number of the first class, and also one of the second class.
+\item Every number of the first class is less than every number of the second class.
+\end{enumerate}
+Then there exists exactly one real number $\theta$ such that every $H<\theta$ belongs to the first class and every $H>\theta$ to the second class.
+\end{thm}
+\textbf{Proof:} Consider a cut $\xi$ which consists of all the numbers of first class (except the greatest one, if any). This cut can be made as two requirements are already fulfilled according theorem's condition and the third one is fulfilled by excluding the greatest one. \\
+This implies that for every such division of all real numbers we can associate a cut.\\
+Also, by definition \ref{def11}, the numbers $< \xi$, $\in \xi$; and since, all lower numbers of $\xi$ are from first class implies that every real $H<\xi$ belongs to the first class.\\
+Also, the numbers $> \xi$, $\notin \xi$; and since, all upper numbers of $\xi$ are from second class implies that every real $H>\xi$ belongs to the second class.\\
+
+\bigskip
+
+\section{Revisiting Peano's Axioms}
+There is an interesting point still remaining towards defining real numbers and i.e. ``Do natural cuts satisfies Peano's Axioms?" . And the answer is stated as a theorem, which if true could become the reason for identifying natural cuts as natural numbers.
+
+\begin{thm} \label{thm15}
+The natural cut satisfy the five axiom of natural number if the role of 0 is assigned to 0* and if we set ($x$*)$'$ = $x$*+$1$* .
+\end{thm}
+
+\textbf{Proof:}
+\begin{enumerate}
+\item 0* is a natural number. \\
+\textbf{Explanation}: given condition
+
+\item If $x$* is a natural number then $\exists$ a unique successor denoted by ($x$*)$'$, which is also a natural number.\\ \textbf{Explanation}: $x$* is a cut and ($x$*)$'$ = $x$*+$1$* = $(x+1)$*; which is a natural cut, or in other words natural number.
+
+\item If ($x$*)$'$ = ($y$*)$'$ , \quad then ($x$)* = ($y$)* \\
+\textbf{Explanation}: if ($x$*)$'$ = ($y$*)$'$ then, $($x'$)\text{*} = ($y'$)\text{*}$ (as ($x$*)$'$ = $x$*+$1$* = $(x+1)$*); which by Theorem \ref{thm11} equivalent to the expression $x'=y'$ or more precisely, $x=y$. This implies $x\text{*}=y\text{*}$.
+
+\item ($x$*)$'$ $\neq$ 0* \qquad $\forall$ $x$* \\
+\textbf{Explanation}: since $x'\neq 0$ $\forall$ $x$, therefore by Theorem \ref{thm11}, $(x')\text{*} \neq 0\text{*}$. this implies $(x\text{*})' \neq 0\text{*} \qquad \forall x\text{*}$.
+
+\item Let $\mathbb{N}$* be the set of all natural cuts and $M$* be a subset of it, s.t. 0* $\in$ $M$* \&\ ($m$*)$'$ $\in$ $M$* , whenever $m$* $\in$ $M$* ; then $M$* = $\mathbb{N}$* .
+\textbf{Explanation}: Consider a set M = \{\ $m$ $\mid$ $m$* $\in$ $M$*\}\ . We can say, 0 $\in$ $M$ (since 0* $\in$ $M$*) and also, $m'$ $\in$ $M$, whenever $m$ $\in$ $M$ (as ($m$*)$'$ $\in$ $M$* , whenever $m$* $\in$ $M$* ). From axioms of Natural number we can conclude that $M=\mathbb{N}$, which implies $M$* = $\mathbb{N}$*.
+
+\end{enumerate}
+
+
+\subsection{Conclusion}
+So with this, we can conclude that this so constructed real number set is an extension of rational number and the  pattern mentioned as equation \ref{eq1} is restored, i.e.
+\begin{equation}
+\mathbb{N}\:\subset \mathbb{Z}\:\subset \mathbb{Q}\: \subset \mathbb{R}
+\end{equation}
+
+\newpage
+\section{Acknowledgement}
+The author wishes to thank the DST-Inspire Programme and the IISc Mathematics department for providing the resources that went into this study. Considerable use has been made of the J.R.D. Tata Library, for which the author is correspondingly grateful. The author especially thanks his project guide, Prof. M.K. Ghosh, for his guidance and help during the project.
+
+\newpage
+\begin{thebibliography}{100}
+\bibitem{Landau} Edmund Landau, \textit{Foundation of Analysis}, Chelsea Publishing Company New York, 1966
+\bibitem{Spivak} Michael Spivak, \textit{Calculus}, Cambridge University Press, 1994
+\bibitem{webpage} Wenliang Zhang, \textit{Supplementary notes on Dedekind's Cuts}, (http://www-personal.umich.edu/~wlzhang/dedekind-cuts.pdf)
+\bibitem{webpage} Alexander Bogomolny, \textit{On Dedekind Cuts},\\ (http://www.cut-the-knot.org/proofs/Whittaker.shtml)
+\end{thebibliography}
+
+\end{document}
