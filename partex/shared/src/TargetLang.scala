@@ -44,7 +44,7 @@ object TargetLang {
 
     val eqNum = bd.elems.collect({case x: DisplayMath => x})
       .asInstanceOf[Vector[DisplayMath]].zipWithIndex
-      .map((t:(DisplayMath,Int)) => (t._1,"("+(t._2+1)+")")).toMap
+      .map((t:(DisplayMath,Int)) => (t._1,"(" +(t._2+1)+ ")")).toMap
 
     val codeNum = bd.elems.collect({case x: CodeBlock => x})
       .asInstanceOf[Vector[CodeBlock]].zipWithIndex
@@ -63,14 +63,14 @@ object TargetLang {
 
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
-        .takeWhile((h: Heading) => h.name!="section")
+        .takeWhile((h: Heading) => h.name!= "section")
 
-      t +: slice.filter((h: Heading) => h.name=="subsection").map((h: Heading) => (h,t._2+".")).zipWithIndex
+      t +: slice.filter((h: Heading) => h.name== "subsection").map((h: Heading) => (h,t._2+ ".")).zipWithIndex
         .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
         .map(
           (t:(Heading,String)) => t +:
-            slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!="subsection")
-              .map((h: Heading) => (h,t._2+".")).zipWithIndex
+            slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!= "subsection")
+              .map((h: Heading) => (h,t._2+ ".")).zipWithIndex
               .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
         ).flatten
       }
@@ -80,7 +80,7 @@ object TargetLang {
         bd.elems.takeWhile(_!=t).reverse.find((b: BodyElem) => b match {
           case e: Heading => if(e.name==s) {true} else {false}
           case _ => {false}
-        }).asInstanceOf[Option[Heading]].map(headNum(_)+".").getOrElse("")
+        }).asInstanceOf[Option[Heading]].map(headNum(_)+ ".").getOrElse("")
       ).getOrElse("")
 
     def hasLabel(e: AllElem): Vector[Labelable] = e match {
@@ -221,7 +221,7 @@ object TargetLang {
       )
   }
   case class Command(name: String, value: String) extends BodyElem{
-    val toHTML: Frag = div(`class`:="command")(h3(name+": "+value))
+    val toHTML: Frag = div(`class`:="command")(h3(name+ ": " +value))
   }
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
@@ -236,7 +236,7 @@ object TargetLang {
             )),
             label.map((l: String) => a(attr("name"):=l)()),
             value,
-            alias.map((l: String) => "\t\t["+l+"]")
+            alias.map((l: String) => "\t\t[" +l+ "]")
           )
         )
   }
@@ -270,7 +270,7 @@ object TargetLang {
               raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
               raw("thmNum[\""),raw(key),raw("\"];")
             )),
-            alias.map((l: String) => "\t\t["+l+"]")
+            alias.map((l: String) => "\t\t[" +l+ "]")
           ),
           value.toHTML
         )
@@ -280,7 +280,7 @@ object TargetLang {
       val toHTML: Frag =
         div(`class`:="proof")(
           label.map((l: String) => a(attr("name"):=l)()),
-          div(`class`:="name")("proof", alias.map((l: String) => "\t\t["+l+"]")),
+          div(`class`:="name")("proof", alias.map((l: String) => "\t\t[" +l+ "]")),
           div(`class`:="pfbody")(value.toHTML)
         )
   }
@@ -295,7 +295,7 @@ object TargetLang {
             raw("eqNum[\""),raw(key),raw("\"];")
           )),
           label.map((l: String) => a(attr("name"):=l)()),
-          "\\["+value+"\\]"
+          "\\[" +value+ "\\]"
         )
   }
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
@@ -406,7 +406,7 @@ object TargetLang {
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(s: String) extends Fragment with Math{
-    val toHTML: Frag = span(`class`:="inlinemath")("\\("+s+"\\)")
+    val toHTML: Frag = span(`class`:="inlinemath")("\\(" +s+ "\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
     val toHTML: Frag =

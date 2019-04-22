@@ -1,5 +1,6 @@
 package partex.shared
 import fastparse.all._
+import TargetLang.DisplayMath
 
 object Processor {
   import ParsingRules.all.alpha
@@ -9,7 +10,7 @@ object Processor {
   import ParsingRules.all.cmdName
 
   /**************************      preamble input      ****************************/
-  val inputFile: P[(String,Int)] = P("\\" ~ ("input"|"include") ~ "{" ~
+  val inputFile: P[(String,Int)] = P("\\" ~ ("input" | "include") ~ "{" ~
     (resrcFilename | resrcFile | path) ~ "}")
   val resrcFilename: P[(String,Int)] = P(alpha | num | "_").rep.!
     .map((s: String) => (s,1))
@@ -28,16 +29,16 @@ object Processor {
   val defCmd: P[Unit] = P( StringIn("\\def","\\newcommand","\\renewcommand") )
   val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
   val argBox: P[Unit] = P("[" ~ num.rep(1) ~ "]" )
-  val default: P[String] = P("[" ~ (!"]" ~ AnyChar).rep(1).! ~ "]")
-  val definition: P[String] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep(1).! ~ "}")
+  val default: P[String] = P("[" ~ (!("]") ~ AnyChar).rep(1).! ~ "]")
+  val definition: P[String] = P("{" ~ (curlyBox | !("}") ~ AnyChar).rep(1).! ~ "}")
 
 /********************     extracting \newtheorems      ************************/
   val nwthmParser: P[Map[String,(Option[String],String,Option[String])]] =
     P(nwthm.rep).map(_.toVector).map(_.toMap)
   val nwthm: P[(String,(Option[String],String,Option[String]))] =
-    P((!"\\newtheorem{" ~ AnyChar).rep ~
+    P((!("\\newtheorem{") ~ AnyChar).rep ~
     "\\newtheorem" ~ cmdName ~ (counter.? ~ cmdName ~ counter.?))
-  val counter: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
+  val counter: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]")
 
 
 /***********************       resolving raw file       **********************/
@@ -68,8 +69,8 @@ object Processor {
 
     val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
     val cmdToken: P[Unit] = P(cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s)) ~ !alpha)
-    val boxPara: P[Vector[String]] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
-    val params: P[Vector[String]] = P("{" ~ (!"}" ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
+    val boxPara: P[Vector[String]] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
+    val params: P[Vector[String]] = P("{" ~ (!("}") ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
     def resolveDef(k: String,default: Vector[String],para: Vector[String]): String = {
       val params = if (default.length == 0) {usrCmdList(k)._1 ++ para} else {default++para}
@@ -103,6 +104,12 @@ object Processor {
       case _: Parsed.Failure =>
         "<html><head><script>alert('Parser Failed!');</script></head></html>"
     }
+
+    val allMath = parsed match {
+      case Parsed.Success(value,_) => value.bd.elems.collect({case x: DisplayMath => x.value})
+      case _: Parsed.Failure => Vector()
+    }
+
 
   }
 

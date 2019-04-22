@@ -16,15 +16,15 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   import fastparse.all._
   import TargetLang._
 
-  val ws = P(" "|"\n"|"\t"|"\\:")
+  val ws = P(" " | "\n" | "\t" | "\\:")
   val alpha: P[Unit] = P( CharIn('a' to 'z') | CharIn('A' to 'Z') )
   val num: P[Unit] = P( CharIn('0' to '9') )
-  val alias: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]" ~ (&("\\")|ws.rep))
+  val alias: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]" ~ (&("\\")|ws.rep))
   val box: P[Unit] = P(curlyBox|sqBox)
-  val curlyBox: P[Unit] = P("{" ~ (curlyBox | !"}" ~ AnyChar).rep ~ "}" )
-  val sqBox: P[Unit] = P("[" ~ (sqBox | !"]" ~ AnyChar).rep ~ "]" )
-  val label: P[String] = P("\\label{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
-  val caption: P[String] = P("\\caption" ~ sqBox.? ~ "{" ~ (!("}"|"\\label{") ~ AnyChar).rep(1).! ~
+  val curlyBox: P[Unit] = P("{" ~ (curlyBox | !("}") ~ AnyChar).rep ~ "}" )
+  val sqBox: P[Unit] = P("[" ~ (sqBox | !("]") ~ AnyChar).rep ~ "]" )
+  val label: P[String] = P("\\label{" ~ (!("}") ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
+  val caption: P[String] = P("\\caption" ~ sqBox.? ~ "{" ~ (!("}" | "\\label{") ~ AnyChar).rep(1).! ~
     label.? ~ "}" ~ (&("\\")|ws.rep)).map((t:(String,Option[String])) => t._1)
 
   def isMeta(b: BodyElem) : Boolean = b match {
@@ -60,7 +60,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
   val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
     codeBlock | figure | table | tabular | list | bibliography |
-    environment | paragraph | !("\\end{"|"\\bibitem{") ~ command)
+    environment | paragraph | !("\\end{" | "\\bibitem{") ~ command)
 
 
   val heading: P[Heading] = P("\\" ~ StringIn("subsubsection","subsection","section","chapter","part").! ~
@@ -69,11 +69,11 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
   val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
     map((t:(Option[Map[String,String]],String)) => Graphics(t._1,t._2))
-  val name: P[String] = P("{" ~ (!"}" ~ AnyChar).rep(1).! ~ "}")
+  val name: P[String] = P("{" ~ (!("}") ~ AnyChar).rep(1).! ~ "}")
   val imgSpec: P[Map[String,String]] =
     P("[" ~ (attr ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
   val attr: P[String] = P(ws.rep ~ StringIn("scale","height","width","angle").! ~ ws.rep)
-  val value: P[String] = P(ws.rep ~ (alpha|num| "."|"{"|"}").rep.! ~ ws.rep)
+  val value: P[String] = P(ws.rep ~ (alpha | num | "." | "{" | "}").rep.! ~ ws.rep)
 
   val theorem: P[Theorem] = P("\\begin{" ~ thmToken.! ~ "}" ~ (&("\\")|ws.rep) ~ alias.? ~ label.? ~
     body ~ end).map((t:(String,Option[String],Option[String],Body)) =>
@@ -86,14 +86,14 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val displaymath: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
     map((t:(Option[String],String)) => DisplayMath(t._1,t._2))
   val displayEnv: P[(Option[String],String)] = P("\\begin{displaymath}" ~ (&("\\")|ws.rep) ~
-    label.? ~ (!"\\end{displaymath}" ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{displaymath}")
-  val mathEnv: P[(Option[String],String)] = P("\\begin{" ~ ("equation*}"|"equation}") ~ (&("\\")|ws.rep) ~
-    label.? ~ (!("\\end{"~("equation*}"|"equation}")) ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~
-    "\\end{"~("equation*}"|"equation}") )
+    label.? ~ (!("\\end{displaymath}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{displaymath}")
+  val mathEnv: P[(Option[String],String)] = P("\\begin{" ~ ("equation*}" | "equation}") ~ (&("\\")|ws.rep) ~
+    label.? ~ (!("\\end{"~("equation*}" | "equation}")) ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~
+    "\\end{"~("equation*}" | "equation}") )
   val doubleDollar : P[(Option[String],String)] =
-    P("$$" ~ ws.rep ~ label.? ~ (!"$$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
+    P("$$" ~ ws.rep ~ label.? ~ (!("$$") ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
   val sqBracket : P[(Option[String],String)] =
-    P("\\[" ~ ws.rep ~ label.? ~ (!"\\]" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
+    P("\\[" ~ ws.rep ~ label.? ~ (!("\\]") ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
   val codeBlock: P[CodeBlock] = P(inputCode|writtenCode).
     map((t:(Option[String],String)) =>
@@ -102,18 +102,18 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val writtenCode: P[(Option[String],String)] = P("\\begin{" ~ StringIn("verbatim","lstlisting","alltt") ~
     "*".? ~ "}" ~ codeSpec.? ~ ws.rep ~ code ~ end)
   val code: P[String] = P(!("\\end{" ~ StringIn("verbatim","lstlisting") ~ "*".? ~ "}") ~ AnyChar).rep.!
-  val codeSpec: P[String] = P("[" ~ (!"]" ~ AnyChar).rep.! ~ "]")
+  val codeSpec: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]")
 
   val figure: P[Figure] = P("\\begin{" ~ StringIn("SCfigure","wrapfigure","figure") ~ "}" ~
     (!end ~ AnyChar).rep.! ~ end).map((s: String) =>
-    Figure( P((!"\\includegraphics" ~ AnyChar).rep ~ graphics).parse(s).get.value ,
-      P((!"\\caption" ~ AnyChar).rep ~ caption).?.parse(s).get.value ,
-      P((!"\\label" ~ AnyChar).rep ~ label).?.parse(s).get.value ))
+    Figure( P((!("\\includegraphics") ~ AnyChar).rep ~ graphics).parse(s).get.value ,
+      P((!("\\caption") ~ AnyChar).rep ~ caption).?.parse(s).get.value ,
+      P((!("\\label") ~ AnyChar).rep ~ label).?.parse(s).get.value ))
 
   val table: P[Table] = P("\\begin{table}" ~ (!beginTb ~ AnyChar).rep.! ~ tabular ~
-    (!"\\end{table}" ~ AnyChar).rep.! ~ "\\end{table}").map((t:(String,Table,String)) =>
-    Table(P((!"\\caption" ~ AnyChar).rep ~ caption).?.parse(t._1 +"\n"+ t._3).get.value ,
-      P((!"\\label" ~ AnyChar).rep ~ label).?.parse(t._1 +"\n"+ t._3).get.value ,
+    (!("\\end{table}") ~ AnyChar).rep.! ~ "\\end{table}").map((t:(String,Table,String)) =>
+    Table(P((!("\\caption") ~ AnyChar).rep ~ caption).?.parse(t._1+ "\n"+ t._3).get.value ,
+      P((!("\\label") ~ AnyChar).rep ~ label).?.parse(t._1 + "\n"+ t._3).get.value ,
       t._2.tb ))
 
   val tabular: P[Table] = P(beginTb ~ (!endTb ~ AnyChar).rep.! ~ endTb).map((s: String) =>
@@ -181,8 +181,8 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val resvdCmd: P[Unit] = P("\\" ~ StringIn("hspace","linespread","setlength","setstretch","vspace",
     "cline","comment","noalign","rowfont","markright","markboth","pagenumbering","def",
     "newcommand","renewcommand") ~ box.rep)
-  val comment: P[Unit] = P("\\begin{comment}" ~ (!"\\end{comment}" ~ AnyChar).rep ~ "\\end{comment}")
-  val resvdEnvToken: P[Unit] = P("\\" ~ ("begin"|"end") ~ "{" ~
+  val comment: P[Unit] = P("\\begin{comment}" ~ (!("\\end{comment}") ~ AnyChar).rep ~ "\\end{comment}")
+  val resvdEnvToken: P[Unit] = P("\\" ~ ("begin" | "end") ~ "{" ~
     StringIn("doublespace","spacing","flushleft","flushright","center") ~ "}")
 
   val wrapper: P[String] = P("\\" ~ StringIn("lowercase","textnormal","textrm","textsf","texttt",
@@ -193,27 +193,27 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
   val inlineMath: P[InlineMath] = P((inlineEnv | singleDollar | roundBracket ).
     map((s: String)=> InlineMath(s)))
-  val inlineEnv: P[String] = P("\\begin{math}" ~ ws.rep ~ (!"\\end{math}" ~ AnyChar).rep(1).! ~
+  val inlineEnv: P[String] = P("\\begin{math}" ~ ws.rep ~ (!("\\end{math}") ~ AnyChar).rep(1).! ~
     ws.rep ~ "\\end{math}")
-  val singleDollar : P[String] = P("$" ~ ws.rep ~ (!"$" ~ AnyChar).rep(1).! ~ ws.rep ~ "$")
-  val roundBracket: P[String] = P("\\(" ~ ws.rep ~ (!"\\)" ~ AnyChar).rep(1).! ~ ws.rep ~ "\\)")
+  val singleDollar : P[String] = P("$" ~ ws.rep ~ (!("$") ~ AnyChar).rep(1).! ~ ws.rep ~ "$")
+  val roundBracket: P[String] = P("\\(" ~ ws.rep ~ (!("\\)") ~ AnyChar).rep(1).! ~ ws.rep ~ "\\)")
 
   val phantom: P[Phantom] = P("\\phantomsection" ~ ws.rep ~ label.?).
     map((o: Option[String]) => Phantom(o))
 
-  val quoted: P[Quoted] = P( "\\begin{quote}" ~ (!"\\end{quote}" ~ AnyChar).rep.! ~ "\\end{quote}" |
-    "\\begin{quotation}" ~(!"\\end{quotation}" ~ AnyChar).rep.! ~ "\\end{quotation}" |
-    "\\begin{verse}" ~ (!"\\end{verse}" ~ AnyChar).rep.! ~ "\\end{verse}" |
+  val quoted: P[Quoted] = P( "\\begin{quote}" ~ (!("\\end{quote}") ~ AnyChar).rep.! ~ "\\end{quote}" |
+    "\\begin{quotation}" ~(!("\\end{quotation}") ~ AnyChar).rep.! ~ "\\end{quotation}" |
+    "\\begin{verse}" ~ (!("\\end{verse}") ~ AnyChar).rep.! ~ "\\end{verse}" |
     "``" ~ (!("''" | "\"") ~ AnyChar).rep.! ~ ("''" | "\"") |
-    "`" ~ (!"'" ~ AnyChar).rep.! ~ "'" ).map((s: String) => Quoted(s))
+    "`" ~ (!("'") ~ AnyChar).rep.! ~ "'" ).map((s: String) => Quoted(s))
 
-  val cite: P[Citation] = P("\\cite" ~ ("year"|"author"|"p*"|"t*"|"p"|"t").? ~
+  val cite: P[Citation] = P("\\cite" ~ ("year" | "author" | "p*" | "t*" | "p" | "t").? ~
     sqBox.rep ~ cmdName).map((s: String) => Citation(s))
 
   val hypertarget: P[Hypertarget] = P("\\hypertarget" ~ cmdName ~ cmdName).
     map((t:(String,String)) => Hypertarget(t._1,t._2))
   val hyperlink: P[Hyperlink] = P(("\\url" ~ cmdName).map((s: String) => Hyperlink(s,s)) |
-    (("\\href"|"\\hyperlink") ~ cmdName ~ cmdName).map((t:(String,String)) => Hyperlink(t._1,t._2)) )
+    (("\\href" | "\\hyperlink") ~ cmdName ~ cmdName).map((t:(String,String)) => Hyperlink(t._1,t._2)) )
 
   val ref: P[Reference] = P("\\" ~ StringIn("ref","pageref","nameref","autoref","vref","hyperref") ~
     sqBox.? ~ cmdName).map((s: String) => Reference(s))

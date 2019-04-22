@@ -12,13 +12,13 @@ class SourcesIO(filename: String) {
   val divided = raw.split("""\\begin\{document\}""")
   val extFilename = Processor.extPreamble(divided(0))
   val external = extFilename match {
-    case Some((s,1)) => scala.io.Source.fromFile(getClass.getResource("/"+s+".tex").getPath).mkString
+    case Some((s,1)) => scala.io.Source.fromFile(getClass.getResource("/"+ s+ ".tex").getPath).mkString
     case Some((s,2)) => scala.io.Source.fromFile(getClass.getResource("/"+s).getPath).mkString
     case Some((s,3)) => scala.io.Source.fromFile(s).mkString
     case _ => ""
   }
   val preamble = external + divided(0)
-  val restRaw = "\\begin{document}" + divided(1)
+  val restRaw = if (divided.length > 1) {"\\begin{document}" + divided(1)} else {""}
   val parser = new Processor.Resolver(preamble,restRaw)
 
   def writeTo(file: String) =
