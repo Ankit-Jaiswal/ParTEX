@@ -58,7 +58,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
   val body: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  val bodyElem: P[BodyElem] = P(meta | heading | graphics | theorem | proof | displaymath |
+  val bodyElem: P[BodyElem] = P(meta | heading | image | theorem | proof | displaymath |
     codeBlock | figure | table | tabular | list | bibliography |
     environment | paragraph | !("\\end{" | "\\bibitem{") ~ command)
 
@@ -67,8 +67,8 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
       "*".? ~ cmdName ~ (&("\\")|ws.rep) ~ alias.? ~ label.?).
       map((t:(String,String,Option[String],Option[String])) => Heading(t._1,t._3,t._4,t._2))
 
-  val graphics: P[Graphics] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
-    map((t:(Option[Map[String,String]],String)) => Graphics(t._1,t._2))
+  val image: P[Image] = P("\\includegraphics" ~ imgSpec.? ~ name ~ (&("\\")|ws.rep)).
+    map((t:(Option[Map[String,String]],String)) => Image(t._1,t._2))
   val name: P[String] = P("{" ~ (!("}") ~ AnyChar).rep(1).! ~ "}")
   val imgSpec: P[Map[String,String]] =
     P("[" ~ (attr ~ "=" ~ value).rep(sep= ",") ~ "]").map(_.toVector).map(_.toMap)
@@ -105,10 +105,14 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   val codeSpec: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]")
 
   val figure: P[Figure] = P("\\begin{" ~ StringIn("SCfigure","wrapfigure","figure") ~ "}" ~
-    (!end ~ AnyChar).rep.! ~ end).map((s: String) =>
-    Figure( P((!("\\includegraphics") ~ AnyChar).rep ~ graphics).parse(s).get.value ,
+    (!("\\end{" ~ StringIn("SCfigure","wrapfigure","figure")) ~ AnyChar).rep.! ~ end).map((s: String) =>
+    Figure( P((!("\\begin{tikzcd}" | "\\includegraphics") ~ AnyChar).rep ~ graphics).parse(s).get.value ,
       P((!("\\caption") ~ AnyChar).rep ~ caption).?.parse(s).get.value ,
       P((!("\\label") ~ AnyChar).rep ~ label).?.parse(s).get.value ))
+  val graphics: P[Graphics] = P(figMath | image)
+  val figMath: P[FigMath] = P("\\begin{tikzcd}" ~ (!("\\end{tikzcd}") ~ AnyChar).rep.! ~ "\\end{tikzcd}")
+    .map((s: String) => FigMath(s))
+
 
   val table: P[Table] = P("\\begin{table}" ~ (!beginTb ~ AnyChar).rep.! ~ tabular ~
     (!("\\end{table}") ~ AnyChar).rep.! ~ "\\end{table}").map((t:(String,Table,String)) =>

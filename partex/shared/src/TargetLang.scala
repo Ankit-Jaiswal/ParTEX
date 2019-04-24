@@ -240,9 +240,9 @@ object TargetLang {
           )
         )
   }
-  case class Graphics(spec: Option[Map[String,String]], name: String)
-    extends BodyElem with Float{
-      val toHTML: Frag = div(`class`:="graphics")(div(`class`:="img")())
+  case class Image(spec: Option[Map[String,String]], name: String)
+    extends BodyElem with Float with Graphics{
+      val toHTML: Frag = div(`class`:="image")(div(`class`:="img")())
   }
   case class Environment(name: String, value: Body) extends BodyElem{
     val toHTML: Frag =
@@ -329,6 +329,13 @@ object TargetLang {
           }).getOrElse("")
         )
   }
+  sealed trait Graphics{
+    val toHTML: Frag
+  }
+  case class FigMath(value: String) extends Graphics with Float{
+    val toHTML: Frag = div(`class`:="figmath")(value)
+  }
+
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
