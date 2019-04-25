@@ -18,7 +18,8 @@ class SourcesIO(filename: String) {
     case _ => ""
   }
   val preamble = external + divided(0)
-  val restRaw = if (divided.length > 1) {"\\begin{document}" + divided(1)} else {""}
+  val restRaw = if (divided.length > 1) {"\\begin{document}" + divided(1)}
+    else {"\\begin{document}\n\n\\end{document}"}
   val parser = new Processor.Resolver(preamble,restRaw)
 
   def writeTo(file: String) =

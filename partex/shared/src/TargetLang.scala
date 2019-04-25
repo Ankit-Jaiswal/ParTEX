@@ -26,7 +26,7 @@ object TargetLang {
 
     val thmNum = bd.elems.collect({case x: Theorem => x}).asInstanceOf[Vector[Theorem]]
       .groupBy((t: Theorem) => t.counter.getOrElse(t.name)).values.toVector
-      .map((xs: Vector[Theorem]) => (xs.find(_.counter==None).get.numberBy, xs))
+      .map((xs: Vector[Theorem]) => (getNumby(xs), xs))
       .flatMap(
         (t:(Option[String],Vector[Theorem])) =>
         t._2.groupBy(currHead(t._1,_)).mapValues(_.zipWithIndex)
@@ -70,10 +70,23 @@ object TargetLang {
         .map(
           (t:(Heading,String)) => t +:
             slice.splitAt(slice.indexOf(t._1)+1)._2.takeWhile((h: Heading) => h.name!= "subsection")
+              .filter((h: Heading) => h.name== "subsubsection")
               .map((h: Heading) => (h,t._2+ ".")).zipWithIndex
               .map((tt:((Heading,String),Int)) => (tt._1._1, tt._1._2 + (tt._2+1).toString))
         ).flatten
-      }
+    }
+
+    def getNumby(xs: Vector[Theorem]) = {
+      val master = xs.find(_.counter == None)
+      if (master == None) { xs(0).counter.map(levelup) }
+      else { master.get.numberBy }
+    }
+
+    def levelup(level: String) =
+      if(level == "subsubsection") {"subsection"}
+      else if(level == "subsection") {"section"}
+      else if(level == "section") {"chapter"}
+      else {"failname"}
 
     def currHead(h: Option[String],t: BodyElem) =
       h.map((s: String) =>
