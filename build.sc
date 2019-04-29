@@ -4,7 +4,7 @@ import ammonite.ops._
 object partex extends Module{
   object shared extends Module{
     object jvm extends ScalaModule{
-      def scalaVersion = "2.12.6"
+      def scalaVersion = "2.12.8"
       def millSourcePath = super.millSourcePath / up
       def ivyDeps = Agg(
         ivy"com.lihaoyi::fastparse::1.0.0",
@@ -12,8 +12,8 @@ object partex extends Module{
       )
     }
     object js extends ScalaJSModule{
-      def scalaVersion = "2.12.6"
-      def scalaJSVersion = "0.6.26"
+      def scalaVersion = "2.12.8"
+      def scalaJSVersion = "0.6.27"
       def millSourcePath = super.millSourcePath / up
       def platformSegment = "js"
       def ivyDeps = Agg(
@@ -24,13 +24,13 @@ object partex extends Module{
   }
 
   object server extends ScalaModule{
-    def scalaVersion = "2.12.6"
+    def scalaVersion = "2.12.8"
     def moduleDeps = Seq(shared.jvm)
   }
 
   object client extends ScalaJSModule{
-    def scalaVersion = "2.12.6"
-    def scalaJSVersion = "0.6.26"
+    def scalaVersion = "2.12.8"
+    def scalaJSVersion = "0.6.27"
     def moduleDeps: Seq[ScalaJSModule] = Seq(shared.js)
     def platformSegment = "js"
     def ivyDeps = Agg(
