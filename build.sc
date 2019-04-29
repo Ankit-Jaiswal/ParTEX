@@ -7,7 +7,7 @@ object partex extends Module{
       def scalaVersion = "2.12.8"
       def millSourcePath = super.millSourcePath / up
       def ivyDeps = Agg(
-        ivy"com.lihaoyi::fastparse::1.0.0",
+        ivy"com.lihaoyi::fastparse:2.1.0",
         ivy"com.lihaoyi::scalatags::0.6.7"
       )
     }
@@ -17,7 +17,7 @@ object partex extends Module{
       def millSourcePath = super.millSourcePath / up
       def platformSegment = "js"
       def ivyDeps = Agg(
-        ivy"com.lihaoyi::fastparse::1.0.0",
+        ivy"com.lihaoyi::fastparse::2.1.0",
         ivy"com.lihaoyi::scalatags::0.6.7"
       )
     }
