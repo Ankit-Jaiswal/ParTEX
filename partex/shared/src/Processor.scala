@@ -1,5 +1,5 @@
 package partex.shared
-import fastparse.all._
+import fastparse._, NoWhitespace._
 import TargetLang.DisplayMath
 
 object Processor {
@@ -10,35 +10,35 @@ object Processor {
   import ParsingRules.all.cmdName
 
   /**************************      preamble input      ****************************/
-  val inputFile: P[(String,Int)] = P("\\" ~ ("input" | "include") ~ "{" ~
-    (resrcFilename | resrcFile | path) ~ "}")
-  val resrcFilename: P[(String,Int)] = P(alpha | num | "_").rep.!
+  def importFile[_:P]: P[Option[(String,Int)]] = P("\\" ~ ("input" | "include") ~ "{" ~
+    (resrcFilename | resrcFile | path) ~ "}").?
+  def resrcFilename[_:P]: P[(String,Int)] = P(alpha | num | "_").rep.!
     .map((s: String) => (s,1))
-  val resrcFile: P[(String,Int)] = P(alpha | num | "_" | ".").rep.!
+  def resrcFile[_:P]: P[(String,Int)] = P(alpha | num | "_" | ".").rep.!
     .map((s: String) => (s,2))
-  val path: P[(String,Int)] = P(alpha | num | "_" | "." | "/").rep.!
+  def path[_:P]: P[(String,Int)] = P(alpha | num | "_" | "." | "/").rep.!
     .map((s: String) => (s,3))
 
-  def extPreamble(s: String) = inputFile.?.parse(s).get.value
+  def extPreamble(s: String) = parse(s,importFile(_)).get.value
 
 /********************       extracting \newcommands      ************************/
-  val macroParser: P[Map[String,(Vector[String],String)]] =
+  def macroParser[_:P]: P[Map[String,(Vector[String],String)]] =
     P((!defCmd ~ AnyChar).rep ~ usrCmd).rep.map(_.toVector).map(_.toMap)
-  val usrCmd: P[(String,(Vector[String],String))] =
+  def usrCmd[_:P]: P[(String,(Vector[String],String))] =
     P( defCmd ~ name ~ argBox.? ~ (default.rep.map(_.toVector) ~ definition))
-  val defCmd: P[Unit] = P( StringIn("\\def","\\newcommand","\\renewcommand") )
-  val name: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
-  val argBox: P[Unit] = P("[" ~ num.rep(1) ~ "]" )
-  val default: P[String] = P("[" ~ (!("]") ~ AnyChar).rep(1).! ~ "]")
-  val definition: P[String] = P("{" ~ (curlyBox | !("}") ~ AnyChar).rep(1).! ~ "}")
+  def defCmd[_:P]: P[Unit] = P( StringIn("\\def","\\newcommand","\\renewcommand") )
+  def name[_:P]: P[String] = P("{".? ~ ("\\" ~ alpha.rep(1)).! ~ "}".? )
+  def argBox[_:P]: P[Unit] = P("[" ~ num.rep(1) ~ "]" )
+  def default[_:P]: P[String] = P("[" ~ (!("]") ~ AnyChar).rep(1).! ~ "]")
+  def definition[_:P]: P[String] = P("{" ~ (curlyBox | !("}") ~ AnyChar).rep(1).! ~ "}")
 
 /********************     extracting \newtheorems      ************************/
-  val nwthmParser: P[Map[String,(Option[String],String,Option[String])]] =
+  def nwthmParser[_:P]: P[Map[String,(Option[String],String,Option[String])]] =
     P(nwthm.rep).map(_.toVector).map(_.toMap)
-  val nwthm: P[(String,(Option[String],String,Option[String]))] =
+  def nwthm[_:P]: P[(String,(Option[String],String,Option[String]))] =
     P((!("\\newtheorem{") ~ AnyChar).rep ~
     "\\newtheorem" ~ cmdName ~ (counter.? ~ cmdName ~ counter.?))
-  val counter: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]")
+  def counter[_:P]: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]")
 
 
 /***********************       resolving raw file       **********************/
@@ -46,31 +46,31 @@ object Processor {
     val rest = restRaw.split('\n').map(rmvComments).mkString("\n")
 
     val usrCmdList: Map[String,(Vector[String],String)] =
-      macroParser.parse(preamble+rest) match {
+      parse(preamble+rest, macroParser(_)) match {
         case Parsed.Success(value,_) => value
         case _: Parsed.Failure => Map()
       }
 
     val thmList: Map[String,(Option[String],String,Option[String])] =
-      nwthmParser.parse(preamble+rest) match {
+      parse(preamble+rest, nwthmParser(_)) match {
         case Parsed.Success(value,_) => value
         case _: Parsed.Failure => Map()
       }
 
-    val scanner: P[String] = P(resolver ~ AnyChar.rep.!).map((t:(String,String)) => t._1+t._2)
+    def scanner[_:P]: P[String] = P(resolver ~ AnyChar.rep.!).map((t:(String,String)) => t._1+t._2)
 
-    val resolver: P[String] = P((!cmdToken ~ AnyChar).rep.! ~ substitutor).
+    def resolver[_:P]: P[String] = P((!cmdToken ~ AnyChar).rep.! ~ substitutor).
       map((t:(String,String)) => t._1 + t._2).
       rep.map(_.toVector).map((xs: Vector[String]) => if(xs.isEmpty) {""} else {xs.reduceLeft(_+_)})
 
-    val substitutor: P[String] = P(cmdToken.! ~ boxPara ~ params).
+    def substitutor[_:P]: P[String] = P(cmdToken.! ~ boxPara ~ params).
       map((t:(String,Vector[String],Vector[String])) =>
-      scanner.parse(resolveDef(t._1,t._2,t._3)).get.value)
+      parse(resolveDef(t._1,t._2,t._3), scanner(_)).get.value)
 
     val cmdKeys = usrCmdList.keys.toList.sortWith(_>_)
-    val cmdToken: P[Unit] = P(cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s)) ~ !alpha)
-    val boxPara: P[Vector[String]] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
-    val params: P[Vector[String]] = P("{" ~ (!("}") ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
+    def cmdToken[_:P]: P[Unit] = P(cmdKeys.foldLeft(P("****"))((p: P[Unit],s: String) => P(p | s)) ~ !alpha)
+    def boxPara[_:P]: P[Vector[String]] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]").rep.map(_.toVector)
+    def params[_:P]: P[Vector[String]] = P("{" ~ (!("}") ~ AnyChar).rep.! ~ "}").rep.map(_.toVector)
 
     def resolveDef(k: String,default: Vector[String],para: Vector[String]): String = {
       val params = if (default.length == 0) {usrCmdList(k)._1 ++ para} else {default++para}
@@ -79,7 +79,7 @@ object Processor {
         d.replaceAllLiterally("#"++(params.indexOf(p)+1).toString, p))
     }
 
-    val docString = scanner.parse(rest).get.value
+    val docString = parse(rest, scanner(_)).get.value
 
     def rmvComments(l: String) =
       if (l.startsWith("%")) ""
@@ -88,7 +88,7 @@ object Processor {
       .map((m) => m.before.toString + m.group(0).head)
       .getOrElse(l)
 
-    val parsed = DeTeX(thmList).document.parse(preamble + docString)
+    val parsed = parse(preamble+docString, DeTeX(thmList).document(_))
 
     val message = parsed match {
       case Parsed.Success(value,_) => "Parsing Successful :) , please go ahead and convert it to its html version."
