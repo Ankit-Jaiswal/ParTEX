@@ -94,9 +94,9 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
     map((t:(Option[String],String)) => DisplayMath(t._1,t._2))
   def displayEnv[_:P]: P[(Option[String],String)] = P("\\begin{displaymath}" ~ (&("\\")|ws.rep) ~
     label.? ~ (!("\\end{displaymath}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{displaymath}")
-  def mathEnv[_:P]: P[(Option[String],String)] = P("\\begin{" ~ ("equation*}" | "equation}") ~ (&("\\")|ws.rep) ~
-    label.? ~ (!("\\end{"~("equation*}" | "equation}")) ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~
-    "\\end{"~("equation*}" | "equation}") )
+  def mathEnv[_:P]: P[(Option[String],String)] = P("\\begin{" ~ ("math}" | "equation*}" | "equation}") ~
+    (&("\\")|ws.rep) ~ label.? ~ (!("\\end{"~("math}" | "equation*}" | "equation}")) ~ AnyChar).rep(1).! ~
+    (&("\\")|ws.rep) ~ "\\end{"~("math}" | "equation*}" | "equation}") )
   def doubleDollar[_:P]: P[(Option[String],String)] =
     P("$$" ~ ws.rep ~ label.? ~ (!("$$") ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
   def sqBracket[_:P]: P[(Option[String],String)] =
