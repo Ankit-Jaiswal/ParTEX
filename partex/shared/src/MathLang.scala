@@ -1,27 +1,26 @@
 package partex.shared
 
 object MathLang {
-  case class Expr(e: Equalled)
-  case class Equalled(xs: Vector[AddSub])
-  case class AddSub(xs: Vector[Signed])
-  case class Signed(s: Option[String], value: Multiplied)
-  case class Multiplied(xs: Vector[Divided])
-  case class Divided(t1: Token, t2: Option[Token])
-  sealed trait Token{
-    val xs: Vector[SymAttr]
-  }
+  case class Equation(e1: Expr, e2: Expr)
 
-  case class Numeral(s: String, xs: Vector[SymAttr]) extends Token
-  case class Letter(s: String, xs: Vector[SymAttr]) extends Token
-  case class Sym(name: String, xs: Vector[SymAttr]) extends Token
-  case class MathText(s: String, xs: Vector[SymAttr]) extends Token
-  case class Paren(value: AddSub, xs: Vector[SymAttr]) extends Token
+  sealed trait Expr
+  case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
+  case class Identifier(s: String, xs: Vector[SymAttr]) extends Expr
+  case class Sym(name: String, xs: Vector[SymAttr]) extends Expr
+  case class MathText(s: String, xs: Vector[SymAttr]) extends Expr
+  sealed trait Signed extends Expr
+  case class Paren(e: Expr, xs: Vector[SymAttr]) extends Expr
+  case class Add(e1: Expr, e2: Expr) extends Expr
+  case class Subtract(e1: Expr, e2: Expr) extends Expr
+  case class Multiply(e1: Expr, e2: Expr) extends Expr
+  case class Divide(e1: Expr, e2: Expr) extends Expr
+
+  case class Positive(e: Expr) extends Signed
+  case class Negative(e: Expr) extends Signed
 
   sealed trait SymAttr
-  case class SymArg(value: AddSub) extends SymAttr
-  case class SubExpr(value: AddSub) extends SymAttr
-  case class SuperExpr(value: AddSub) extends SymAttr
-  case class Subscript(value: Token) extends SymAttr
-  case class Superscript(value: Token) extends SymAttr
+  case class SymArg(e: Expr) extends SymAttr
+  case class Subscript(e: Expr) extends SymAttr
+  case class Superscript(e: Expr) extends SymAttr
 
 }
