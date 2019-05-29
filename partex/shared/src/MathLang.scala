@@ -22,5 +22,6 @@ object MathLang {
   case class SymArg(e: Expr) extends SymAttr
   case class Subscript(e: Expr) extends SymAttr
   case class Superscript(e: Expr) extends SymAttr
+  case class Limits(xs: Vector[SymAttr]) extends SymAttr
 
 }
