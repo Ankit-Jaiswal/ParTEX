@@ -26,6 +26,10 @@ object partex extends Module{
   object server extends ScalaModule{
     def scalaVersion = "2.12.8"
     def moduleDeps = Seq(shared.jvm)
+    object test extends Tests{
+      def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
+      def testFrameworks = Seq("org.scalatest.tools.Framework")
+    }
   }
 
   object client extends ScalaJSModule{
