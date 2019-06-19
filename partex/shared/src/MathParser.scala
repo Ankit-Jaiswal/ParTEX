@@ -48,25 +48,35 @@ object MathParser{
     AnyChar.!.map((s: String) => Variable(s,Vector()))
   )
 
-  def equation[_:P]: P[Equation] = P(expr ~ "=" ~ expr).map((t:(Expr,Expr)) => Equation(t._1,t._2))
 
-  def expr[_:P]: P[Expr] = P(ws.rep ~ (add | sub | plusMinus | signed))
-  def add[_:P]: P[Expr] = P(signed ~ "+" ~ expr).map((t:(Expr,Expr)) => Add(t._1,t._2))
-  def sub[_:P]: P[Expr] = P(signed ~ "-" ~ expr).map((t:(Expr,Expr)) => Subtract(t._1,t._2))
-  def plusMinus[_:P]: P[Expr] = P(signed ~ "\\pm" ~ expr).map((t:(Expr,Expr)) => PlusMinus(t._1,t._2))
-  def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
-  def posOrNeg[_:P]: P[Signed] = P("\\pm" ~ ws.rep ~ multiply).map((e: Expr) => PosOrNeg(e))
-  def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ multiply).map((e: Expr) => Negative(e))
-  def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ multiply).map((e: Expr) => Positive(e))
-
-  def multiply[_:P]: P[Expr] = P(
-    (divide ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ multiply).map((t:(Expr,Expr)) => Multiply(t._1,t._2)) |
-    divide
+  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (("+" | "-" | "\\pm").! ~ expr).?).map(
+    (t:(Expr,Option[(String,Expr)])) => t._2 match {
+      case Some(("+",e)) => Add(t._1,e)
+      case Some(("-",e)) => Subtract(t._1,e)
+      case Some(("\\pm",e)) => PlusMinus(t._1,e)
+      case _ => t._1
+    }
   )
-  def divide[_:P]: P[Expr] = P(
-    (token ~ ("/"| "\\div") ~ ws.rep ~ token).map((t:(Expr,Expr)) => Divide(t._1,t._2)) |
-    token
+  def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
+  def posOrNeg[_:P]: P[Signed] = P("\\pm" ~ ws.rep ~ term).map((e: Expr) => PosOrNeg(e))
+  def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
+  def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
+
+  def term[_:P]: P[Expr] = P(factor ~ ((("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
+    (t:(Expr,Option[Expr])) => t._2 match {
+      case Some(e) => Multiply(t._1,e)
+      case _ => t._1
+    }
+  )
+  def factor[_:P]: P[Expr] = P(token ~ (("/"| "\\div")~ ws.rep ~ token).?).map(
+    (t:(Expr,Option[Expr])) => t._2 match {
+      case Some(e) => Divide(t._1,e)
+      case _ => t._1
+    }
   )
   def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral | mathText | symbol | variable)
+
+
+  def equality[_:P]: P[Equality] = P(expr ~ "=" ~ expr).map((t:(Expr,Expr)) => Equality(t._1,t._2))
 
 }

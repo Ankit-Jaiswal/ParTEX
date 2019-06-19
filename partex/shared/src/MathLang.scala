@@ -1,9 +1,12 @@
 package partex.shared
 
 object MathLang {
-  case class Equation(e1: Expr, e2: Expr)
+  sealed trait MathLine
+  case class LeftInequality(e1: Equality, e2: MathLine) extends MathLine
+  case class RightInequality(e1: Equality, e2: MathLine) extends MathLine
+  case class Equality(e1: Expr, e2: Expr) extends MathLine
+  sealed trait Expr extends MathLine
 
-  sealed trait Expr
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
   case class Decimal(s: String, xs: Vector[SymAttr]) extends Expr
   case class Variable(s: String, xs: Vector[SymAttr]) extends Expr
@@ -18,6 +21,7 @@ object MathLang {
   case class PlusMinus(e1: Expr, e2: Expr) extends Expr
   case class Multiply(e1: Expr, e2: Expr) extends Expr
   case class Divide(e1: Expr, e2: Expr) extends Expr
+  case class FuncOperation(e1: Expr, e2: Expr) extends Expr
 
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed
