@@ -1,11 +1,15 @@
 package partex.shared
 
 object MathLang {
-  sealed trait MathLine
-  case class LeftInequality(e1: Equality, e2: MathLine) extends MathLine
-  case class RightInequality(e1: Equality, e2: MathLine) extends MathLine
-  case class Equality(e1: Expr, e2: Expr) extends MathLine
-  sealed trait Expr extends MathLine
+  case class MathLine(xs: Vector[MathPhrase])
+  sealed trait MathPhrase
+  case class Equality(e1: Expr, e2: Expr) extends MathPhrase
+  case class Inequality(e1: Expr, e2: Expr) extends MathPhrase
+  case class LessThan(e1: Expr, e2: Expr) extends MathPhrase
+  case class GreaterThan(e1: Expr, e2: Expr) extends MathPhrase
+  case class LessThanEqual(e1: Expr, e2: Expr) extends MathPhrase
+  case class GreaterThanEqual(e1: Expr, e2: Expr) extends MathPhrase
+  sealed trait Expr extends MathPhrase
 
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
   case class Decimal(s: String, xs: Vector[SymAttr]) extends Expr

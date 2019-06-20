@@ -5,6 +5,52 @@ object MathParser{
   import MathLang._
   def ws[_:P]: P[Unit] = P(" " | "\\quad" | "\n" | "\\ " )
 
+  def mathLine[_:P]: P[MathLine] = P(expr ~ (binRelation ~ expr).rep.map(_.toVector)).map(
+    (t:(Expr,Vector[(String,Expr)])) =>
+      if (t._2.size > 0) {
+        MathLine(
+          (("=",t._1) +: t._2).sliding(2).toVector.map(
+            (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
+          )
+        )
+      }
+      else { MathLine(Vector(t._1)) }
+  )
+  def binRelation[_:P]: P[String] = P(StringIn("=","\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq").!)
+  def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
+    if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
+    else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
+    else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
+    else if (r == "<") { LessThan(e1,e2) }
+    else if (r == ">") { GreaterThan(e1,e2) }
+    else { Equality(e1,e2) }
+
+  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (("+" | "-" | "\\pm").! ~ expr).?).map(
+    (t:(Expr,Option[(String,Expr)])) => t._2 match {
+      case Some(("+",e)) => Add(t._1,e)
+      case Some(("-",e)) => Subtract(t._1,e)
+      case Some(("\\pm",e)) => PlusMinus(t._1,e)
+      case _ => t._1
+    }
+  )
+  def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
+  def posOrNeg[_:P]: P[Signed] = P("\\pm" ~ ws.rep ~ term).map((e: Expr) => PosOrNeg(e))
+  def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
+  def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
+
+  def term[_:P]: P[Expr] = P(factor ~ ((("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
+    (t:(Expr,Option[Expr])) => t._2 match {
+      case Some(e) => Multiply(t._1,e)
+      case _ => t._1
+    }
+  )
+  def factor[_:P]: P[Expr] = P(token ~ (("/"| "\\div")~ ws.rep ~ token).?).map(
+    (t:(Expr,Option[Expr])) => t._2 match {
+      case Some(e) => Divide(t._1,e)
+      case _ => t._1
+    }
+  )
+  def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral | mathText | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
     " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
@@ -48,35 +94,5 @@ object MathParser{
     AnyChar.!.map((s: String) => Variable(s,Vector()))
   )
 
-
-  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (("+" | "-" | "\\pm").! ~ expr).?).map(
-    (t:(Expr,Option[(String,Expr)])) => t._2 match {
-      case Some(("+",e)) => Add(t._1,e)
-      case Some(("-",e)) => Subtract(t._1,e)
-      case Some(("\\pm",e)) => PlusMinus(t._1,e)
-      case _ => t._1
-    }
-  )
-  def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
-  def posOrNeg[_:P]: P[Signed] = P("\\pm" ~ ws.rep ~ term).map((e: Expr) => PosOrNeg(e))
-  def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
-  def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
-
-  def term[_:P]: P[Expr] = P(factor ~ ((("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
-    (t:(Expr,Option[Expr])) => t._2 match {
-      case Some(e) => Multiply(t._1,e)
-      case _ => t._1
-    }
-  )
-  def factor[_:P]: P[Expr] = P(token ~ (("/"| "\\div")~ ws.rep ~ token).?).map(
-    (t:(Expr,Option[Expr])) => t._2 match {
-      case Some(e) => Divide(t._1,e)
-      case _ => t._1
-    }
-  )
-  def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral | mathText | symbol | variable)
-
-
-  def equality[_:P]: P[Equality] = P(expr ~ "=" ~ expr).map((t:(Expr,Expr)) => Equality(t._1,t._2))
 
 }
