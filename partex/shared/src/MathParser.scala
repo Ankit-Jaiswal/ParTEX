@@ -3,7 +3,9 @@ import fastparse._, NoWhitespace._
 
 object MathParser{
   import MathLang._
-  def ws[_:P]: P[Unit] = P(" " | "\\quad" | "\n" | "\\ " )
+  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\\quad" | "\n" | "\\ " )
+  def resrvdWd[_:P]: P[Unit] = P(StringIn("\\begin{split}","\\end{split}","\\displaystyle",
+    "\\textstyle"))
 
   def mathLine[_:P]: P[MathLine] = P(expr ~ (binRelation ~ expr).rep.map(_.toVector)).map(
     (t:(Expr,Vector[(String,Expr)])) =>
@@ -44,39 +46,45 @@ object MathParser{
       case _ => t._1
     }
   )
-  def factor[_:P]: P[Expr] = P(token ~ (("/"| "\\div")~ ws.rep ~ token).?).map(
+  def factor[_:P]: P[Expr] = P(funcOpr ~ (("/"| "\\div")~ ws.rep ~ funcOpr).?).map(
     (t:(Expr,Option[Expr])) => t._2 match {
       case Some(e) => Divide(t._1,e)
       case _ => t._1
     }
   )
+  def funcOpr[_:P]: P[Expr] = P(token ~ ("(" ~ expr.rep(sep= ",").map(_.toVector) ~ ")" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep)).?).map(
+      (t:(Expr,Option[(Vector[Expr],Vector[SymAttr])])) => t._2 match {
+        case Some((xe,xa)) => FuncOperation(t._1,xe,xa)
+        case _ => t._1
+      }
+    )
   def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral | mathText | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => Numeral(t._1,t._2))
   def decimal[_:P]: P[Decimal] = P((CharIn("0-9").rep(1) ~ "." ~ CharIn("0-9").rep(1)).! ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => Decimal(t._1,t._2))
   def variable[_:P]: P[Variable] = P(CharIn("a-zA-Z").! ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => Variable(t._1,t._2))
   def mathText[_:P]: P[MathText] = P("\\text{" ~ (!("}") ~ AnyChar).rep.! ~ "}" ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => MathText(t._1,t._2))
   def symbol[_:P]: P[Sym] = P("\\" ~ symName ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => Sym(t._1,t._2))
   def paren[_:P]: P[Expr] = P("(" ~ expr ~ ")" ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Expr,Vector[SymAttr])) => Paren(t._1,t._2))
   def fraction[_:P]: P[Fraction] = P("\\" ~ ("tfrac" | "dfrac" | "frac") ~ "{" ~ expr ~ "}{" ~ expr ~ "}" ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Expr,Expr,Vector[SymAttr])) => Fraction(t._1,t._2,t._3))
   def sqrt[_:P]: P[Sqrt] = P("\\sqrt" ~ ("[" ~ expr ~ "]").? ~ "{" ~ expr ~ "}" ~
-    " ".rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Option[Expr],Expr,Vector[SymAttr])) => Sqrt(t._1,t._2,t._3))
-
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( /*symArg |*/ subExpr | superExpr | subscript | superscript /*| limits*/)
@@ -84,10 +92,11 @@ object MathParser{
   def subExpr[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ expr ~ "}").map((e: Expr) => Subscript(e))
   def superExpr[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ expr ~ "}").map((e: Expr) => Superscript(e))
   def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ singleChar).map((e: Expr) => Subscript(e))
-  def superscript[_:P]: P[Superscript] = P("^" ~ " ".rep ~ singleChar).map((e: Expr) => Superscript(e))
+  def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ singleChar).map((e: Expr) => Superscript(e))
 //  def limits[_:P]: P[Limits] = P("\\limits" ~ " ".rep ~ (!symArg ~ symAttr).rep.map(_.toVector))
 //    .map((xs: Vector[SymAttr]) => Limits(xs))
 
+  def apostrophe[_:P]: P[Expr] = P(" ".rep ~ "'".!).map((s: String) => Variable(s,Vector()))
   def singleChar[_:P]: P[Expr] = P(
     ("\\" ~ symName).map((s: String) => Sym(s,Vector())) |
     CharIn("0-9").!.map((s:String) => Numeral(s,Vector())) |
