@@ -3,9 +3,11 @@ import fastparse._, NoWhitespace._
 
 object MathParser{
   import MathLang._
-  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\\quad" | "\n" | "\\ " )
+  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\n" )
   def resrvdWd[_:P]: P[Unit] = P(StringIn("\\begin{split}","\\end{split}","\\displaystyle",
-    "\\textstyle"))
+    "\\textstyle","\\quad","\\qquad","\\thinmuskip","\\thickmuskip","\\scriptstyle",
+    "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
+    "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
 
   def mathLine[_:P]: P[MathLine] = P(expr ~ (binRelation ~ expr).rep.map(_.toVector)).map(
     (t:(Expr,Vector[(String,Expr)])) =>
@@ -59,7 +61,8 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral | mathText | symbol | variable)
+  def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral |
+    mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
@@ -70,7 +73,9 @@ object MathParser{
   def variable[_:P]: P[Variable] = P(CharIn("a-zA-Z").! ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => Variable(t._1,t._2))
-  def mathText[_:P]: P[MathText] = P("\\text{" ~ (!("}") ~ AnyChar).rep.! ~ "}" ~
+  def mathText[_:P]: P[MathText] = P("\\" ~
+    StringIn("textnormal","textrm","textit","textbf","textsf","text") ~
+    "{" ~ (!("}") ~ AnyChar).rep.! ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(String,Vector[SymAttr])) => MathText(t._1,t._2))
   def symbol[_:P]: P[Sym] = P("\\" ~ symName ~
@@ -79,12 +84,17 @@ object MathParser{
   def paren[_:P]: P[Expr] = P("(" ~ expr ~ ")" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Expr,Vector[SymAttr])) => Paren(t._1,t._2))
-  def fraction[_:P]: P[Fraction] = P("\\" ~ ("tfrac" | "dfrac" | "frac") ~ "{" ~ expr ~ "}{" ~ expr ~ "}" ~
+  def fraction[_:P]: P[Fraction] = P("\\" ~
+    ("tfrac" | "dfrac" | "frac" | "sfrac" | "cfrac" | "nicefrac") ~
+    "{" ~ expr ~ "}{" ~ expr ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Expr,Expr,Vector[SymAttr])) => Fraction(t._1,t._2,t._3))
   def sqrt[_:P]: P[Sqrt] = P("\\sqrt" ~ ("[" ~ expr ~ "]").? ~ "{" ~ expr ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
     .map((t:(Option[Expr],Expr,Vector[SymAttr])) => Sqrt(t._1,t._2,t._3))
+  def formatted[_:P]: P[Formatted] = P("\\" ~ symName ~ "{" ~ expr ~ "}" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ (&("\\")|ws.rep))
+    .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( /*symArg |*/ subExpr | superExpr | subscript | superscript /*| limits*/)

@@ -26,6 +26,7 @@ object MathLang {
   case class Multiply(e1: Expr, e2: Expr) extends Expr
   case class Divide(e1: Expr, e2: Expr) extends Expr
   case class FuncOperation(e1: Expr, args: Vector[Expr], xs: Vector[SymAttr]) extends Expr
+  case class Formatted(frmt: String, e: Expr, xs: Vector[SymAttr]) extends Expr
 
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed
