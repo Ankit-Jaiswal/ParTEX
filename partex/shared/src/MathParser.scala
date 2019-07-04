@@ -42,7 +42,7 @@ object MathParser{
   def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
   def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
 
-  def term[_:P]: P[Expr] = P(factor ~ ((("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
+  def term[_:P]: P[Expr] = P(factor ~ ((!binRelation) ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
     (t:(Expr,Option[Expr])) => t._2 match {
       case Some(e) => Multiply(t._1,e)
       case _ => t._1

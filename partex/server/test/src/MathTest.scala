@@ -107,4 +107,19 @@ class MathTest extends FunSuite {
     )}
   }
 
+  test("identifying inequalities"){
+    val parTrial = parse("a \\leq b = c < d",mathLine(_))
+    if (parTrial.isInstanceOf[Parsed.Failure]) {fail("parsing failed")}
+    else { assert(parTrial.get.value ==
+      MathLine(
+        Vector(
+          LessThanEqual(Positive(Variable("a", Vector())), Positive(Variable("b", Vector()))),
+          Equality(Positive(Variable("b", Vector())), Positive(Variable("c", Vector()))),
+          LessThan(Positive(Variable("c", Vector())), Positive(Variable("d", Vector())))
+        )
+      )
+    )}
+  }
+
+
 }
