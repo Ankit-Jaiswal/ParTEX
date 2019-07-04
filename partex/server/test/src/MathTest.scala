@@ -121,5 +121,20 @@ class MathTest extends FunSuite {
     )}
   }
 
+  test("handling formatted variables") {
+    val parTrial = parse("\\mathcal{T} = {\\mathcal T}",mathLine(_))
+    if (parTrial.isInstanceOf[Parsed.Failure]) {fail("parsing failed")}
+    else { assert(parTrial.get.value ==
+      MathLine(
+        Vector(
+          Equality(
+            Positive(Formatted("mathcal", Positive(Variable("T", Vector())), Vector())),
+            Positive(Formatted("mathcal", Positive(Variable("T", Vector())), Vector()))
+          )
+        )
+      )
+    )}
+  }
+
 
 }

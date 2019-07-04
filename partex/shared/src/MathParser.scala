@@ -92,7 +92,8 @@ object MathParser{
   def sqrt[_:P]: P[Sqrt] = P("\\sqrt" ~ ("[" ~ expr ~ "]").? ~ "{" ~ expr ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Option[Expr],Expr,Vector[SymAttr])) => Sqrt(t._1,t._2,t._3))
-  def formatted[_:P]: P[Formatted] = P("\\" ~ symName ~ "{" ~ expr ~ "}" ~
+  def formatted[_:P]: P[Formatted] = P(
+    ("\\" ~ symName ~ "{" ~ expr ~ "}" | "{" ~ "\\" ~ symName ~ ws.rep ~ expr ~ "}") ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
 
