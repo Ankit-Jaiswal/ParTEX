@@ -136,5 +136,50 @@ class MathTest extends FunSuite {
     )}
   }
 
+  test("identifying sets") {
+    val parTrial1 = parse("\\mathcal{S} = \\{ 1,2,3 , 4 \\}",mathLine(_))
+    val parTrial2 = parse("\\{ f_1(x), f_2(x), f_3(x), \\cdots \\}",expr(_))
+    if (parTrial1.isInstanceOf[Parsed.Failure] || parTrial2.isInstanceOf[Parsed.Failure])
+      {fail("parsing failed")}
+    else { assert(parTrial1.get.value ==
+      MathLine(
+        Vector(
+          Equality(
+            Positive(Formatted("mathcal", Positive(Variable("S", Vector())), Vector())),
+            Positive(
+              Set(
+                Vector(
+                  Positive(Numeral("1", Vector())),
+                  Positive(Numeral("2", Vector())),
+                  Positive(Numeral("3", Vector())),
+                  Positive(Numeral("4", Vector()))
+                ),
+                Vector()
+              )
+            )
+          )
+        )
+      )
+    && parTrial2.get.value ==
+      Positive(
+        Set(
+          Vector(
+            Positive(
+              FuncOperation(Variable("f", Vector(Subscript(Numeral("1", Vector())))), Vector(Positive(Variable("x", Vector()))), Vector())
+            ),
+            Positive(
+              FuncOperation(Variable("f", Vector(Subscript(Numeral("2", Vector())))), Vector(Positive(Variable("x", Vector()))), Vector())
+            ),
+            Positive(
+              FuncOperation(Variable("f", Vector(Subscript(Numeral("3", Vector())))), Vector(Positive(Variable("x", Vector()))), Vector())
+            ),
+            Positive(Sym("cdots", Vector()))
+          ),
+          Vector()
+        )
+      )
+    )}
+  }
+
 
 }

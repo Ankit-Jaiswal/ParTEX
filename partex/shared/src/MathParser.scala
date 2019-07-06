@@ -61,7 +61,7 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(paren | sqrt | fraction | decimal | numeral |
+  def token[_:P]: P[Expr] = P(set | paren | sqrt | fraction | decimal | numeral |
     mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
@@ -96,6 +96,9 @@ object MathParser{
     ("\\" ~ symName ~ "{" ~ expr ~ "}" | "{" ~ "\\" ~ symName ~ ws.rep ~ expr ~ "}") ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
+  def set[_:P]: P[Set] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(Vector[Expr],Vector[SymAttr])) => Set(t._1,t._2))
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( subExpr | superExpr | subscript | superscript /*| limits*/)
