@@ -28,6 +28,18 @@ object MathLang {
   case class FuncOperation(e1: Expr, args: Vector[Expr], xs: Vector[SymAttr]) extends Expr
   case class Formatted(frmt: String, e: Expr, xs: Vector[SymAttr]) extends Expr
   case class Set(elems: Vector[Expr], xs: Vector[SymAttr]) extends Expr
+  case class Union(e1: Expr, e2: Expr) extends Expr
+  case class Intersection(e1: Expr, e2: Expr) extends Expr
+  case class SetMinus(e1: Expr, e2: Expr) extends Expr
+  case class SubsetPrpr(e1: Expr, e2: Expr) extends Expr
+  case class Subset(e1: Expr, e2: Expr) extends Expr
+  case class NotSubsetPrpr(e1: Expr, e2: Expr) extends Expr
+  case class NotSubset(e1: Expr, e2: Expr) extends Expr
+  case class SupsetPrpr(e1: Expr, e2: Expr) extends Expr
+  case class Supset(e1: Expr, e2: Expr) extends Expr
+  case class NotSupsetPrpr(e1: Expr, e2: Expr) extends Expr
+  case class NotSupset(e1: Expr, e2: Expr) extends Expr
+
 
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed

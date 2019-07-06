@@ -20,29 +20,45 @@ object MathParser{
       }
       else { MathLine(Vector(t._1)) }
   )
-  def binRelation[_:P]: P[String] = P(StringIn("=","\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq").!)
+  def binRelation[_:P]: P[String] = P(StringIn("=","\\neq","\\ne","<","\\leqslant",
+    "\\leq",">","\\geqslant","\\geq","\\subset","\\subseteq","\\not\\subset","\\nsubseteq",
+    "\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)
   def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
-    if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
+    if (r == "=") { Equality(e1,e2) }
+    else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
     else if (r == "<") { LessThan(e1,e2) }
     else if (r == ">") { GreaterThan(e1,e2) }
-    else { Equality(e1,e2) }
+    else if (r == "\\subset") { SubsetPrpr(e1,e2) }
+    else if (r == "\\subseteq") { Subset(e1,e2) }
+    else if (r == "\\not\\subset") { NotSubsetPrpr(e1,e2) }
+    else if (r == "\\nsubseteq") { NotSubset(e1,e2) }
+    else if (r == "\\supset") { SupsetPrpr(e1,e2) }
+    else if (r == "\\supseteq") { Supset(e1,e2) }
+    else if (r == "\\not\\supset") { NotSupsetPrpr(e1,e2) }
+    else { NotSupset(e1,e2) }
 
-  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (("+" | "-" | "\\pm").! ~ expr).?).map(
+  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (binOperation ~ expr).?).map(
     (t:(Expr,Option[(String,Expr)])) => t._2 match {
       case Some(("+",e)) => Add(t._1,e)
       case Some(("-",e)) => Subtract(t._1,e)
       case Some(("\\pm",e)) => PlusMinus(t._1,e)
+      case Some(("\\cap",e)) => Intersection(t._1,e)
+      case Some(("\\cup",e)) => Union(t._1,e)
+      case Some(("\\setminus",e)) => SetMinus(t._1,e)
       case _ => t._1
     }
   )
+  def binOperation[_:P]: P[String] = P(StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").!)
+  def binary[_:P]: P[String] = P(binRelation | binOperation)
+
   def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
   def posOrNeg[_:P]: P[Signed] = P("\\pm" ~ ws.rep ~ term).map((e: Expr) => PosOrNeg(e))
   def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
   def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
 
-  def term[_:P]: P[Expr] = P(factor ~ ((!binRelation) ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
+  def term[_:P]: P[Expr] = P(factor ~ (!binary ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
     (t:(Expr,Option[Expr])) => t._2 match {
       case Some(e) => Multiply(t._1,e)
       case _ => t._1

@@ -181,5 +181,18 @@ class MathTest extends FunSuite {
     )}
   }
 
+  test("handling set operations") {
+    val parTrial = parse("\\{ 1, 2, 3 \\} \\cup (A \\setminus B)",expr(_))
+    if (parTrial.isInstanceOf[Parsed.Failure]) {fail("parsing failed")}
+    else { assert(parTrial.get.value ==
+      Union(
+        Positive(
+          Set(Vector(Positive(Numeral("1", Vector())), Positive(Numeral("2", Vector())), Positive(Numeral("3", Vector()))), Vector())
+        ),
+        Positive(Paren(SetMinus(Positive(Variable("A", Vector())), Positive(Variable("B", Vector()))), Vector()))
+      )
+    )}
+  }
+
 
 }
