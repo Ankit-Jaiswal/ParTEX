@@ -6,7 +6,7 @@ STATUS - parser is complete and running succesfully.
 
 */
 
-package partex.shared
+package partex
 
 object ParsingRules {
   val all = DeTeX(Map())

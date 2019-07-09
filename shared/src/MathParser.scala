@@ -1,4 +1,4 @@
-package partex.shared
+package partex
 import fastparse._, NoWhitespace._
 
 object MathParser{
@@ -20,6 +20,13 @@ object MathParser{
       }
       else { MathLine(Vector(t._1)) }
   )
+
+  def fullMathLine[_:P] : P[MathLine] = mathLine ~ End
+
+  def parseMath(s: String) : Parsed[MathLine] = parse(s, fullMathLine(_))
+
+  def getMath(s:String): Option[MathLang.MathLine] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
+
   def binRelation[_:P]: P[String] = P(StringIn("=","\\neq","\\ne","<","\\leqslant",
     "\\leq",">","\\geqslant","\\geq","\\subset","\\subseteq","\\not\\subset","\\nsubseteq",
     "\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)

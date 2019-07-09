@@ -1,6 +1,7 @@
-package partex.shared
+package partex
 import fastparse._, NoWhitespace._
 import TargetLang.DisplayMath
+import partex.MathLang.MathLine
 
 object Processor {
   import ParsingRules.all.alpha
@@ -109,6 +110,17 @@ object Processor {
       case Parsed.Success(value,_) => value.bd.elems.collect({case x: DisplayMath => x.value})
       case _: Parsed.Failure => Vector()
     }
+
+    lazy val mathParseResults : Map[String, fastparse.Parsed[MathLine]] = 
+      parsed.fold({
+        case (_, _, _) => Map()
+      },
+      {case (doc,_) =>
+        TargetLang.Document.mathStrings(doc).map(
+          s => s -> MathParser.parseMath(s)
+        ).toMap
+        }
+      )
 
 
   }

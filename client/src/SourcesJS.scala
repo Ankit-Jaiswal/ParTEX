@@ -1,4 +1,4 @@
-package partex.client
+package partex
 //import org.scalajs.nodejs.fs.Fs
 import org.scalajs.dom
 import dom.document, dom.html
@@ -6,7 +6,6 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.annotation.JSExport
 import scalatags.JsDom.all._
 
-import partex.shared.Processor
 
 @JSExportTopLevel("Reader")
 object Reader {

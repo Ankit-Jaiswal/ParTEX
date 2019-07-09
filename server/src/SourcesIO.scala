@@ -1,8 +1,7 @@
-package partex.server
+package partex
 import java.io.PrintWriter
 
 class SourcesIO(filename: String) {
-  import partex.shared.Processor
 
   val file = if (filename != "") { getClass.getResource("/"+filename) }
     else { getClass.getResource("/mydoc.tex") }

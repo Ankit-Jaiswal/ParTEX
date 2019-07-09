@@ -1,4 +1,4 @@
-package partex.shared
+package partex
 
 object MathLang {
   case class MathLine(xs: Vector[MathPhrase])
