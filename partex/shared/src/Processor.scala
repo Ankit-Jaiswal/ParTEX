@@ -1,4 +1,4 @@
-package partex.shared
+package partex
 import fastparse._, NoWhitespace._
 import TargetLang.DisplayMath
 

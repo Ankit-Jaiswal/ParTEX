@@ -1,9 +1,8 @@
-package partex.server
+package partex
 import fastparse._ , NoWhitespace._
 import org.scalatest.FunSuite
-import partex.shared.MathLang._
-import partex.shared.MathParser.expr
-import partex.shared.MathParser.mathLine
+import MathLang._
+import MathParser.{expr, mathLine}
 
 
 class MathTest extends FunSuite {

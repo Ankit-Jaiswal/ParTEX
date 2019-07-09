@@ -1,4 +1,4 @@
-package partex.shared
+package partex
 import scalatags.Text.all._
 
 object TargetLang {
