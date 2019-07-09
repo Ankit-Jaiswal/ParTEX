@@ -8,8 +8,20 @@ object TargetLang {
   sealed trait Labelable {
     val label: Option[String]
   }
-  sealed trait Math
+  sealed trait Math{
+    val value: String
+    val mathOpt = MathParser.getMath(value)
+  }
   sealed trait Float
+
+  object Document{
+    // for testing latex parsing
+    def mathStrings(doc: Document) : Vector[String] =
+      doc.bd.elems.collect{
+        case DisplayMath(label, value) => Vector(value)
+        case Paragraph(frgs) => frgs.collect{case InlineMath(value) => value}.toVector
+      }.flatten
+  }
 
   case class Document(top: Vector[MetaData], bd: Body){
     val headList = bd.elems.collect({case x: Heading => x}).asInstanceOf[Vector[Heading]]
@@ -425,7 +437,7 @@ object TargetLang {
     val toHTML: Frag = span(`class`:="text")(s)
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
-  case class InlineMath(s: String) extends Fragment with Math{
+  case class InlineMath(value: String) extends Fragment with Math{
     val toHTML: Frag = span(`class`:="inlinemath")("\\(" +s+ "\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
