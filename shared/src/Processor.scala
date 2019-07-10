@@ -1,6 +1,6 @@
 package partex
 import fastparse._, NoWhitespace._
-import TargetLang.DisplayMath
+import TargetLang.{DisplayMath, Paragraph, InlineMath}
 import partex.MathLang.MathLine
 
 object Processor {
@@ -106,22 +106,16 @@ object Processor {
         "<html><head><script>alert('Parser Failed!');</script></head></html>"
     }
 
-    val allMath = parsed match {
-      case Parsed.Success(value,_) => value.bd.elems.collect({case x: DisplayMath => x.value})
+    val mathStrings: Vector[String] = parsed match {
+      case Parsed.Success(value,_) => value.bd.elems.collect{
+        case DisplayMath(label, value) => Vector(value)
+        case Paragraph(frgs) => frgs.collect{case InlineMath(value) => value}.toVector
+      }.flatten
       case _: Parsed.Failure => Vector()
     }
 
-    lazy val mathParseResults : Map[String, fastparse.Parsed[MathLine]] = 
-      parsed.fold({
-        case (_, _, _) => Map()
-      },
-      {case (doc,_) =>
-        TargetLang.Document.mathStrings(doc).map(
-          s => s -> MathParser.parseMath(s)
-        ).toMap
-        }
-      )
-
+    lazy val mathParseResults : Map[String, fastparse.Parsed[MathLine]] =
+      mathStrings.map(s => s -> MathParser.parseMath(s)).toMap
 
   }
 

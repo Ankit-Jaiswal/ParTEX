@@ -14,15 +14,6 @@ object TargetLang {
   }
   sealed trait Float
 
-  object Document{
-    // for testing latex parsing
-    def mathStrings(doc: Document) : Vector[String] =
-      doc.bd.elems.collect{
-        case DisplayMath(label, value) => Vector(value)
-        case Paragraph(frgs) => frgs.collect{case InlineMath(value) => value}.toVector
-      }.flatten
-  }
-
   case class Document(top: Vector[MetaData], bd: Body){
     val headList = bd.elems.collect({case x: Heading => x}).asInstanceOf[Vector[Heading]]
 
