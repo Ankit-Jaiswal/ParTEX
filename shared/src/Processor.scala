@@ -101,7 +101,6 @@ object Processor {
       case Parsed.Success(value,_) => value.toHTML.toString
         .replaceAllLiterally("<span class=\"text\"></span>","")
         .replaceAllLiterally("><",">\n<")
-
       case _: Parsed.Failure =>
         "<html><head><script>alert('Parser Failed!');</script></head></html>"
     }
