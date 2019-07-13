@@ -3,12 +3,24 @@ package partex
 object MathLang {
   case class MathLine(xs: Vector[MathPhrase])
   sealed trait MathPhrase
+  sealed trait BinaryRel
   case class Equality(e1: Expr, e2: Expr) extends MathPhrase
   case class Inequality(e1: Expr, e2: Expr) extends MathPhrase
   case class LessThan(e1: Expr, e2: Expr) extends MathPhrase
   case class GreaterThan(e1: Expr, e2: Expr) extends MathPhrase
   case class LessThanEqual(e1: Expr, e2: Expr) extends MathPhrase
   case class GreaterThanEqual(e1: Expr, e2: Expr) extends MathPhrase
+  case class SubsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
+  case class Subset(e1: Expr, e2: Expr) extends MathPhrase
+  case class NotSubsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
+  case class NotSubset(e1: Expr, e2: Expr) extends MathPhrase
+  case class SupsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
+  case class Supset(e1: Expr, e2: Expr) extends MathPhrase
+  case class NotSupsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
+  case class NotSupset(e1: Expr, e2: Expr) extends MathPhrase
+  case class BelongsTo(e1: Expr, e2: Expr) extends MathPhrase
+  case class MapsTo(e1: Expr, e2: Expr) extends MathPhrase
+  case class SuchThat(e: Expr, xs: Vector[Expr]) extends MathPhrase
   sealed trait Expr extends MathPhrase
 
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
@@ -28,18 +40,10 @@ object MathLang {
   case class FuncOperation(e1: Expr, args: Vector[Expr], xs: Vector[SymAttr]) extends Expr
   case class Formatted(frmt: String, e: Expr, xs: Vector[SymAttr]) extends Expr
   case class Set(elems: Vector[Expr], xs: Vector[SymAttr]) extends Expr
+  case class Tuple(elems: Vector[Expr], xs: Vector[SymAttr]) extends Expr
   case class Union(e1: Expr, e2: Expr) extends Expr
   case class Intersection(e1: Expr, e2: Expr) extends Expr
   case class SetMinus(e1: Expr, e2: Expr) extends Expr
-  case class SubsetPrpr(e1: Expr, e2: Expr) extends Expr
-  case class Subset(e1: Expr, e2: Expr) extends Expr
-  case class NotSubsetPrpr(e1: Expr, e2: Expr) extends Expr
-  case class NotSubset(e1: Expr, e2: Expr) extends Expr
-  case class SupsetPrpr(e1: Expr, e2: Expr) extends Expr
-  case class Supset(e1: Expr, e2: Expr) extends Expr
-  case class NotSupsetPrpr(e1: Expr, e2: Expr) extends Expr
-  case class NotSupset(e1: Expr, e2: Expr) extends Expr
-
 
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed

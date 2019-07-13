@@ -113,7 +113,7 @@ object Processor {
       case _: Parsed.Failure => Vector()
     }
 
-    lazy val mathParseResults : Map[String, fastparse.Parsed[MathLine]] =
+    lazy val mathParseResults : Map[String, Parsed[Vector[MathLine]]] =
       mathStrings.map(s => s -> MathParser.parseMath(s)).toMap
 
   }
