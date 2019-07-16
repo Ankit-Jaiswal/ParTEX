@@ -9,7 +9,7 @@ object MathParser{
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
     "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
 
-  def mathLine[_:P]: P[MathLine] = P(expr ~ (binRelation ~ expr).rep.map(_.toVector)).map(
+  def mathLine[_:P]: P[MathLine] = P(expr ~ !(":") ~ (binRelation ~ expr).rep.map(_.toVector)).map(
     (t:(Expr,Vector[(String,Expr)])) =>
       if (t._2.size > 0) {
         MathLine(
@@ -19,6 +19,10 @@ object MathParser{
         )
       }
       else { MathLine(Vector(t._1)) }
+  ) | suchThat.map((st: SuchThat) => MathLine(Vector(st)))
+
+  def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector)).map(
+    (t:(Expr,Vector[MathLine])) => SuchThat(t._1,t._2)
   )
 
   def fullMathLine[_:P] : P[Vector[MathLine]] = P(mathLine.rep(sep= ",").map(_.toVector) ~ End)
@@ -27,14 +31,15 @@ object MathParser{
 
   def getMath(s:String): Option[Vector[MathLine]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
 
-  def binRelation[_:P]: P[String] = P(StringIn("=","\\neq","\\ne","<","\\leqslant",
+  def binRelation[_:P]: P[String] = P(StringIn("=","\\in","\\neq","\\ne","<","\\leqslant",
     "\\leq",">","\\geqslant","\\geq","\\subset","\\subseteq","\\not\\subset","\\nsubseteq",
-    "\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)
+    "\\supset","\\supseteq","\\not\\supset","\\nsupseteq","\\to","\\mapsto","\\rightarrow").!)
   def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
     if (r == "=") { Equality(e1,e2) }
     else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
+    else if (Vector("\\to","\\mapsto","\\rightarrow").contains(r)) { MapsTo(e1,e2) }
     else if (r == "<") { LessThan(e1,e2) }
     else if (r == ">") { GreaterThan(e1,e2) }
     else if (r == "\\subset") { SubsetPrpr(e1,e2) }
@@ -44,7 +49,9 @@ object MathParser{
     else if (r == "\\supset") { SupsetPrpr(e1,e2) }
     else if (r == "\\supseteq") { Supset(e1,e2) }
     else if (r == "\\not\\supset") { NotSupsetPrpr(e1,e2) }
-    else { NotSupset(e1,e2) }
+    else if (r == "\\nsupseteq") { NotSupset(e1,e2) }
+    else { BelongsTo(e1,e2) }
+
 
   def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (binOperation ~ expr).?).map(
     (t:(Expr,Option[(String,Expr)])) => t._2 match {
@@ -122,9 +129,14 @@ object MathParser{
     "{" ~ "\\" ~ symName ~ ws.rep ~ expr ~ "}") ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
-  def set[_:P]: P[Set] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
+  def set[_:P] = setByElems | setByProps
+  def setByElems[_:P]: P[SetByElems] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
-    .map((t:(Vector[Expr],Vector[SymAttr])) => Set(t._1,t._2))
+    .map((t:(Vector[Expr],Vector[SymAttr])) => SetByElems(t._1,t._2))
+  def setByProps[_:P]: P[SetByProps] = P("\\{" ~ suchThat ~ "\\}" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(SuchThat,Vector[SymAttr])) => SetByProps(t._1,t._2))
+
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( subExpr | superExpr | subscript | superscript /*| limits*/)

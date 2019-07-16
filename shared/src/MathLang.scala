@@ -4,6 +4,7 @@ object MathLang {
   case class MathLine(xs: Vector[MathPhrase])
   sealed trait MathPhrase
   sealed trait BinaryRel
+  sealed trait Expr extends MathPhrase
   case class Equality(e1: Expr, e2: Expr) extends MathPhrase
   case class Inequality(e1: Expr, e2: Expr) extends MathPhrase
   case class LessThan(e1: Expr, e2: Expr) extends MathPhrase
@@ -20,8 +21,8 @@ object MathLang {
   case class NotSupset(e1: Expr, e2: Expr) extends MathPhrase
   case class BelongsTo(e1: Expr, e2: Expr) extends MathPhrase
   case class MapsTo(e1: Expr, e2: Expr) extends MathPhrase
-  case class SuchThat(e: Expr, xs: Vector[Expr]) extends MathPhrase
-  sealed trait Expr extends MathPhrase
+  case class SuchThat(e: Expr, xs: Vector[MathLine]) extends MathPhrase
+
 
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
   case class Decimal(s: String, xs: Vector[SymAttr]) extends Expr
@@ -39,7 +40,9 @@ object MathLang {
   case class Divide(e1: Expr, e2: Expr) extends Expr
   case class FuncOperation(e1: Expr, args: Vector[Expr], xs: Vector[SymAttr]) extends Expr
   case class Formatted(frmt: String, e: Expr, xs: Vector[SymAttr]) extends Expr
-  case class Set(elems: Vector[Expr], xs: Vector[SymAttr]) extends Expr
+  sealed trait Set extends Expr{
+    val xs: Vector[SymAttr]
+  }
   case class Tuple(elems: Vector[Expr], xs: Vector[SymAttr]) extends Expr
   case class Union(e1: Expr, e2: Expr) extends Expr
   case class Intersection(e1: Expr, e2: Expr) extends Expr
@@ -48,6 +51,9 @@ object MathLang {
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed
   case class PosOrNeg(e: Expr) extends Signed
+
+  case class SetByElems(elems: Vector[Expr], xs: Vector[SymAttr]) extends Set
+  case class SetByProps(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr
   case class SymArg(e: Expr) extends SymAttr
