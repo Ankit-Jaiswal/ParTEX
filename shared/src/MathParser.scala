@@ -91,7 +91,7 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(set | paren | sqrt | fraction | decimal | numeral |
+  def token[_:P]: P[Expr] = P(set | tuple | paren | sqrt | fraction | decimal | numeral |
     mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
@@ -130,13 +130,17 @@ object MathParser{
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
   def set[_:P] = setByElems | setByProps
+  def tuple[_:P]: P[Tuple] = P("(" ~ expr.rep(min= 2, sep= ",").map(_.toVector) ~ ")" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(Vector[Expr],Vector[SymAttr])) => Tuple(t._1,t._2))
+
+
   def setByElems[_:P]: P[SetByElems] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Vector[Expr],Vector[SymAttr])) => SetByElems(t._1,t._2))
   def setByProps[_:P]: P[SetByProps] = P("\\{" ~ suchThat ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(SuchThat,Vector[SymAttr])) => SetByProps(t._1,t._2))
-
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( subExpr | superExpr | subscript | superscript /*| limits*/)
