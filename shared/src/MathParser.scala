@@ -9,17 +9,18 @@ object MathParser{
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
     "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
 
-  def mathLine[_:P]: P[MathLine] = P(expr ~ !(":") ~ (binRelation ~ expr).rep.map(_.toVector)).map(
-    (t:(Expr,Vector[(String,Expr)])) =>
-      if (t._2.size > 0) {
-        MathLine(
-          (("=",t._1) +: t._2).sliding(2).toVector.map(
-            (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
+  def mathLine[_:P]: P[MathLine] = P(expr ~ !(":") ~
+    (binRelation ~ expr).rep.map(_.toVector)).map(
+      (t:(Expr,Vector[(String,Expr)])) =>
+        if (t._2.size > 0) {
+          MathLine(
+            (("=",t._1) +: t._2).sliding(2).toVector.map(
+              (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
+            )
           )
-        )
-      }
-      else { MathLine(Vector(t._1)) }
-  ) | suchThat.map((st: SuchThat) => MathLine(Vector(st)))
+        }
+        else { MathLine(Vector(t._1)) }
+    ) | suchThat.map((st: SuchThat) => MathLine(Vector(st)))
 
   def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector)).map(
     (t:(Expr,Vector[MathLine])) => SuchThat(t._1,t._2)
@@ -31,15 +32,23 @@ object MathParser{
 
   def getMath(s:String): Option[Vector[MathLine]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
 
-  def binRelation[_:P]: P[String] = P(StringIn("=","\\in","\\neq","\\ne","<","\\leqslant",
-    "\\leq",">","\\geqslant","\\geq","\\subset","\\subseteq","\\not\\subset","\\nsubseteq",
-    "\\supset","\\supseteq","\\not\\supset","\\nsupseteq","\\to","\\mapsto","\\rightarrow").!)
+  def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
+    "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
+    "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset",
+    "\\nsupseteq","\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").!)
   def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
     if (r == "=") { Equality(e1,e2) }
     else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
-    else if (Vector("\\to","\\mapsto","\\rightarrow").contains(r)) { MapsTo(e1,e2) }
+    else if (Vector("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").contains(r))
+      { MapsTo(e1,e2) }
+    else if (r == "\\approx") { Approx(e1,e2) }
+    else if (r == "\\cong") { Congruent(e1,e2) }
+    else if (r == "\\equiv") { Equivalent(e1,e2) }
+    else if (r == "\\propto") { Proportional(e1,e2) }
+    else if (r == "\\simeq") { SimilarEq(e1,e2) }
+    else if (r == "\\sim") { Similar(e1,e2) }
     else if (r == "<") { LessThan(e1,e2) }
     else if (r == ">") { GreaterThan(e1,e2) }
     else if (r == "\\subset") { SubsetPrpr(e1,e2) }

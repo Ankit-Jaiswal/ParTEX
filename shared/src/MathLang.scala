@@ -11,6 +11,8 @@ object MathLang {
   case class GreaterThan(e1: Expr, e2: Expr) extends MathPhrase
   case class LessThanEqual(e1: Expr, e2: Expr) extends MathPhrase
   case class GreaterThanEqual(e1: Expr, e2: Expr) extends MathPhrase
+  case class Approx(e1: Expr, e2: Expr) extends MathPhrase
+  case class Proportional(e1: Expr, e2: Expr) extends MathPhrase
   case class SubsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
   case class Subset(e1: Expr, e2: Expr) extends MathPhrase
   case class NotSubsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
@@ -21,6 +23,10 @@ object MathLang {
   case class NotSupset(e1: Expr, e2: Expr) extends MathPhrase
   case class BelongsTo(e1: Expr, e2: Expr) extends MathPhrase
   case class MapsTo(e1: Expr, e2: Expr) extends MathPhrase
+  case class Equivalent(e1: Expr, e2: Expr) extends MathPhrase
+  case class Similar(e1: Expr, e2: Expr) extends MathPhrase
+  case class SimilarEq(e1: Expr, e2: Expr) extends MathPhrase
+  case class Congruent(e1: Expr, e2: Expr) extends MathPhrase
   case class SuchThat(e: Expr, xs: Vector[MathLine]) extends MathPhrase
 
 
