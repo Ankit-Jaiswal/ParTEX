@@ -9,28 +9,26 @@ object MathParser{
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
     "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
 
-  def mathLine[_:P]: P[MathLine] = P(expr ~ !(":") ~
+  def mathLine[_:P]: P[Vector[MathPhrase]] = P(expr ~ !(":") ~
     (binRelation ~ expr).rep.map(_.toVector)).map(
       (t:(Expr,Vector[(String,Expr)])) =>
         if (t._2.size > 0) {
-          MathLine(
-            (("=",t._1) +: t._2).sliding(2).toVector.map(
-              (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
-            )
+          (("=",t._1) +: t._2).sliding(2).toVector.map(
+            (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
           )
         }
-        else { MathLine(Vector(t._1)) }
-    ) | suchThat.map((st: SuchThat) => MathLine(Vector(st)))
+        else { Vector(t._1) }
+    ) | suchThat.map((st: SuchThat) => Vector(st))
 
-  def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector)).map(
-    (t:(Expr,Vector[MathLine])) => SuchThat(t._1,t._2)
+  def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector.flatten)).map(
+    (t:(Expr,Vector[MathPhrase])) => SuchThat(t._1,t._2)
   )
 
-  def fullMathLine[_:P] : P[Vector[MathLine]] = P(mathLine.rep(sep= ",").map(_.toVector) ~ ("."|ws).rep ~ End)
+  def fullMathLine[_:P] : P[Vector[MathPhrase]] = P(mathLine.rep(sep= ",").map(_.toVector.flatten) ~ ("."|ws).rep ~ End)
 
-  def parseMath(s: String) : Parsed[Vector[MathLine]] = parse(s, fullMathLine(_))
+  def parseMath(s: String) : Parsed[Vector[MathPhrase]] = parse(s, fullMathLine(_))
 
-  def getMath(s:String): Option[Vector[MathLine]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
+  def getMath(s:String): Option[Vector[MathPhrase]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
 
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
@@ -153,25 +151,25 @@ object MathParser{
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( subLine | superLine | subscript | superscript | sqBox /*| limits*/)
-  def subLine[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "}")
-    .map((xs: Vector[MathLine]) => Subscript(xs))
-  def superLine[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "}")
-    .map((xs: Vector[MathLine]) => Superscript(xs))
+  def subLine[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "}")
+    .map((xs: Vector[MathPhrase]) => Subscript(xs))
+  def superLine[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "}")
+    .map((xs: Vector[MathPhrase]) => Superscript(xs))
   def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ singleChar)
-    .map((xs: Vector[MathLine]) => Subscript(xs))
+    .map((xs: Vector[MathPhrase]) => Subscript(xs))
   def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ singleChar)
-    .map((xs: Vector[MathLine]) => Superscript(xs))
-  def sqBox[_:P]: P[SqBox] = P("[" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "]")
-    .map((xs: Vector[MathLine]) => SqBox(xs))
+    .map((xs: Vector[MathPhrase]) => Superscript(xs))
+  def sqBox[_:P]: P[SqBox] = P("[" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "]")
+    .map((xs: Vector[MathPhrase]) => SqBox(xs))
 //  def limits[_:P]: P[Limits] = P("\\limits" ~ " ".rep ~ (!symArg ~ symAttr).rep.map(_.toVector))
 //    .map((xs: Vector[SymAttr]) => Limits(xs))
 
-  def apostrophe[_:P]: P[Vector[MathLine]] = P(" ".rep ~ "'".!)
-    .map((s: String) => Vector(MathLine(Vector(Variable(s,Vector())))))
-  def singleChar[_:P]: P[Vector[MathLine]] = P(
-    ("\\" ~ symName).map((s: String) => Vector(MathLine(Vector(Sym(s,Vector()))))) |
-    CharIn("0-9").!.map((s:String) => Vector(MathLine(Vector(Numeral(s,Vector()))))) |
-    AnyChar.!.map((s: String) => Vector(MathLine(Vector(Variable(s,Vector())))))
+  def apostrophe[_:P]: P[Vector[MathPhrase]] = P(" ".rep ~ "'".!)
+    .map((s: String) => Vector(Variable(s,Vector())))
+  def singleChar[_:P]: P[Vector[MathPhrase]] = P(
+    ("\\" ~ symName).map((s: String) => Vector(Sym(s,Vector()))) |
+    CharIn("0-9").!.map((s:String) => Vector(Numeral(s,Vector()))) |
+    AnyChar.!.map((s: String) => Vector(Variable(s,Vector())))
   )
 
 

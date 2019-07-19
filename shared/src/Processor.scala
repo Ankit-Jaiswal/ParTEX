@@ -1,7 +1,7 @@
 package partex
 import fastparse._, NoWhitespace._
 import TargetLang.{DisplayMath, Paragraph, InlineMath}
-import partex.MathLang.MathLine
+import partex.MathLang.MathPhrase
 
 object Processor {
   import ParsingRules.all.alpha
@@ -113,7 +113,7 @@ object Processor {
       case _: Parsed.Failure => Vector()
     }
 
-    lazy val mathParseResults : Map[String, Parsed[Vector[MathLine]]] =
+    lazy val mathParseResults : Map[String, Parsed[Vector[MathPhrase]]] =
       mathStrings.map(s => s -> MathParser.parseMath(s)).toMap
 
   }

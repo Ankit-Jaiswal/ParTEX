@@ -1,7 +1,6 @@
 package partex
 
 object MathLang {
-  case class MathLine(xs: Vector[MathPhrase])
   sealed trait MathPhrase
   sealed trait BinaryRel
   sealed trait Expr extends MathPhrase
@@ -27,7 +26,7 @@ object MathLang {
   case class Similar(e1: Expr, e2: Expr) extends MathPhrase
   case class SimilarEq(e1: Expr, e2: Expr) extends MathPhrase
   case class Congruent(e1: Expr, e2: Expr) extends MathPhrase
-  case class SuchThat(e: Expr, xs: Vector[MathLine]) extends MathPhrase
+  case class SuchThat(e: Expr, xs: Vector[MathPhrase]) extends MathPhrase
 
 
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
@@ -62,9 +61,9 @@ object MathLang {
   case class SetByProps(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr
-  case class SqBox(xs: Vector[MathLine]) extends SymAttr
-  case class Subscript(xs: Vector[MathLine]) extends SymAttr
-  case class Superscript(xs: Vector[MathLine]) extends SymAttr
+  case class SqBox(xs: Vector[MathPhrase]) extends SymAttr
+  case class Subscript(xs: Vector[MathPhrase]) extends SymAttr
+  case class Superscript(xs: Vector[MathPhrase]) extends SymAttr
   case class Limits(xs: Vector[SymAttr]) extends SymAttr
 
 }
