@@ -26,7 +26,7 @@ object MathParser{
     (t:(Expr,Vector[MathLine])) => SuchThat(t._1,t._2)
   )
 
-  def fullMathLine[_:P] : P[Vector[MathLine]] = P(mathLine.rep(sep= ",").map(_.toVector) ~ End)
+  def fullMathLine[_:P] : P[Vector[MathLine]] = P(mathLine.rep(sep= ",").map(_.toVector) ~ ("."|ws).rep ~ End)
 
   def parseMath(s: String) : Parsed[Vector[MathLine]] = parse(s, fullMathLine(_))
 
@@ -152,19 +152,26 @@ object MathParser{
     .map((t:(SuchThat,Vector[SymAttr])) => SetByProps(t._1,t._2))
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
-  def symAttr[_:P]: P[SymAttr] = P( subExpr | superExpr | subscript | superscript /*| limits*/)
-  def subExpr[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ expr ~ "}").map((e: Expr) => Subscript(e))
-  def superExpr[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ expr ~ "}").map((e: Expr) => Superscript(e))
-  def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ singleChar).map((e: Expr) => Subscript(e))
-  def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ singleChar).map((e: Expr) => Superscript(e))
+  def symAttr[_:P]: P[SymAttr] = P( subLine | superLine | subscript | superscript | sqBox /*| limits*/)
+  def subLine[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "}")
+    .map((xs: Vector[MathLine]) => Subscript(xs))
+  def superLine[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "}")
+    .map((xs: Vector[MathLine]) => Superscript(xs))
+  def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ singleChar)
+    .map((xs: Vector[MathLine]) => Subscript(xs))
+  def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ singleChar)
+    .map((xs: Vector[MathLine]) => Superscript(xs))
+  def sqBox[_:P]: P[SqBox] = P("[" ~ mathLine.rep(sep= ",").map(_.toVector) ~ "]")
+    .map((xs: Vector[MathLine]) => SqBox(xs))
 //  def limits[_:P]: P[Limits] = P("\\limits" ~ " ".rep ~ (!symArg ~ symAttr).rep.map(_.toVector))
 //    .map((xs: Vector[SymAttr]) => Limits(xs))
 
-  def apostrophe[_:P]: P[Expr] = P(" ".rep ~ "'".!).map((s: String) => Variable(s,Vector()))
-  def singleChar[_:P]: P[Expr] = P(
-    ("\\" ~ symName).map((s: String) => Sym(s,Vector())) |
-    CharIn("0-9").!.map((s:String) => Numeral(s,Vector())) |
-    AnyChar.!.map((s: String) => Variable(s,Vector()))
+  def apostrophe[_:P]: P[Vector[MathLine]] = P(" ".rep ~ "'".!)
+    .map((s: String) => Vector(MathLine(Vector(Variable(s,Vector())))))
+  def singleChar[_:P]: P[Vector[MathLine]] = P(
+    ("\\" ~ symName).map((s: String) => Vector(MathLine(Vector(Sym(s,Vector()))))) |
+    CharIn("0-9").!.map((s:String) => Vector(MathLine(Vector(Numeral(s,Vector()))))) |
+    AnyChar.!.map((s: String) => Vector(MathLine(Vector(Variable(s,Vector())))))
   )
 
 

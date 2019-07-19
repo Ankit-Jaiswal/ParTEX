@@ -62,9 +62,9 @@ object MathLang {
   case class SetByProps(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr
-  case class SymArg(e: Expr) extends SymAttr
-  case class Subscript(e: Expr) extends SymAttr
-  case class Superscript(e: Expr) extends SymAttr
+  case class SqBox(xs: Vector[MathLine]) extends SymAttr
+  case class Subscript(xs: Vector[MathLine]) extends SymAttr
+  case class Superscript(xs: Vector[MathLine]) extends SymAttr
   case class Limits(xs: Vector[SymAttr]) extends SymAttr
 
 }
