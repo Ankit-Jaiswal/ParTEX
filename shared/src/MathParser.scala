@@ -165,11 +165,11 @@ object MathParser{
 //    .map((xs: Vector[SymAttr]) => Limits(xs))
 
   def apostrophe[_:P]: P[Vector[MathPhrase]] = P(" ".rep ~ "'".!)
-    .map((s: String) => Vector(Variable(s,Vector())))
+    .map((s: String) => Vector(Positive(Variable(s,Vector()))))
   def singleChar[_:P]: P[Vector[MathPhrase]] = P(
-    ("\\" ~ symName).map((s: String) => Vector(Sym(s,Vector()))) |
-    CharIn("0-9").!.map((s:String) => Vector(Numeral(s,Vector()))) |
-    AnyChar.!.map((s: String) => Vector(Variable(s,Vector())))
+    ("\\" ~ symName).map((s: String) => Vector(Positive(Sym(s,Vector())))) |
+    CharIn("0-9").!.map((s:String) => Vector(Positive(Numeral(s,Vector())))) |
+    AnyChar.!.map((s: String) => Vector(Positive(Variable(s,Vector()))))
   )
 
 
