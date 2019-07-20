@@ -3,14 +3,14 @@ import fastparse._, NoWhitespace._
 
 object MathParser{
   import MathLang._
-  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\n" )
+  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\n")
   def resrvdWd[_:P]: P[Unit] = P(StringIn("\\begin{split}","\\end{split}","\\displaystyle",
-    "\\textstyle","\\quad","\\qquad","\\thinmuskip","\\thickmuskip","\\scriptstyle",
+    "\\nolimits","\\textstyle","\\quad","\\qquad","\\thinmuskip","\\thickmuskip","\\scriptstyle",
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
     "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
 
   def mathLine[_:P]: P[Vector[MathPhrase]] = P(expr ~ !(":") ~
-    (binRelation ~ expr).rep.map(_.toVector)).map(
+    (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
       (t:(Expr,Vector[(String,Expr)])) =>
         if (t._2.size > 0) {
           (("=",t._1) +: t._2).sliding(2).toVector.map(
@@ -71,7 +71,8 @@ object MathParser{
       case _ => t._1
     }
   )
-  def binOperation[_:P]: P[String] = P(StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").!)
+  def binOperation[_:P]: P[String] = P(("\\mathbin{" | "\\mathrel{").? ~
+    StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").! ~ "}".?)
   def binary[_:P]: P[String] = P(binRelation | binOperation)
 
   def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
@@ -98,8 +99,8 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(set | tuple | paren | sqrt | fraction | decimal | numeral |
-    mathText | formatted | symbol | variable)
+  def token[_:P]: P[Expr] = P(set | tuple | paren | sqrt | fraction | binomial |
+    decimal | numeral | mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
@@ -129,9 +130,12 @@ object MathParser{
   def sqrt[_:P]: P[Sqrt] = P("\\sqrt" ~ ("[" ~ expr ~ "]").? ~ "{" ~ expr ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Option[Expr],Expr,Vector[SymAttr])) => Sqrt(t._1,t._2,t._3))
+  def binomial[_:P]: P[Binomial] = P("\\binom" ~ "{" ~ expr ~ "}{" ~ expr ~ "}" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(Expr,Expr,Vector[SymAttr])) => Binomial(t._1,t._2,t._3))
   def formatted[_:P]: P[Formatted] = P((
     "\\" ~ StringIn("mathnormal","mathrm","mathit","mathbf","mathsf","mathtt",
-      "mathfrak","mathcal","mathbb","mathscr").! ~ expr |
+      "mathfrak","mathcal","mathbb","mathscr","mathord","mathop").! ~ expr |
     "\\" ~ symName ~ "{" ~ expr ~ "}" |
     "{" ~ "\\" ~ symName ~ ws.rep ~ expr ~ "}") ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
