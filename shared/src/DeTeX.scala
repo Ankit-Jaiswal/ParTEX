@@ -58,7 +58,7 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
 
   def body[_:P]: P[Body] = P((bodyElem ~ ws.rep).rep.map(_.toVector).map((bs: Vector[BodyElem]) => Body(bs)) )
 
-  def bodyElem[_:P]: P[BodyElem] = P(meta | heading | image | theorem | proof | displaymath |
+  def bodyElem[_:P]: P[BodyElem] = P(meta | heading | image | theorem | proof | mathBlock |
     codeBlock | figure | table | tabular | list | bibliography |
     environment | paragraph | !("\\end{" | "\\bibitem{") ~ command)
 
@@ -90,10 +90,13 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   def proof[_:P]: P[Proof] = P("\\begin{proof}" ~ (&("\\")|ws.rep) ~ alias.? ~ label.? ~
     body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
+  def mathBlock[_:P]: P[MathBlock] = P(displaymath | eqMatrix)
   def displaymath[_:P]: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
     map((t:(Option[String],String)) => DisplayMath(t._1,t._2))
-  def displayEnv[_:P]: P[(Option[String],String)] = P("\\begin{displaymath}" ~ (&("\\")|ws.rep) ~
-    label.? ~ (!("\\end{displaymath}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{displaymath}")
+  def displayEnv[_:P]: P[(Option[String],String)] = P(("\\begin{displaymath}" |
+    "\\begin{multiline" ~ "*".? ~ "}") ~ (&("\\")|ws.rep) ~ label.? ~
+    (!("\\end{displaymath}" | "\\end{multiline" ~ "*".? ~ "}") ~ AnyChar).rep(1).! ~
+    (&("\\")|ws.rep) ~ ("\\end{displaymath}" | "\\end{multiline" ~ "*".? ~ "}"))
   def mathEnv[_:P]: P[(Option[String],String)] = P("\\begin{" ~ ("math}" | "equation*}" | "equation}") ~
     (&("\\")|ws.rep) ~ label.? ~ (!("\\end{"~("math}" | "equation*}" | "equation}")) ~ AnyChar).rep(1).! ~
     (&("\\")|ws.rep) ~ "\\end{"~("math}" | "equation*}" | "equation}") )
@@ -101,6 +104,11 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
     P("$$" ~ ws.rep ~ label.? ~ (!("$$") ~ AnyChar).rep(1).! ~ ws.rep ~ "$$")
   def sqBracket[_:P]: P[(Option[String],String)] =
     P("\\[" ~ ws.rep ~ label.? ~ (!("\\]") ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
+
+  def eqMatrix[_:P]: P[EqMatrix] = P("\\begin{" ~ StringIn("align","eqnarray","gathered","gather") ~
+    "*".? ~ "}" ~ (&("\\")|ws.rep) ~ label.? ~ (!("\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
+    "*".? ~ "}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
+    "*".? ~ "}").map((t:(Option[String],String)) => EqMatrix(t._1,t._2))
 
   def codeBlock[_:P]: P[CodeBlock] = P(inputCode|writtenCode).
     map((t:(Option[String],String)) =>

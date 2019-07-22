@@ -45,9 +45,9 @@ object TargetLang {
         b.frgs.collect({case x:Text => x.s.take(20).split('\n').mkString}).mkString
       }).getOrElse("") -> t._2))
 
-    val eqNum = bd.elems.collect({case x: DisplayMath => x})
-      .asInstanceOf[Vector[DisplayMath]].zipWithIndex
-      .map((t:(DisplayMath,Int)) => (t._1,"(" +(t._2+1)+ ")")).toMap
+    val eqNum = bd.elems.collect({case x: MathBlock => x})
+    .asInstanceOf[Vector[MathBlock]].zipWithIndex
+    .map((t:(MathBlock,Int)) => (t._1,"(" +(t._2+1)+ ")")).toMap
 
     val codeNum = bd.elems.collect({case x: CodeBlock => x})
       .asInstanceOf[Vector[CodeBlock]].zipWithIndex
@@ -114,7 +114,7 @@ object TargetLang {
     def getNum(l: Labelable) = l match {
       case x: Heading => headNum.get(x)
       case x: Theorem => thmNum.get(x)
-      case x: DisplayMath => eqNum.get(x)
+      case x: MathBlock => eqNum.get(x)
       case x: CodeBlock => codeNum.get(x)
       case x: Figure => figNum.get(x)
       case x: Table => tableNum.get(x)
@@ -153,7 +153,7 @@ object TargetLang {
           script("const thmNum = ", raw(mapToJSobjectString(thmNumByName)) ),
           script(
             "const eqNum = ",
-            raw(mapToJSobjectString(eqNum.map((t:(DisplayMath,String)) =>
+            raw(mapToJSobjectString(eqNum.map((t:(MathBlock,String)) =>
             (t._1.value.split('\n').mkString,t._2))))
           ),
           script(
@@ -300,20 +300,24 @@ object TargetLang {
           div(`class`:="pfbody")(value.toHTML)
         )
   }
-  case class DisplayMath(label: Option[String], value: String) extends BodyElem
-    with Math with Labelable{
-      val key = value.take(20).split('\n').mkString
-      val idValue = key.split(" ").mkString("_")
-      val toHTML: Frag =
-        div(`class`:="displaymath")(
-          div(id:=idValue)(script(
-            raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-            raw("eqNum[\""),raw(key),raw("\"];")
-          )),
-          label.map((l: String) => a(attr("name"):=l)()),
-          "\\[" +value+ "\\]"
-        )
+  sealed trait MathBlock extends BodyElem with Math with Labelable{
+    val label: Option[String]
+    val value: String
+    val key = value.take(20).split('\n').mkString
+    val idValue = key.split(" ").mkString("_")
+    val toHTML: Frag =
+      div(`class`:="displaymath")(
+        div(id:=idValue)(script(
+          raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+          raw("eqNum[\""),raw(key),raw("\"];")
+        )),
+        label.map((l: String) => a(attr("name"):=l)()),
+        "\\[" +value+ "\\]"
+      )
   }
+  case class EqMatrix(label: Option[String], value: String) extends MathBlock
+  case class DisplayMath(label: Option[String], value: String) extends MathBlock
+
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
     val key = value.take(20).split('\n').mkString
     val idValue = key.split(" ").mkString("_")

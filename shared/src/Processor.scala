@@ -1,6 +1,6 @@
 package partex
 import fastparse._, NoWhitespace._
-import TargetLang.{DisplayMath, Paragraph, InlineMath}
+import TargetLang.{DisplayMath, EqMatrix, Paragraph, InlineMath}
 import partex.MathLang.MathPhrase
 
 object Processor {
@@ -108,6 +108,8 @@ object Processor {
     val mathStrings: Vector[String] = parsed match {
       case Parsed.Success(value,_) => value.bd.elems.collect{
         case DisplayMath(label, value) => Vector(value)
+        case EqMatrix(label, value) => value.split("""\\\\""").toVector
+          .map(_.split("&").sliding(2,2).toVector.map(_.reduce(_+_))).flatten
         case Paragraph(frgs) => frgs.collect{case InlineMath(value) => value}.toVector
       }.flatten
       case _: Parsed.Failure => Vector()
