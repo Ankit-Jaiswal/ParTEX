@@ -90,13 +90,12 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   def proof[_:P]: P[Proof] = P("\\begin{proof}" ~ (&("\\")|ws.rep) ~ alias.? ~ label.? ~
     body ~ "\\end{proof}").map((t:(Option[String],Option[String],Body)) => Proof(t._1,t._2,t._3))
 
-  def mathBlock[_:P]: P[MathBlock] = P(displaymath | eqMatrix)
+  def mathBlock[_:P]: P[MathBlock] = P(displaymath | eqMatrix | multiline)
   def displaymath[_:P]: P[DisplayMath] = P(displayEnv | mathEnv | doubleDollar | sqBracket).
     map((t:(Option[String],String)) => DisplayMath(t._1,t._2))
-  def displayEnv[_:P]: P[(Option[String],String)] = P(("\\begin{displaymath}" |
-    "\\begin{multiline" ~ "*".? ~ "}") ~ (&("\\")|ws.rep) ~ label.? ~
-    (!("\\end{displaymath}" | "\\end{multiline" ~ "*".? ~ "}") ~ AnyChar).rep(1).! ~
-    (&("\\")|ws.rep) ~ ("\\end{displaymath}" | "\\end{multiline" ~ "*".? ~ "}"))
+  def displayEnv[_:P]: P[(Option[String],String)] = P("\\begin{displaymath}" ~
+    (&("\\")|ws.rep) ~ label.? ~ (!("\\end{displaymath}") ~ AnyChar).rep(1).! ~
+    (&("\\")|ws.rep) ~ "\\end{displaymath}")
   def mathEnv[_:P]: P[(Option[String],String)] = P("\\begin{" ~ ("math}" | "equation*}" | "equation}") ~
     (&("\\")|ws.rep) ~ label.? ~ (!("\\end{"~("math}" | "equation*}" | "equation}")) ~ AnyChar).rep(1).! ~
     (&("\\")|ws.rep) ~ "\\end{"~("math}" | "equation*}" | "equation}") )
@@ -109,6 +108,11 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
     "*".? ~ "}" ~ (&("\\")|ws.rep) ~ label.? ~ (!("\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
     "*".? ~ "}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
     "*".? ~ "}").map((t:(Option[String],String)) => EqMatrix(t._1,t._2))
+
+  def multiline[_:P]: P[MultiLine] = P("\\begin{multiline" ~ "*".? ~ "}" ~ (&("\\")|ws.rep) ~
+    label.? ~ (!("\\end{multiline" ~ "*".? ~ "}") ~ AnyChar).rep(1).! ~
+    (&("\\")|ws.rep) ~ "\\end{multiline" ~ "*".? ~ "}")
+    .map((t:(Option[String],String)) => MultiLine(t._1,t._2))
 
   def codeBlock[_:P]: P[CodeBlock] = P(inputCode|writtenCode).
     map((t:(Option[String],String)) =>

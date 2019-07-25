@@ -3,11 +3,45 @@ import fastparse._, NoWhitespace._
 
 object MathParser{
   import MathLang._
-  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\n")
+  def ws[_:P]: P[Unit] = P(resrvdWd | " " | "\t" | "\n")
   def resrvdWd[_:P]: P[Unit] = P(StringIn("\\begin{split}","\\end{split}","\\displaystyle",
     "\\nolimits","\\textstyle","\\quad","\\qquad","\\thinmuskip","\\thickmuskip","\\scriptstyle",
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
-    "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","&","\\\\","\\,","\\:","\\;","\\!","\\ "))
+    "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","\\,","\\:","\\;","\\!","\\ "))
+
+  def parseMath(s: String) : Parsed[Vector[MathPhrase]] =
+    parse(s, fullMathLine(_))
+  def getMath(s:String): Option[Vector[MathPhrase]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
+
+  def fullMathLine[_:P] : P[Vector[MathPhrase]] = P(
+    (xyMatrix |
+    mathLine.rep(sep= ",").map(_.toVector.flatten)) ~ ("."|ws).rep ~ End
+  )
+
+  def xyMatrix[_:P]: P[Vector[MathPhrase]] = P("\\xymatrix{" ~ ws.rep ~
+    xyCell.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~ "}")
+    .map((xxs: Vector[Vector[(Expr,Vector[String])]]) =>
+      xxs.map((xs: Vector[(Expr,Vector[String])]) =>
+        xs.map((t: (Expr,Vector[String])) =>
+          if(t._2.isEmpty) { Vector(t._1) }
+          else {
+            t._2.map((ar: String) =>
+              if(ar == "l") { MapsTo(t._1,xs(xs.indexOf(t)-1)._1) }
+              else if(ar == "r") { MapsTo(t._1,xs(xs.indexOf(t)+1)._1) }
+              else if(ar == "u") { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t))._1) }
+              else if(ar == "d") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t))._1) }
+              else if(ar == "dl") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t)-1)._1) }
+              else if(ar == "dr") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t)+1)._1) }
+              else if(ar == "ul") { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t)-1)._1) }
+              else { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t)+1)._1) }
+            )
+          }
+        ).flatten
+      ).flatten
+    )
+  def xyCell[_:P]: P[(Expr,Vector[String])] = P((expr|ws.rep.!.map(Variable(_,Vector()))) ~
+    (ws.rep ~ arrow ~ ws.rep).rep.map(_.toVector))
+  def arrow[_:P]: P[String] = P("\\ar[" ~ StringIn("dl","dr","ul","ur","l","r","d","u").! ~ "]")
 
   def mathLine[_:P]: P[Vector[MathPhrase]] = P(expr ~ !(":") ~
     (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
@@ -23,12 +57,6 @@ object MathParser{
   def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector.flatten)).map(
     (t:(Expr,Vector[MathPhrase])) => SuchThat(t._1,t._2)
   )
-
-  def fullMathLine[_:P] : P[Vector[MathPhrase]] = P(mathLine.rep(sep= ",").map(_.toVector.flatten) ~ ("."|ws).rep ~ End)
-
-  def parseMath(s: String) : Parsed[Vector[MathPhrase]] = parse(s, fullMathLine(_))
-
-  def getMath(s:String): Option[Vector[MathPhrase]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
 
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
@@ -116,7 +144,7 @@ object MathParser{
     "{" ~ (!("}") ~ AnyChar).rep.! ~ "}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Vector[SymAttr])) => MathText(t._1,t._2))
-  def symbol[_:P]: P[Sym] = P("\\" ~ symName ~
+  def symbol[_:P]: P[Sym] = P(!arrow ~ "\\" ~ symName ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Vector[SymAttr])) => Sym(t._1,t._2))
   def paren[_:P]: P[Expr] = P("(" ~ expr ~ ")" ~

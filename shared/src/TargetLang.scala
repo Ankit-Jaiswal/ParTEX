@@ -316,6 +316,7 @@ object TargetLang {
       )
   }
   case class EqMatrix(label: Option[String], value: String) extends MathBlock
+  case class MultiLine(label: Option[String], value: String) extends MathBlock
   case class DisplayMath(label: Option[String], value: String) extends MathBlock
 
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
