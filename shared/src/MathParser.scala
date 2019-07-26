@@ -9,8 +9,7 @@ object MathParser{
     "\\scriptscriptstyle","\\left","\\right","\\middle","\\bigl","\\bigr","\\Bigl","\\Bigr",
     "\\biggl","\\biggr","\\Biggl","\\Biggr","\\underbrace","\\,","\\:","\\;","\\!","\\ "))
 
-  def parseMath(s: String) : Parsed[Vector[MathPhrase]] =
-    parse(s, fullMathLine(_))
+  def parseMath(s: String) : Parsed[Vector[MathPhrase]] = parse(s, fullMathLine(_))
   def getMath(s:String): Option[Vector[MathPhrase]] = parseMath(s).fold({case (_, _, _) => None}, {case (exp, _) => Some(exp)})
 
   def fullMathLine[_:P] : P[Vector[MathPhrase]] = P(
@@ -18,30 +17,33 @@ object MathParser{
     mathLine.rep(sep= ",").map(_.toVector.flatten)) ~ ("."|ws).rep ~ End
   )
 
-  def xyMatrix[_:P]: P[Vector[MathPhrase]] = P("\\xymatrix{" ~ ws.rep ~
+  def xyMatrix[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ "\\xymatrix{" ~ ws.rep ~
     xyCell.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~ "}")
-    .map((xxs: Vector[Vector[(Expr,Vector[String])]]) =>
-      xxs.map((xs: Vector[(Expr,Vector[String])]) =>
-        xs.map((t: (Expr,Vector[String])) =>
+    .map((xxs: Vector[Vector[(Expr,Vector[(String,Vector[SymAttr])])]]) =>
+      xxs.map((xs: Vector[(Expr,Vector[(String,Vector[SymAttr])])]) =>
+        xs.map((t: (Expr,Vector[(String,Vector[SymAttr])])) =>
           if(t._2.isEmpty) { Vector(t._1) }
           else {
-            t._2.map((ar: String) =>
-              if(ar == "l") { MapsTo(t._1,xs(xs.indexOf(t)-1)._1) }
-              else if(ar == "r") { MapsTo(t._1,xs(xs.indexOf(t)+1)._1) }
-              else if(ar == "u") { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t))._1) }
-              else if(ar == "d") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t))._1) }
-              else if(ar == "dl") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t)-1)._1) }
-              else if(ar == "dr") { MapsTo(t._1,xxs(xxs.indexOf(xs)+1)(xs.indexOf(t)+1)._1) }
-              else if(ar == "ul") { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t)-1)._1) }
-              else { MapsTo(t._1,xxs(xxs.indexOf(xs)-1)(xs.indexOf(t)+1)._1) }
-            )
+            t._2.map((ar: (String,Vector[SymAttr])) => {
+              val nwIndex = ar._1.split("").toVector.foldLeft((xxs.indexOf(xs),xs.indexOf(t)))(move)
+              if(xxs.isDefinedAt(nwIndex._1) && xxs(nwIndex._1).isDefinedAt(nwIndex._2))
+                {MapsTo(t._1, xxs(nwIndex._1)(nwIndex._2)._1, ar._2)}
+              else {MapsTo(t._1,t._1,ar._2)}
+            })
           }
         ).flatten
       ).flatten
     )
-  def xyCell[_:P]: P[(Expr,Vector[String])] = P((expr|ws.rep.!.map(Variable(_,Vector()))) ~
-    (ws.rep ~ arrow ~ ws.rep).rep.map(_.toVector))
-  def arrow[_:P]: P[String] = P("\\ar[" ~ StringIn("dl","dr","ul","ur","l","r","d","u").! ~ "]")
+  def xyCell[_:P]: P[(Expr,Vector[(String,Vector[SymAttr])])] =
+    P((expr|ws.rep.!.map(Variable(_,Vector()))) ~ arrow.rep.map(_.toVector))
+  def arrow[_:P]: P[(String,Vector[SymAttr])] = P("\\ar[" ~ CharIn("a-z").rep.! ~
+    "]" ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+  def move(i:(Int,Int), c: String): (Int,Int) =
+    if(c == "l") {(i._1,i._2-1)}
+    else if(c == "r") {(i._1,i._2+1)}
+    else if(c == "u") {(i._1-1,i._2)}
+    else if(c == "d") {(i._1+1,i._2)}
+    else {i}
 
   def mathLine[_:P]: P[Vector[MathPhrase]] = P(expr ~ !(":") ~
     (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
@@ -68,7 +70,7 @@ object MathParser{
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
     else if (Vector("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").contains(r))
-      { MapsTo(e1,e2) }
+      { MapsTo(e1,e2,Vector()) }
     else if (r == "\\approx") { Approx(e1,e2) }
     else if (r == "\\cong") { Congruent(e1,e2) }
     else if (r == "\\equiv") { Equivalent(e1,e2) }
