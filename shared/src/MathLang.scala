@@ -52,6 +52,9 @@ object MathLang {
   case class Union(e1: Expr, e2: Expr) extends Expr
   case class Intersection(e1: Expr, e2: Expr) extends Expr
   case class SetMinus(e1: Expr, e2: Expr) extends Expr
+  case class Matrix(xxs: Vector[Vector[Vector[MathPhrase]]]) extends Expr
+  case class Cases(xs: Vector[Vector[MathPhrase]]) extends Expr
+
 
   case class Positive(e: Expr) extends Signed
   case class Negative(e: Expr) extends Signed
