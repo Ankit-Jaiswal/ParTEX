@@ -1,5 +1,6 @@
 package partex
 import fastparse._, NoWhitespace._
+import ParsingRules.all.curlyBox
 
 object MathParser{
   import MathLang._
@@ -15,7 +16,10 @@ object MathParser{
   def fullMathLine[_:P] : P[Vector[MathPhrase]] =
     P(mathLine.rep(sep= ",").map(_.toVector.flatten) ~ ("."|ws).rep ~ End)
 
-  def mathLine[_:P]: P[Vector[MathPhrase]] = xyMatrix | suchThat.map((st: SuchThat) => Vector(st)) |
+  def mathLine[_:P]: P[Vector[MathPhrase]] =
+    xyMatrix |
+    suchThat.map((st: SuchThat) => Vector(st)) |
+    P(!arrMatrix ~ (multiline|splitline)) |
     P(expr ~ (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
       (t:(Expr,Vector[(String,Expr)])) =>
         if (t._2.size > 0) {
@@ -58,6 +62,18 @@ object MathParser{
   def suchThat[_:P]: P[SuchThat] = P(expr ~ ":" ~ mathLine.rep(min= 1, sep= ",").map(_.toVector.flatten)).map(
     (t:(Expr,Vector[MathPhrase])) => SuchThat(t._1,t._2)
   )
+
+  def multiline[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ "\\begin{array}" ~ curlyBox.? ~
+    (!("\\end{array}") ~ AnyChar).rep.! ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
+    .map((s: String) =>
+    getMath(s.split("&").reduce(_+_).split("""\\\\""").reduce(_+", "+_))
+      .getOrElse(Vector(MathText("Multiline rule failed.",Vector()))))
+
+  def splitline[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ "\\begin{split}" ~
+    (!("\\end{split}") ~ AnyChar).rep.! ~ "\\end{split}" ~ ws.rep)
+    .map((s: String) =>
+    getMath(s.split("""\\\\""").reduce(_+_)).getOrElse(Vector(MathText("Splitline rule failed.",Vector()))))
+
 
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
@@ -128,8 +144,8 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(set | tuple | paren | sqrt | fraction | binomial |
-    decimal | numeral | mathText | formatted | symbol | variable)
+  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | tuple | paren | sqrt |
+    fraction | binomial | decimal | numeral | mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
@@ -173,6 +189,20 @@ object MathParser{
   def tuple[_:P]: P[Tuple] = P("(" ~ expr.rep(min= 2, sep= ",").map(_.toVector) ~ ")" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Vector[Expr],Vector[SymAttr])) => Tuple(t._1,t._2))
+  def cases[_:P]: P[Cases] = P("\\begin{cases}" ~
+    (expr ~ ",".? ~ ws.rep ~ "&" ~ mathLine).rep(sep= "\\\\").map(_.toVector) ~
+    ws.rep ~ "\\end{cases}" ~ ws.rep)
+    .map(_.map((t:(Expr,Vector[MathPhrase])) => if(t._2.isEmpty) {t._1} else {SuchThat(t._1,t._2)}))
+    .map((xs: Vector[MathPhrase]) => Cases(xs))
+  def matrix[_:P]: P[Matrix] = P("\\begin{" ~
+    StringIn("matrix","vmatrxix","Vmatrix","bmatrix","Bmatrix","pmatrix") ~ "}" ~
+    mathLine.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
+    ws.rep ~ "\\end{" ~ StringIn("matrix","vmatrxix","Vmatrix","bmatrix","Bmatrix","pmatrix") ~ "}" ~ ws.rep)
+    .map(Matrix(_))
+  def arrMatrix[_:P]: P[Matrix] = P("\\begin{array}" ~ curlyBox.? ~
+    mathLine.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
+    ws.rep ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
+    .map(Matrix(_))
 
 
   def setByElems[_:P]: P[SetByElems] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
