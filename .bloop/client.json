@@ -2,47 +2,47 @@
     "version" : "1.1.2",
     "project" : {
         "name" : "client",
-        "directory" : "/home/gadgil/code/ParTEX/client",
+        "directory" : "/home/ankit/Documents/ParTEX/client",
         "sources" : [
-            "/home/gadgil/code/ParTEX/client/src"
+            "/home/ankit/Documents/ParTEX/client/src"
         ],
         "dependencies" : [
             "shared.js"
         ],
         "classpath" : [
-            "/home/gadgil/code/ParTEX/.bloop/out/shared.js/classes",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5.jar",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6.jar",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27.jar",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7.jar",
-            "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0.jar"
+            "/home/ankit/Documents/ParTEX/.bloop/out/shared.js/classes",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5.jar",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6.jar",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27.jar",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7.jar",
+            "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0.jar"
         ],
-        "out" : "/home/gadgil/code/ParTEX/.bloop/out/client",
-        "classesDir" : "/home/gadgil/code/ParTEX/.bloop/out/client/classes",
+        "out" : "/home/ankit/Documents/ParTEX/.bloop/out/client",
+        "classesDir" : "/home/ankit/Documents/ParTEX/.bloop/out/client/classes",
         "resources" : [
-            "/home/gadgil/code/ParTEX/client/resources"
+            "/home/ankit/Documents/ParTEX/client/resources"
         ],
         "scala" : {
             "organization" : "org.scala-lang",
             "name" : "scala-compiler",
             "version" : "2.12.8",
             "options" : [
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.12.8/4.1.4/semanticdb-scalac_2.12.8-4.1.4.jar",
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.8/scala-compiler-2.12.8.jar",
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.8/0.6.27/scalajs-compiler_2.12.8-0.6.27.jar",
-                "-Xplugin:/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.8/scala-reflect-2.12.8.jar",
-                "-P:semanticdb:sourceroot:/home/gadgil/code/ParTEX",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.12.8/4.1.4/semanticdb-scalac_2.12.8-4.1.4.jar",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.8/scala-compiler-2.12.8.jar",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.8/0.6.27/scalajs-compiler_2.12.8-0.6.27.jar",
+                "-Xplugin:/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.8/scala-reflect-2.12.8.jar",
+                "-P:semanticdb:sourceroot:/home/ankit/Documents/ParTEX",
                 "-P:semanticdb:synthetics:on",
                 "-P:semanticdb:failures:warning"
             ],
             "jars" : [
-                "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
-                "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.8/scala-compiler-2.12.8.jar",
-                "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
-                "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.8/scala-reflect-2.12.8.jar"
+                "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar",
+                "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.8/scala-compiler-2.12.8.jar",
+                "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.8/scala-reflect-2.12.8.jar"
             ]
         },
         "java" : {
@@ -72,12 +72,12 @@
                     "artifacts" : [
                         {
                             "name" : "scala-library",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8.jar"
                         },
                         {
                             "name" : "scala-library",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.8/scala-library-2.12.8-sources.jar"
                         }
                     ]
                 },
@@ -88,12 +88,12 @@
                     "artifacts" : [
                         {
                             "name" : "fastparse_sjs0.6_2.12",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0.jar"
                         },
                         {
                             "name" : "fastparse_sjs0.6_2.12",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_sjs0.6_2.12/2.1.0/fastparse_sjs0.6_2.12-2.1.0-sources.jar"
                         }
                     ]
                 },
@@ -104,12 +104,12 @@
                     "artifacts" : [
                         {
                             "name" : "scalajs-dom_sjs0.6_2.12",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6.jar"
                         },
                         {
                             "name" : "scalajs-dom_sjs0.6_2.12",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs0.6_2.12/0.9.6/scalajs-dom_sjs0.6_2.12-0.9.6-sources.jar"
                         }
                     ]
                 },
@@ -120,12 +120,12 @@
                     "artifacts" : [
                         {
                             "name" : "sourcecode_sjs0.6_2.12",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5.jar"
                         },
                         {
                             "name" : "sourcecode_sjs0.6_2.12",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs0.6_2.12/0.1.5/sourcecode_sjs0.6_2.12-0.1.5-sources.jar"
                         }
                     ]
                 },
@@ -136,12 +136,12 @@
                     "artifacts" : [
                         {
                             "name" : "scalatags_sjs0.6_2.12",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7.jar"
                         },
                         {
                             "name" : "scalatags_sjs0.6_2.12",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_sjs0.6_2.12/0.6.7/scalatags_sjs0.6_2.12-0.6.7-sources.jar"
                         }
                     ]
                 },
@@ -152,12 +152,12 @@
                     "artifacts" : [
                         {
                             "name" : "scalajs-library_2.12",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27.jar"
                         },
                         {
                             "name" : "scalajs-library_2.12",
                             "classifier" : "sources",
-                            "path" : "/home/gadgil/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27-sources.jar"
+                            "path" : "/home/ankit/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/0.6.27/scalajs-library_2.12-0.6.27-sources.jar"
                         }
                     ]
                 }
