@@ -1,11 +1,15 @@
 package partex
-//import org.scalajs.nodejs.fs.Fs
 import org.scalajs.dom
 import dom.document, dom.html
-import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js
+import scala.scalajs.js.annotation._
 import scalatags.JsDom.all._
+import org.scalajs.dom.raw.Blob
 
+
+@js.native
+@JSGlobal
+class saveAs(bb: Blob, name: String) extends js.Object
 
 @JSExportTopLevel("Reader")
 object Reader {
@@ -21,22 +25,23 @@ object Reader {
   }
 }
 
-
 class SourcesJS(raw: String) {
   val divided = raw.split("""\\begin\{document\}""")
   val preamble = divided(0)
   val restRaw = "\\begin{document}" + divided(1)
   val parser = new Processor.Resolver(preamble,restRaw)
+  val fileContent = parser.content
 
   def parse(e: dom.Event): Unit = {
     document.getElementById("out").appendChild(p(parser.message).render)
-    document.getElementById("out").appendChild(button(id:="converter")("Convert").render)
+    document.getElementById("out").appendChild(button(id:="converter")("Convert and Download").render)
     document.getElementById("converter").addEventListener("click",convert)
   }
 
   def convert(e: dom.Event): Unit = {
-//    document.documentElement.innerHTML = parser.content.split("<html>")(1).split("</html>")(0)
-    document.getElementById("box").innerHTML = parser.content
+    document.getElementById("out").innerHTML = p("Ready for download.").toString
+    val blob = new Blob(js.Array(fileContent))
+    new saveAs(blob,"yourdoc.html")
   }
 
 }

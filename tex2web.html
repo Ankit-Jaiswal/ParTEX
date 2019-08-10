@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>TEX2WEB</title>
-    <script src="./out/partex/client/fastOpt/dest/out.js" charset="utf-8"></script>
+    <script src="./node_modules/file-saver/src/FileSaver.js" charset="utf-8"></script>
+    <script src="./out/client/fastOpt/dest/out.js" charset="utf-8"></script>
   </head>
   <body>
     <div style="width: 60%; margin-left: auto; margin-right: auto; margin-top: 1em; height: 22em">
@@ -18,19 +19,14 @@
         a valid html, which you can use to publish on your website straightaway.
       </p>
       <p style="margin-bottom: 2em">
-        Just copy the generated output to a .html file and save the
+        Just save the generated .html file and the
         <a href="./main.css" download>styling file</a>
-        to the same directory as the .html file.
+        to the same directory and, always open with a browser 
+        (like chrome, firefox) to see the magic.
       </p>
 
       <input type="file" id="input" multiple />
       <output id="out"></output>
-    </div>
-
-    <div style="width: 100%; text-align: center">
-      <textarea id="box" type="text" style="height: 40em; width: 90%; vertical-align: top">
-Generated .html output after conversion will appear here.
-      </textarea>
     </div>
 
     <script>
@@ -39,5 +35,5 @@ Generated .html output after conversion will appear here.
       }
       document.getElementById('input').addEventListener('change',foo,false);
     </script>
-  </body>
+</body>
 </html>
