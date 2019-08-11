@@ -39,7 +39,7 @@ class SourcesJS(raw: String) {
   }
 
   def convert(e: dom.Event): Unit = {
-    document.getElementById("out").innerHTML = p("Ready for download.").toString
+    document.getElementById("out").innerHTML = p("downloading output file in few seconds...").toString
     val blob = new Blob(js.Array(fileContent))
     new saveAs(blob,"yourdoc.html")
   }

@@ -5,4 +5,5 @@ target/
 .idea/
 .idea_modules/
 .metals/
+.vscode/
 mydoc.html

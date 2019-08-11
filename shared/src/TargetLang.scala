@@ -173,7 +173,7 @@ object TargetLang {
         body(css("margin"):="0px")(
           div(id:="topmatter")(
             a(href:="#topmatter")(table(tr(
-              td(width:="25%")(top.collectFirst({case m: Author => m.toHTML})),
+                td(width:="25%")(top.collectFirst({case m: Author => m.toHTML})),
               td(width:="50%")(top.collectFirst({case m: Title => m.toHTML})),
               td(width:="25%")(top.collectFirst({case m: Date => m.toHTML}))
             ))),
@@ -434,7 +434,7 @@ object TargetLang {
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(value: String) extends Fragment with Math{
-    val toHTML: Frag = span(`class`:="inlinemath")("\\(" +s+ "\\)")
+    val toHTML: Frag = span(`class`:="inlinemath")("\\(" + value + "\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
     val toHTML: Frag =
