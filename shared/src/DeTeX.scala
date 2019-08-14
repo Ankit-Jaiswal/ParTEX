@@ -104,10 +104,10 @@ case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   def sqBracket[_:P]: P[(Option[String],String)] =
     P("\\[" ~ ws.rep ~ label.? ~ (!("\\]") ~ AnyChar).rep(1).! ~ ws.rep ~ "\\]")
 
-  def eqMatrix[_:P]: P[EqMatrix] = P("\\begin{" ~ StringIn("align","eqnarray","gathered","gather") ~
+  def eqMatrix[_:P]: P[EqMatrix] = P("\\begin{" ~ StringIn("align","eqnarray","gathered","gather").! ~
     "*".? ~ "}" ~ (&("\\")|ws.rep) ~ label.? ~ (!("\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
     "*".? ~ "}") ~ AnyChar).rep(1).! ~ (&("\\")|ws.rep) ~ "\\end{" ~ StringIn("align","eqnarray","gathered","gather") ~
-    "*".? ~ "}").map((t:(Option[String],String)) => EqMatrix(t._1,t._2))
+    "*".? ~ "}").map((t:(String,Option[String],String)) => EqMatrix(t._1,t._2,t._3))
 
   def multiline[_:P]: P[MultiLine] = P("\\begin{multiline" ~ "*".? ~ "}" ~ (&("\\")|ws.rep) ~
     label.? ~ (!("\\end{multiline" ~ "*".? ~ "}") ~ AnyChar).rep(1).! ~

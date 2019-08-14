@@ -305,19 +305,41 @@ object TargetLang {
     val value: String
     val key = value.take(20).split('\n').mkString
     val idValue = key.split(" ").mkString("_")
-    val toHTML: Frag =
-      div(`class`:="displaymath")(
-        div(id:=idValue)(script(
-          raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
-          raw("eqNum[\""),raw(key),raw("\"];")
-        )),
-        label.map((l: String) => a(attr("name"):=l)()),
-        "\\[" +value+ "\\]"
-      )
+    val toHTML: Frag
   }
-  case class EqMatrix(label: Option[String], value: String) extends MathBlock
-  case class MultiLine(label: Option[String], value: String) extends MathBlock
-  case class DisplayMath(label: Option[String], value: String) extends MathBlock
+  case class EqMatrix(name: String, label: Option[String], value: String) extends MathBlock{
+    val toHTML: Frag = 
+    div(`class`:="displaymath")(
+      div(id:=idValue)(script(
+        raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+        raw("eqNum[\""),raw(key),raw("\"];")
+      )),
+      label.map((l: String) => a(attr("name"):=l)()),
+      "\\begin{",name,"}", raw(value), "\\end{",name,"}"
+    )
+  }
+  case class MultiLine(label: Option[String], value: String) extends MathBlock{
+    val toHTML: Frag =
+    div(`class`:="displaymath")(
+      div(id:=idValue)(script(
+        raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+        raw("eqNum[\""),raw(key),raw("\"];")
+      )),
+      label.map((l: String) => a(attr("name"):=l)()),
+      "\\[", raw(value), "\\]"
+    )
+  }
+  case class DisplayMath(label: Option[String], value: String) extends MathBlock{
+    val toHTML: Frag =
+    div(`class`:="displaymath")(
+      div(id:=idValue)(script(
+        raw("document.getElementById(\""),idValue,raw("\").innerHTML = "),
+        raw("eqNum[\""),raw(key),raw("\"];")
+      )),
+      label.map((l: String) => a(attr("name"):=l)()),
+      "\\[", raw(value), "\\]"
+    )
+  }
 
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
     val key = value.take(20).split('\n').mkString
@@ -434,7 +456,7 @@ object TargetLang {
     /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
   case class InlineMath(value: String) extends Fragment with Math{
-    val toHTML: Frag = span(`class`:="inlinemath")("\\(" + value + "\\)")
+    val toHTML: Frag = span(`class`:="inlinemath")("\\(", raw(value), "\\)")
   }
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
     val toHTML: Frag =
