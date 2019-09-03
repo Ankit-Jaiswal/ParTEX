@@ -60,7 +60,7 @@ object MathLang {
   case class Negative(e: Expr) extends Signed
   case class PosOrNeg(e: Expr) extends Signed
 
-  case class SetByElems(elems: Vector[Expr], xs: Vector[SymAttr]) extends Set
+  case class SetByElems(elems: Vector[MathPhrase], xs: Vector[SymAttr]) extends Set
   case class SetByProps(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr

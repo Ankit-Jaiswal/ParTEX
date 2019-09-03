@@ -205,9 +205,9 @@ object MathParser{
     .map(Matrix(_))
 
 
-  def setByElems[_:P]: P[SetByElems] = P("\\{" ~ expr.rep(sep= ",").map(_.toVector) ~ "\\}" ~
+  def setByElems[_:P]: P[SetByElems] = P("\\{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
-    .map((t:(Vector[Expr],Vector[SymAttr])) => SetByElems(t._1,t._2))
+    .map((t:(Vector[MathPhrase],Vector[SymAttr])) => SetByElems(t._1,t._2))
   def setByProps[_:P]: P[SetByProps] = P("\\{" ~ suchThat ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(SuchThat,Vector[SymAttr])) => SetByProps(t._1,t._2))
