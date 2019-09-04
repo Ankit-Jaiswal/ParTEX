@@ -54,6 +54,7 @@ object MathLang {
   case class SetMinus(e1: Expr, e2: Expr) extends Expr
   case class Matrix(xxs: Vector[Vector[Vector[MathPhrase]]]) extends Expr
   case class Cases(xs: Vector[MathPhrase]) extends Expr
+  case class PhraselTuple(elems: Vector[Vector[MathPhrase]], xs: Vector[SymAttr]) extends Expr
 
 
   case class Positive(e: Expr) extends Signed

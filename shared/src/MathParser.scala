@@ -84,15 +84,12 @@ object MathParser{
 
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
-    "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset",
-    "\\nsupseteq"/*,"\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto"*/).!)
+    "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)
   def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
     if (r == "=") { Equality(e1,e2) }
     else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
-//    else if (Vector("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").contains(r))
-//      { MapsTo(e1,e2,Vector()) }
     else if (r == "\\approx") { Approx(e1,e2) }
     else if (r == "\\cong") { Congruent(e1,e2) }
     else if (r == "\\equiv") { Equivalent(e1,e2) }
@@ -151,7 +148,7 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | tuple | paren | sqrt |
+  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | tuple | phraselTuple | paren | sqrt |
     fraction | binomial | decimal | numeral | mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
@@ -210,6 +207,9 @@ object MathParser{
     mathLine.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
     ws.rep ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
     .map(Matrix(_))
+  def phraselTuple[_:P]: P[PhraselTuple] = P("(" ~ mathLine.rep(sep=",").map(_.toVector) ~ ")" ~
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(Vector[Vector[MathPhrase]],Vector[SymAttr])) => PhraselTuple(t._1,t._2))
 
 
   def setByElems[_:P]: P[SetByElems] = P("\\{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "\\}" ~
