@@ -19,6 +19,7 @@ object MathParser{
   def mathLine[_:P]: P[Vector[MathPhrase]] =
     xyMatrix |
     suchThat.map((st: SuchThat) => Vector(st)) |
+    mapsTo.map((mp: MapsTo) => Vector(mp)) |
     P(!arrMatrix ~ (multiline|splitline)) |
     P(expr ~ (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
       (t:(Expr,Vector[(String,Expr)])) =>
@@ -41,8 +42,8 @@ object MathParser{
             t._2.map((ar: (String,Vector[SymAttr])) => {
               val nwIndex = ar._1.split("").toVector.foldLeft((xxs.indexOf(xs),xs.indexOf(t)))(move)
               if(xxs.isDefinedAt(nwIndex._1) && xxs(nwIndex._1).isDefinedAt(nwIndex._2))
-                {MapsTo(t._1, xxs(nwIndex._1)(nwIndex._2)._1, ar._2)}
-              else {MapsTo(t._1,t._1,ar._2)}
+                {MapsTo(t._1, Vector(xxs(nwIndex._1)(nwIndex._2)._1), ar._2)}
+              else {MapsTo(t._1,Vector(t._1),ar._2)}
             })
           }
         ).flatten
@@ -63,6 +64,12 @@ object MathParser{
     (t:(Expr,Vector[MathPhrase])) => SuchThat(t._1,t._2)
   )
 
+  def mapsTo[_:P]: P[MapsTo] = P(expr ~ (mapSym ~ expr).rep(1).map(_.toVector)).map(
+      (t: (Expr,Vector[Expr])) => MapsTo(t._1,t._2,Vector())
+    )
+  def mapSym[_:P]: P[Unit] = StringIn("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto")
+
+
   def multiline[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ "\\begin{array}" ~ curlyBox.? ~
     (!("\\end{array}") ~ AnyChar).rep.! ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
     .map((s: String) =>
@@ -78,14 +85,14 @@ object MathParser{
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
     "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset",
-    "\\nsupseteq","\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").!)
+    "\\nsupseteq"/*,"\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto"*/).!)
   def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
     if (r == "=") { Equality(e1,e2) }
     else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
     else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
     else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
-    else if (Vector("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").contains(r))
-      { MapsTo(e1,e2,Vector()) }
+//    else if (Vector("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto").contains(r))
+//      { MapsTo(e1,e2,Vector()) }
     else if (r == "\\approx") { Approx(e1,e2) }
     else if (r == "\\cong") { Congruent(e1,e2) }
     else if (r == "\\equiv") { Equivalent(e1,e2) }
@@ -125,7 +132,7 @@ object MathParser{
   def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
   def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
 
-  def term[_:P]: P[Expr] = P(factor ~ (!binary ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
+  def term[_:P]: P[Expr] = P(factor ~ (!(binary|mapSym) ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
     (t:(Expr,Option[Expr])) => t._2 match {
       case Some(e) => Multiply(t._1,e)
       case _ => t._1

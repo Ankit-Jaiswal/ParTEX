@@ -21,12 +21,12 @@ object MathLang {
   case class NotSupsetPrpr(e1: Expr, e2: Expr) extends MathPhrase
   case class NotSupset(e1: Expr, e2: Expr) extends MathPhrase
   case class BelongsTo(e1: Expr, e2: Expr) extends MathPhrase
-  case class MapsTo(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
   case class Equivalent(e1: Expr, e2: Expr) extends MathPhrase
   case class Similar(e1: Expr, e2: Expr) extends MathPhrase
   case class SimilarEq(e1: Expr, e2: Expr) extends MathPhrase
   case class Congruent(e1: Expr, e2: Expr) extends MathPhrase
   case class SuchThat(e: Expr, xs: Vector[MathPhrase]) extends MathPhrase
+  case class MapsTo(e1: Expr, e2: Vector[Expr], xs: Vector[SymAttr]) extends MathPhrase
 
   case class Numeral(s: String, xs: Vector[SymAttr]) extends Expr
   case class Decimal(s: String, xs: Vector[SymAttr]) extends Expr
