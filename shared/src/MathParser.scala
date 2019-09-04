@@ -21,15 +21,16 @@ object MathParser{
     suchThat.map((st: SuchThat) => Vector(st)) |
     mapsTo.map((mp: MapsTo) => Vector(mp)) |
     P(!arrMatrix ~ (multiline|splitline)) |
-    P(expr ~ (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ "}".? ~ expr).rep.map(_.toVector)).map(
-      (t:(Expr,Vector[(String,Expr)])) =>
+    P(expr ~ (("\\mathrel{" | "\\mathbin{").? ~ binRelation ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ 
+      ws.rep ~ "}".? ~ expr).rep.map(_.toVector)).map(
+        (t:(Expr,Vector[(String,Vector[SymAttr],Expr)])) =>
         if (t._2.size > 0) {
-          (("=",t._1) +: t._2).sliding(2).toVector.map(
-            (p: Vector[(String,Expr)]) => getMathPhrase(p(0)._2, p(1)._1 , p(1)._2)
+          (("=",Vector(),t._1) +: t._2).sliding(2).toVector.map(
+            (p: Vector[(String,Vector[SymAttr],Expr)]) => getMathPhrase(p(0)._3, p(1)._1 , p(1)._2, p(1)._3)
           )
         }
         else { Vector(t._1) }
-    )
+      )
 
   def xyMatrix[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ ("\\vcenter{" ~ ws.rep).? ~
     "\\xymatrix{" ~ ws.rep ~ xyCell.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
@@ -85,38 +86,39 @@ object MathParser{
   def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
     "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)
-  def getMathPhrase(e1: Expr, r: String, e2: Expr): MathPhrase =
-    if (r == "=") { Equality(e1,e2) }
-    else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2) }
-    else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2) }
-    else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2) }
-    else if (r == "\\approx") { Approx(e1,e2) }
-    else if (r == "\\cong") { Congruent(e1,e2) }
-    else if (r == "\\equiv") { Equivalent(e1,e2) }
-    else if (r == "\\propto") { Proportional(e1,e2) }
-    else if (r == "\\simeq") { SimilarEq(e1,e2) }
-    else if (r == "\\sim") { Similar(e1,e2) }
-    else if (r == "<") { LessThan(e1,e2) }
-    else if (r == ">") { GreaterThan(e1,e2) }
-    else if (r == "\\subset") { SubsetPrpr(e1,e2) }
-    else if (r == "\\subseteq") { Subset(e1,e2) }
-    else if (r == "\\not\\subset") { NotSubsetPrpr(e1,e2) }
-    else if (r == "\\nsubseteq") { NotSubset(e1,e2) }
-    else if (r == "\\supset") { SupsetPrpr(e1,e2) }
-    else if (r == "\\supseteq") { Supset(e1,e2) }
-    else if (r == "\\not\\supset") { NotSupsetPrpr(e1,e2) }
-    else if (r == "\\nsupseteq") { NotSupset(e1,e2) }
-    else { BelongsTo(e1,e2) }
+  def getMathPhrase(e1: Expr, r: String, attr: Vector[SymAttr], e2: Expr): MathPhrase =
+    if (r == "=") { Equality(e1,e2,attr) }
+    else if (Vector("\\neq","\\ne").contains(r)) { Inequality(e1,e2,attr) }
+    else if (Vector("\\leqslant","\\leq").contains(r)) { LessThanEqual(e1,e2,attr) }
+    else if (Vector("\\geqslant","\\geq").contains(r)) { GreaterThanEqual(e1,e2,attr) }
+    else if (r == "\\approx") { Approx(e1,e2,attr) }
+    else if (r == "\\cong") { Congruent(e1,e2,attr) }
+    else if (r == "\\equiv") { Equivalent(e1,e2,attr) }
+    else if (r == "\\propto") { Proportional(e1,e2,attr) }
+    else if (r == "\\simeq") { SimilarEq(e1,e2,attr) }
+    else if (r == "\\sim") { Similar(e1,e2,attr) }
+    else if (r == "<") { LessThan(e1,e2,attr) }
+    else if (r == ">") { GreaterThan(e1,e2,attr) }
+    else if (r == "\\subset") { SubsetPrpr(e1,e2,attr) }
+    else if (r == "\\subseteq") { Subset(e1,e2,attr) }
+    else if (r == "\\not\\subset") { NotSubsetPrpr(e1,e2,attr) }
+    else if (r == "\\nsubseteq") { NotSubset(e1,e2,attr) }
+    else if (r == "\\supset") { SupsetPrpr(e1,e2,attr) }
+    else if (r == "\\supseteq") { Supset(e1,e2,attr) }
+    else if (r == "\\not\\supset") { NotSupsetPrpr(e1,e2,attr) }
+    else if (r == "\\nsupseteq") { NotSupset(e1,e2,attr) }
+    else { BelongsTo(e1,e2,attr) }
 
 
-  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (binOperation ~ expr).?).map(
-    (t:(Expr,Option[(String,Expr)])) => t._2 match {
-      case Some(("+",e)) => Add(t._1,e)
-      case Some(("-",e)) => Subtract(t._1,e)
-      case Some(("\\pm",e)) => PlusMinus(t._1,e)
-      case Some(("\\cap",e)) => Intersection(t._1,e)
-      case Some(("\\cup",e)) => Union(t._1,e)
-      case Some(("\\setminus",e)) => SetMinus(t._1,e)
+  def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (binOperation ~ ws.rep ~ 
+    symAttr.rep.map(_.toVector) ~ ws.rep ~ expr).?).map(
+    (t:(Expr,Option[(String,Vector[SymAttr],Expr)])) => t._2 match {
+      case Some(("+",xs,e)) => Add(t._1,e,xs)
+      case Some(("-",xs,e)) => Subtract(t._1,e,xs)
+      case Some(("\\pm",xs,e)) => PlusMinus(t._1,e,xs)
+      case Some(("\\cap",xs,e)) => Intersection(t._1,e,xs)
+      case Some(("\\cup",xs,e)) => Union(t._1,e,xs)
+      case Some(("\\setminus",xs,e)) => SetMinus(t._1,e,xs)
       case _ => t._1
     }
   )
@@ -129,15 +131,20 @@ object MathParser{
   def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
   def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
 
-  def term[_:P]: P[Expr] = P(factor ~ (!(binary|mapSym) ~ (("*"| "\\times" | "\\cdot") ~ ws.rep).? ~ term).?).map(
-    (t:(Expr,Option[Expr])) => t._2 match {
-      case Some(e) => Multiply(t._1,e)
+  def term[_:P]: P[Expr] = P(factor ~ (!(binary|mapSym) ~ 
+    (("*"| "\\times" | "\\cdot") ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep).? ~ term).?).map(
+    (t:(Expr,Option[(Option[Vector[SymAttr]],Expr)])) => t._2 match {
+      case Some((op,e)) => op match {
+        case None => Multiply(t._1,e,Vector())
+        case Some(value) => Multiply(t._1,e,value)
+      }
       case _ => t._1
     }
   )
-  def factor[_:P]: P[Expr] = P(funcOpr ~ (("/"| "\\div")~ ws.rep ~ funcOpr).?).map(
-    (t:(Expr,Option[Expr])) => t._2 match {
-      case Some(e) => Divide(t._1,e)
+  def factor[_:P]: P[Expr] = P(funcOpr ~ (("/"| "\\div") ~ ws.rep ~ 
+    symAttr.rep.map(_.toVector) ~ ws.rep ~ funcOpr).?).map(
+    (t:(Expr,Option[(Vector[SymAttr],Expr)])) => t._2 match {
+      case Some((xs,e)) => Divide(t._1,e,xs)
       case _ => t._1
     }
   )
