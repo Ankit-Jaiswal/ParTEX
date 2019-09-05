@@ -155,7 +155,7 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | tuple | phraselTuple | paren | sqrt |
+  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | paren | tuple | sqrt |
     fraction | binomial | decimal | numeral | mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
@@ -197,9 +197,6 @@ object MathParser{
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
   def set[_:P] = setByElems | setByProps
-  def tuple[_:P]: P[Tuple] = P("(" ~ expr.rep(min= 2, sep= ",").map(_.toVector) ~ ")" ~
-    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
-    .map((t:(Vector[Expr],Vector[SymAttr])) => Tuple(t._1,t._2))
   def cases[_:P]: P[Cases] = P("\\begin{cases}" ~
     (expr ~ ",".? ~ ws.rep ~ "&" ~ mathLine).rep(sep= "\\\\").map(_.toVector) ~
     ws.rep ~ "\\end{cases}" ~ ws.rep)
@@ -214,9 +211,9 @@ object MathParser{
     mathLine.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
     ws.rep ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
     .map(Matrix(_))
-  def phraselTuple[_:P]: P[PhraselTuple] = P("(" ~ mathLine.rep(sep=",").map(_.toVector) ~ ")" ~
+  def tuple[_:P]: P[Tuple] = P("(" ~ mathLine.rep(sep=",").map(_.toVector) ~ ")" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
-    .map((t:(Vector[Vector[MathPhrase]],Vector[SymAttr])) => PhraselTuple(t._1,t._2))
+    .map((t:(Vector[Vector[MathPhrase]],Vector[SymAttr])) => Tuple(t._1,t._2))
 
 
   def setByElems[_:P]: P[SetByElems] = P("\\{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "\\}" ~
