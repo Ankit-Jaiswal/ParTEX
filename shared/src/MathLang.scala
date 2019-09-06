@@ -36,7 +36,7 @@ object MathLang {
   case class Variable(s: String, xs: Vector[SymAttr]) extends Expr
   case class Sym(name: String, xs: Vector[SymAttr]) extends Expr
   case class MathText(s: String, xs: Vector[SymAttr]) extends Expr
-  case class OprSym(s: String, xs: Vector[SymAttr]) extends Expr
+  case class CustomVar(s: String, xs: Vector[SymAttr]) extends Expr
   sealed trait Signed extends Expr
   case class Fraction(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends Expr
   case class Sqrt(optExpr: Option[Expr], e: Expr, xs: Vector[SymAttr]) extends Expr
@@ -69,7 +69,6 @@ object MathLang {
   case class SetBySpec(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr
-  case class SqBox(xs: Vector[MathPhrase]) extends SymAttr
   case class Subscript(xs: Vector[MathPhrase]) extends SymAttr
   case class Superscript(xs: Vector[MathPhrase]) extends SymAttr
   case class Limits(xs: Vector[SymAttr]) extends SymAttr

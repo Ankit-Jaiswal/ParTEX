@@ -30,7 +30,8 @@ object MathParser{
           )
         }
         else { Vector(t._1) }
-      )
+      ) |
+    customVar.map((cv: CustomVar) => Vector(cv))
 
   def xyMatrix[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ ("\\vcenter{" ~ ws.rep).? ~
     "\\xymatrix{" ~ ws.rep ~ xyCell.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
@@ -69,6 +70,9 @@ object MathParser{
       (t: (Expr,Vector[Expr])) => MapsTo(t._1,t._2,Vector())
     )
   def mapSym[_:P]: P[Unit] = StringIn("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto")
+
+  def customVar[_:P]: P[CustomVar] = P(ws.rep ~ (binary | mapSym.! | StringIn(":","*","/","\\div","\\times","\\cdot").! ) ~ 
+    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep).map((t:(String,Vector[SymAttr])) => CustomVar(t._1,t._2))
 
 
   def multiline[_:P]: P[Vector[MathPhrase]] = P(ws.rep ~ "\\begin{array}" ~ curlyBox.? ~
@@ -124,8 +128,9 @@ object MathParser{
       case _ => t._1
     }
   )
-  def binOperation[_:P]: P[String] = P(("\\mathbin{" | "\\mathrel{").? ~
-    StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").! ~ "}".?)
+  def binOperation[_:P]: P[String] = 
+    P(("\\mathbin{" | "\\mathrel{") ~ StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").! ~ "}" |
+    StringIn("+","-","\\pm","\\cap","\\cup","\\setminus").!)
   def binary[_:P]: P[String] = P(binRelation | binOperation)
 
   def signed[_:P]: P[Expr] = P(posOrNeg | negative | positive)
@@ -133,7 +138,7 @@ object MathParser{
   def negative[_:P]: P[Signed] = P("-" ~ ws.rep ~ term).map((e: Expr) => Negative(e))
   def positive[_:P]: P[Signed] = P("+".? ~ ws.rep ~ term).map((e: Expr) => Positive(e))
 
-  def term[_:P]: P[Expr] = P(factor ~ (!(binary|mapSym) ~ 
+  def term[_:P]: P[Expr] = P(factor ~ (!(binary|mapSym|":") ~ 
     (("*"| "\\times" | "\\cdot") ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep).? ~ term).?).map(
     (t:(Expr,Option[(Option[Vector[SymAttr]],Expr)])) => t._2 match {
       case Some((op,e)) => op match {
@@ -229,17 +234,15 @@ object MathParser{
     .map((t:(SuchThat,Vector[SymAttr])) => SetBySpec(t._1,t._2))
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
-  def symAttr[_:P]: P[SymAttr] = P( subLine | superLine | subscript | superscript | sqBox /*| limits*/)
+  def symAttr[_:P]: P[SymAttr] = P( subLine | superLine | subscript | superscript /*| limits*/)
   def subLine[_:P]: P[Subscript] = P("_" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "}")
     .map((xs: Vector[MathPhrase]) => Subscript(xs))
   def superLine[_:P]: P[Superscript] = P("^" ~ " ".rep ~ "{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "}")
     .map((xs: Vector[MathPhrase]) => Superscript(xs))
-  def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ singleChar)
+  def subscript[_:P]: P[Subscript] = P("_" ~ " ".rep ~ !("{") ~ singleChar)
     .map((xs: Vector[MathPhrase]) => Subscript(xs))
-  def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ singleChar)
+  def superscript[_:P]: P[Superscript] = P(apostrophe | "^" ~ " ".rep ~ !("{") ~ singleChar)
     .map((xs: Vector[MathPhrase]) => Superscript(xs))
-  def sqBox[_:P]: P[SqBox] = P("[" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "]")
-    .map((xs: Vector[MathPhrase]) => SqBox(xs))
 //  def limits[_:P]: P[Limits] = P("\\limits" ~ " ".rep ~ (!symArg ~ symAttr).rep.map(_.toVector))
 //    .map((xs: Vector[SymAttr]) => Limits(xs))
 
