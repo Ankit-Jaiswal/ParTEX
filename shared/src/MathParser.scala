@@ -83,7 +83,7 @@ object MathParser{
     getMath(s.split("""\\\\""").reduce(_+_)).getOrElse(Vector(MathText("Splitline rule failed.",Vector()))))
 
 
-  def binRelation[_:P]: P[String] = P(StringIn("=","\\approx","\\cong","\\equiv","\\propto","\\in",
+  def binRelation[_:P]: P[String] = P(StringIn("=","\\&","|","\\approx","\\cong","\\equiv","\\propto","\\in",
     "\\neq","\\ne","<","\\leqslant","\\leq",">","\\geqslant","\\geq","\\simeq","\\sim","\\subset",
     "\\subseteq","\\not\\subset","\\nsubseteq","\\supset","\\supseteq","\\not\\supset","\\nsupseteq").!)
   def getMathPhrase(e1: Expr, r: String, attr: Vector[SymAttr], e2: Expr): MathPhrase =
@@ -107,7 +107,9 @@ object MathParser{
     else if (r == "\\supseteq") { Supset(e1,e2,attr) }
     else if (r == "\\not\\supset") { NotSupsetPrpr(e1,e2,attr) }
     else if (r == "\\nsupseteq") { NotSupset(e1,e2,attr) }
-    else { BelongsTo(e1,e2,attr) }
+    else if (r == "\\in") { BelongsTo(e1,e2,attr) }
+    else if (r == "\\&") { And(e1,e2,attr) }
+    else { Or(e1,e2,attr) }
 
 
   def expr[_:P]: P[Expr] = P(ws.rep ~ signed ~ (binOperation ~ ws.rep ~ 
@@ -155,7 +157,7 @@ object MathParser{
         case _ => t._1
       }
     )
-  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | paren | tuple | sqrt |
+  def token[_:P]: P[Expr] = P(cases | matrix | arrMatrix | set | paren | tuple | boxTuple | sqrt |
     fraction | binomial | decimal | numeral | mathText | formatted | symbol | variable)
 
   def numeral[_:P]: P[Numeral] = P(CharIn("0-9").rep(1).! ~
@@ -196,7 +198,7 @@ object MathParser{
     "{" ~ "\\" ~ symName ~ ws.rep ~ expr ~ "}") ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(String,Expr,Vector[SymAttr])) => Formatted(t._1,t._2,t._3))
-  def set[_:P] = setByElems | setByProps
+  def set[_:P] = setBySpec | setByElems
   def cases[_:P]: P[Cases] = P("\\begin{cases}" ~
     (expr ~ ",".? ~ ws.rep ~ "&" ~ mathLine).rep(sep= "\\\\").map(_.toVector) ~
     ws.rep ~ "\\end{cases}" ~ ws.rep)
@@ -211,17 +213,20 @@ object MathParser{
     mathLine.rep(sep= "&").map(_.toVector).rep(sep= "\\\\").map(_.toVector) ~
     ws.rep ~ "\\end{array}" ~ curlyBox.? ~ ws.rep)
     .map(Matrix(_))
-  def tuple[_:P]: P[Tuple] = P("(" ~ mathLine.rep(sep=",").map(_.toVector) ~ ")" ~
-    ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+  def tuple[_:P]: P[Tuple] = P("(" ~ ws.rep ~ mathLine.rep(sep=",").map(_.toVector) ~ 
+    ws.rep ~ ")" ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Vector[Vector[MathPhrase]],Vector[SymAttr])) => Tuple(t._1,t._2))
+  def boxTuple[_:P]: P[BoxTuple] = P("[" ~ mathLine.rep(sep=",").map(_.toVector) ~ 
+    ws.rep ~ "]" ~ ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
+    .map((t:(Vector[Vector[MathPhrase]],Vector[SymAttr])) => BoxTuple(t._1,t._2))
 
-
-  def setByElems[_:P]: P[SetByElems] = P("\\{" ~ mathLine.rep(sep= ",").map(_.toVector.flatten) ~ "\\}" ~
+  def setByElems[_:P]: P[SetByElems] = P("\\{" ~ ws.rep ~ 
+    mathLine.rep(sep= ",").map(_.toVector.flatten) ~ ws.rep ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
     .map((t:(Vector[MathPhrase],Vector[SymAttr])) => SetByElems(t._1,t._2))
-  def setByProps[_:P]: P[SetByProps] = P("\\{" ~ suchThat ~ "\\}" ~
+  def setBySpec[_:P]: P[SetBySpec] = P("\\{" ~ suchThat ~ "\\}" ~
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep)
-    .map((t:(SuchThat,Vector[SymAttr])) => SetByProps(t._1,t._2))
+    .map((t:(SuchThat,Vector[SymAttr])) => SetBySpec(t._1,t._2))
 
   def symName[_:P]: P[String] = P(CharIn("a-zA-Z") | CharIn("0-9")).rep(1).!
   def symAttr[_:P]: P[SymAttr] = P( subLine | superLine | subscript | superscript | sqBox /*| limits*/)

@@ -24,7 +24,10 @@ object MathLang {
   case class Equivalent(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
   case class Similar(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
   case class SimilarEq(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
-  case class Congruent(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
+  case class Congruent(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase 
+  case class And(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
+  case class Or(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends MathPhrase
+ 
   case class SuchThat(e: Expr, xs: Vector[MathPhrase]) extends MathPhrase
   case class MapsTo(e1: Expr, e2: Vector[Expr], xs: Vector[SymAttr]) extends MathPhrase
 
@@ -33,6 +36,7 @@ object MathLang {
   case class Variable(s: String, xs: Vector[SymAttr]) extends Expr
   case class Sym(name: String, xs: Vector[SymAttr]) extends Expr
   case class MathText(s: String, xs: Vector[SymAttr]) extends Expr
+  case class OprSym(s: String, xs: Vector[SymAttr]) extends Expr
   sealed trait Signed extends Expr
   case class Fraction(e1: Expr, e2: Expr, xs: Vector[SymAttr]) extends Expr
   case class Sqrt(optExpr: Option[Expr], e: Expr, xs: Vector[SymAttr]) extends Expr
@@ -54,6 +58,7 @@ object MathLang {
   case class Matrix(xxs: Vector[Vector[Vector[MathPhrase]]]) extends Expr
   case class Cases(xs: Vector[MathPhrase]) extends Expr
   case class Tuple(elems: Vector[Vector[MathPhrase]], xs: Vector[SymAttr]) extends Expr
+  case class BoxTuple(elems: Vector[Vector[MathPhrase]], xs: Vector[SymAttr]) extends Expr
 
 
   case class Positive(e: Expr) extends Signed
@@ -61,7 +66,7 @@ object MathLang {
   case class PosOrNeg(e: Expr) extends Signed
 
   case class SetByElems(elems: Vector[MathPhrase], xs: Vector[SymAttr]) extends Set
-  case class SetByProps(prop: SuchThat, xs: Vector[SymAttr]) extends Set
+  case class SetBySpec(prop: SuchThat, xs: Vector[SymAttr]) extends Set
 
   sealed trait SymAttr
   case class SqBox(xs: Vector[MathPhrase]) extends SymAttr
