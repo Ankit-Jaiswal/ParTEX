@@ -71,7 +71,7 @@ object MathParser{
     )
   def mapSym[_:P]: P[Unit] = StringIn("\\to","\\mapsto","\\rightarrow","\\longrightarrow","\\longmapsto")
 
-  def customVar[_:P]: P[CustomVar] = P(ws.rep ~ (binary | mapSym.! | StringIn(":","*","/","\\div","\\times","\\cdot").! ) ~ 
+  def customVar[_:P]: P[CustomVar] = P(ws.rep ~ (binary | mapSym.! | StringIn(":","*","/","\\div","\\times","\\cdot","\\ldots").! ) ~ 
     ws.rep ~ symAttr.rep.map(_.toVector) ~ ws.rep).map((t:(String,Vector[SymAttr])) => CustomVar(t._1,t._2))
 
 
