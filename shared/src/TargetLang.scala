@@ -1,7 +1,15 @@
 package partex
 import scalatags.Text.all._
 
+/**
+  * This contains abstractions in scala of a ``TEX`` document (specifically "article" documentclass).
+  * 
+  */
 object TargetLang {
+  /**
+    * This is basically scalatags text builder used to generate a footnote tag 
+    * in the generated HTML by [[Document.toHTML]].
+    */
   val foot = new scalatags.text.Builder
 
   sealed trait AllElem
