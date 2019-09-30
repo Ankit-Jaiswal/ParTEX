@@ -2,7 +2,8 @@ package partex
 import scalatags.Text.all._
 
 /**
-  * This contains abstractions in scala of a ``TEX`` document (specifically "article" documentclass).
+  * This contains abstractions of all ``TEX`` document constructs 
+  * (specifically "article" documentclass) in scala.
   * 
   */
 object TargetLang {
@@ -12,12 +13,30 @@ object TargetLang {
     */
   val foot = new scalatags.text.Builder
 
+  /**
+   * This is a common supertypes for all ``LaTEX`` constructs. 
+   */
   sealed trait AllElem
+
+  /**
+   * This is a common type for all constructs which can be labelled in a ``LaTEX`` document.
+   */
   sealed trait Labelable {
     val label: Option[String]
   }
+
+  /**
+   * This is a common type for all math mode constructs in a ``LaTEX`` document.
+   */
   sealed trait Math{
+    /**
+     * Returns the ``math mode`` content of ``this`` construct as a string.
+     */
     val value: String
+
+    /**
+     * Returns the corresponding instance of [[MathLang]] if [[MathParser]] parses [[value]].
+     */
     val mathOpt = MathParser.getMath(value)
   }
   sealed trait Float
