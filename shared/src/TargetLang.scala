@@ -39,11 +39,24 @@ object TargetLang {
      */
     val mathOpt = MathParser.getMath(value)
   }
+
+  /**
+   * This is a common type for all floating constructs of ``LaTEX``.
+   */
   sealed trait Float
 
+  /**
+   * Abstraction of a ``LaTEX`` document containing some [[MetaData]] and [[Body]].
+   */
   case class Document(top: Vector[MetaData], bd: Body){
+    /**
+     * Returns list of [[Heading]] elements of ``this`` document.
+     */
     val headList = bd.elems.collect({case x: Heading => x}).asInstanceOf[Vector[Heading]]
 
+    /**
+     * Returns scala Map of [[Heading]] elements and its ``LaTEX`` index, in the form of key-value pair. 
+     */
     val headNum = headList.filter((h: Heading) => h.name == "section").zipWithIndex
       .map((t:(Heading,Int)) => (t._1,(t._2+1).toString))
       .map(subsecBlock).flatten.toMap ++
@@ -52,8 +65,15 @@ object TargetLang {
       headList.filter((h: Heading) => h.name == "part").zipWithIndex
       .map((t:(Heading,Int)) => (t._1,(t._2+1).toString)).toMap
 
+    /**
+     * This returns same as [[headNum]] except the keys here are string, formed after concatenating 
+     * [[Heading]] elements' name and value. This can be passed as a javascript object in scalaTags. 
+     */
     val headNumByName = headNum.map((t:(Heading,String)) => (t._1.name+t._1.value -> t._2))
 
+    /**
+     * Returns scala Map of [[Theorem]] elements and its ``LaTEX`` index, in the form of key-value pair.
+     */
     val thmNum = bd.elems.collect({case x: Theorem => x}).asInstanceOf[Vector[Theorem]]
       .groupBy((t: Theorem) => t.counter.getOrElse(t.name)).values.toVector
       .map((xs: Vector[Theorem]) => (getNumby(xs), xs))
@@ -66,28 +86,48 @@ object TargetLang {
         )
       ).toMap
 
+    /**
+     * This returns same as [[thmNum]] except the keys here are string, formed after concatenating 
+     * [[Theorem]] elements' name and value upto 20 characters. 
+     * This can be passed as a javascript object in scalaTags. 
+     */
     val thmNumByName = thmNum.map((t:(Theorem,String)) =>
       (t._1.name+t._1.value.elems.collectFirst({
         case b: Paragraph =>
         b.frgs.collect({case x:Text => x.s.take(20).split('\n').mkString}).mkString
       }).getOrElse("") -> t._2))
 
+    /**
+     * Returns scala Map of [[MathBlock]] elements with their index.
+     */
     val eqNum = bd.elems.collect({case x: MathBlock => x})
     .asInstanceOf[Vector[MathBlock]].zipWithIndex
     .map((t:(MathBlock,Int)) => (t._1,"(" +(t._2+1)+ ")")).toMap
 
+    /**
+     * Returns scala Map of [[CodeBlock]] elements with their index.
+     */
     val codeNum = bd.elems.collect({case x: CodeBlock => x})
       .asInstanceOf[Vector[CodeBlock]].zipWithIndex
       .map((t:(CodeBlock,Int)) => (t._1,"Listing "+(t._2+1))).toMap
 
+    /**
+     * Returns scala Map of [[Figure]] elements with their index.
+     */
     val figNum = bd.elems.collect({case x: Figure => x})
       .asInstanceOf[Vector[Figure]].filter(_.cap.nonEmpty).zipWithIndex
       .map((t:(Figure,Int)) => (t._1,"Figure "+(t._2+1))).toMap
 
+    /**
+     * Returns scala Map of [[Table]] elements with their index.
+     */
     val tableNum = bd.elems.collect({case x: Table => x})
       .asInstanceOf[Vector[Table]].filter(_.cap.nonEmpty).zipWithIndex
       .map((t:(Table,Int)) => (t._1,"Table "+(t._2+1))).toMap
 
+    /**
+     * Returns scala Map of [[Labelable]] elements with their elemental index.
+     */
     val labelNum = bd.elems.flatMap(hasLabel)
       .map((l: Labelable) => (l.label.get, getNum(l).getOrElse("02"))).toMap
 
