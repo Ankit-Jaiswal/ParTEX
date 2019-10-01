@@ -46,7 +46,10 @@ object TargetLang {
   sealed trait Float
 
   /**
-   * Abstraction of a ``LaTEX`` document containing some [[MetaData]] and [[Body]].
+   * Abstraction of a ``LaTEX`` document which can be constructed using 
+   * a [[Body]] ``bd`` and a list of [[MetaData]] ``top``. 
+   * Once constructed, one can querry for contents, their index and 
+   * can also convert the document to HTML. 
    */
   case class Document(top: Vector[MetaData], bd: Body){
     /**
@@ -131,6 +134,10 @@ object TargetLang {
     val labelNum = bd.elems.flatMap(hasLabel)
       .map((l: Labelable) => (l.label.get, getNum(l).getOrElse("02"))).toMap
 
+    /**
+     * For a section-index pair ``t``, it returns a list containing ``t`` and 
+     * all subsection-index, subsubsection-index pairs associated to ``t``.
+     */
     def subsecBlock(t:(Heading,String)) = {
       val slice = headList.splitAt(headList.indexOf(t._1)+1)._2
         .takeWhile((h: Heading) => h.name!= "section")
@@ -146,18 +153,32 @@ object TargetLang {
         ).flatten
     }
 
+    /**
+     * For a [[Theorem]] group, it returns group's ``numberBy`` attribute.
+     * A [[Theorem]] group is a collection of all Theorems with same ``counter``, 
+     * i.e. a list containing a Theorem with a ``numberBy`` or 
+     * a Theorem with both ``numberBy`` and ``counter`` absent (calling it, master),
+     * and theorems whose ``counter`` is master. 
+     */
     def getNumby(xs: Vector[Theorem]) = {
       val master = xs.find(_.counter == None)
       if (master == None) { xs(0).counter.map(levelup) }
       else { master.get.numberBy }
     }
 
+    /**
+     * For a ``level`` like "subsubsection", it returns "subsection" 
+     */
     def levelup(level: String) =
       if(level == "subsubsection") {"subsection"}
       else if(level == "subsection") {"section"}
       else if(level == "section") {"chapter"}
       else {"failname"}
 
+    /**
+     * For a ``level`` and a [[BodyElem]], it returns the index of the [[Heading]] of ``level h.get`` 
+     * which contains [[BodyElem]] ``t``. If ``h`` is ``None`` then it returns ``empty`` string.
+     */
     def currHead(h: Option[String],t: BodyElem) =
       h.map((s: String) =>
         bd.elems.takeWhile(_!=t).reverse.find((b: BodyElem) => b match {
@@ -166,6 +187,9 @@ object TargetLang {
         }).asInstanceOf[Option[Heading]].map(headNum(_)+ ".").getOrElse("")
       ).getOrElse("")
 
+    /**
+     * Returns the list of all [[Labelable]] elements which has been labelled in the document.
+     */
     def hasLabel(e: AllElem): Vector[Labelable] = e match {
       case x: Paragraph => x.frgs.flatMap(hasLabel)
       case x: TexList => x.xs.flatMap(hasLabel)
@@ -178,6 +202,9 @@ object TargetLang {
       case _ => Vector()
     }
 
+    /**
+     * Returns the ``index`` of a [[Labelable]] element of the document.
+     */
     def getNum(l: Labelable) = l match {
       case x: Heading => headNum.get(x)
       case x: Theorem => thmNum.get(x)
@@ -191,6 +218,9 @@ object TargetLang {
       case _ => Some("01")
     }
 
+    /**
+     * Checks if ``be`` contains ``x``.
+     */
     def hasFrag(x: Fragment,be: BodyElem): Boolean = be match {
       case e: Paragraph => e.frgs.contains(x)
       case e: Environment => e.value.elems.exists(hasFrag(x,_))
@@ -199,6 +229,9 @@ object TargetLang {
       case _ => false
     }
 
+    /**
+     * Returns the first [[TexList]] inside the [[Body]] ``b``, in which [[Item]] ``x`` is listed.
+     */
     def getList(x: Item,b: Body): Option[TexList] =
       b.elems.collect({
         case e: TexList => if(e.xs.contains(x)) {Some(e)} else {None}
@@ -206,9 +239,15 @@ object TargetLang {
         case e: Proof => getList(x,e.value)
       }).flatten.headOption
 
+    /**
+     * Spits out ``JS object`` as a string, for a scala Map of the Type ``Map[String,String]``
+     */
     def mapToJSobjectString(m: Map[String,String]): String =
       m.map((t:(String,String)) => "\""+t._1+"\": " + "\""+t._2+"\"").mkString("{", ", ", "};")
 
+    /**
+     * Converts ``this`` [[Document]] to a HTML Fragment of ``ScalaTags``. 
+     */
     val toHTML: Frag =
       html(
         head(
