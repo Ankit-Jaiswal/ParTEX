@@ -50,6 +50,9 @@ object TargetLang {
    * a [[Body]] ``bd`` and a list of [[MetaData]] ``top``. 
    * Once constructed, one can querry for contents, their index and 
    * can also convert the document to HTML. 
+   * 
+   * @param top It is a list of [[MetaData]]s.
+   * @param bd It is an instances of [[Body]] construct.
    */
   case class Document(top: Vector[MetaData], bd: Body){
     /**
@@ -372,19 +375,66 @@ object TargetLang {
   sealed trait BodyElem extends AllElem{
     val toHTML: Frag
   }
+
+  /**
+   * This is a [[BodyElem]] consruct for a ``LaTEX`` paragraph 
+   * @param frgs a list of [[Fragment]]s.
+   */
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem{
+    /**
+     * @return ``this`` [[Paragraph]] as a HTML Fragment of ``ScalaTags``. 
+     */
     val toHTML: Frag =
       p(`class`:="paragraph")(
         for(f <- frgs) yield f.toHTML
       )
   }
+
+  /**
+   * This is a [[BodyElem]] construct for a ``LaTEX`` command which takes
+   * ``name`` and ``value`` of the command as strings.
+   * Meaning, it constructs ``LaTEX`` command of the form 
+   * ``````\name{value}``````. 
+   * 
+   * @param name Name of any ``LaTEX`` command of the above form. 
+   * @param value Any String
+   */
   case class Command(name: String, value: String) extends BodyElem{
+    /**
+     * @return ``this`` [[Command]] as a HTML Fragment of ``ScalaTags``. 
+     */
     val toHTML: Frag = div(`class`:="command")(h3(name+ ": " +value))
   }
+
+  /**
+   * This is a [[BodyElem]] construct for a ``LaTEX`` heading, specifically
+   * Part, Chapter, Section, SubSection, Subsubsection.
+   * A general ``LaTEX`` heading has the form, 
+   * 
+   * ```\name{value}[alias]\label{label}```
+   * 
+   * @param name can be either of the following strings, 
+   * "part", "chapter", "section", "subsection", "subsubsection".
+   * @param alias optionally any string.
+   * @param label optionally any string.
+   * @param value any string.
+   */
   case class Heading(name: String, alias: Option[String], label: Option[String],
     value: String) extends BodyElem with Labelable{
+      /**
+       * @return Returns a key which can be used to know the index of ``this`` [[Heading]] 
+       * by calling ``headNum[key]``.
+       */
       val key = name+value
+
+      /**
+       * @return Returns a unique id to be used for ``this`` [[Heading]]'s HTML equivalent.
+       */
       val idValue = key.split(" ").mkString("_")
+
+      /**
+       * @return ``this`` [[Heading]] as a HTML Fragment of ``ScalaTags``. 
+       */
       val toHTML: Frag =
         div(`class`:="heading")(
           span(`class`:=name)(
@@ -398,17 +448,74 @@ object TargetLang {
           )
         )
   }
+
+  /**
+   * This a [[BodyElem]] construct for the ``LaTEX`` command to insert images,
+   * 
+   * ```\includegraphics[spec]{name}```
+   * 
+   * @param spec optionally any attribute-value pair as string, 
+   * where attribute are among the following, "scale","height","width","angle".
+   * @param name is the full filename (i.e. filename with full path) of the image.
+   */
   case class Image(spec: Option[Map[String,String]], name: String)
     extends BodyElem with Float with Graphics{
+      /**
+       * @return ``this`` [[Image]] as a HTML Fragment of ``ScalaTags``.
+       */
       val toHTML: Frag = div(`class`:="image")(div(`class`:="img")())
   }
+
+  /**
+   * This a fallback [[BodyElem]] construct for the ``LaTEX`` environments of the form,
+   * 
+   * ```
+   * \begin{name}
+   * ... value ...
+   * \end{name}
+   * ```
+   * 
+   * ```
+   * {
+   * ... value ...
+   * }
+   * ```
+   * 
+   * @param name Any String.
+   * @param value Any [[Body]].
+   */
   case class Environment(name: String, value: Body) extends BodyElem{
+    /**
+     * @return Returns ``this`` [[Environment]] as a HTML Fragment of ``ScalaTags``.
+     */
     val toHTML: Frag =
       div(`class`:="environment")(
         div(`class`:="name")(name),
         div(`class`:="envbody")(value.toHTML)
       )
   }
+
+  /**
+   * This is a [[BodyElem]] constructs for the ``LaTEX`` environments declared as below in the ``preamble``.
+   * 
+   * ```\newtheorem{cmdName}{name}[numberBy]```, or
+   * 
+   * ```\newtheorem{cmdName}[counter]{name}```
+   * 
+   * which inside the [[Body]] takes the following form,
+   * 
+   * ```
+   * \begin{cmdName}[alias]\label{label}
+   * ... value ...
+   * \end{cmdName}
+   * ```
+   * 
+   * @param name Any string
+   * @param counter Optionally any other [[Theorem]] as a string
+   * @param numberBy Optionally any [[Heading]] as a string
+   * @param alias Optionally any string
+   * @param label Optionally any string
+   */
   case class Theorem(name: String, counter: Option[String], numberBy: Option[String],
     alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable{

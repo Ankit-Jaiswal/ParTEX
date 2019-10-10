@@ -1,6 +1,6 @@
 /**
   * This is a work towards extracting mathematics from the literature (i.e. from TEX files), 
-  * which could be used in theorem prover learning.
+  * which could be used in theorem prover's learning.
   * 
   *  The implementation of the parser is split into two steps:
   *   - [[DeTeX]] : removing .tex commands and classifying contents into blocks of 
