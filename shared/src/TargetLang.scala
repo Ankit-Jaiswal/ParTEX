@@ -392,7 +392,7 @@ object TargetLang {
       val key = name+value
 
       /**
-       * @return Returns a unique id to be used for ``this`` [[Heading]]'s HTML equivalent.
+       * @return Returns a unique id to be used by ``this`` [[Heading]]'s HTML equivalent.
        */
       val idValue = key.split(" ").mkString("_")
 
@@ -468,11 +468,9 @@ object TargetLang {
    * 
    * which inside the [[Body]] takes the following form,
    * 
-   * ```
-   * \begin{cmdName}[alias]\label{label}
+   * ```\begin{cmdName}[alias]\label{label}
    * ... value ...
-   * \end{cmdName}
-   * ```
+   * \end{cmdName}```
    * 
    * @param name Any string
    * @param counter Optionally any other [[Theorem]] as a string
@@ -483,13 +481,24 @@ object TargetLang {
   case class Theorem(name: String, counter: Option[String], numberBy: Option[String],
     alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable{
+      /**
+       * @return Returns a key which can be used to know the index of ``this`` [[Theorem]] 
+       * by calling ``thmNum[key]``.
+       */
       val key = name +
         value.elems.collectFirst({
           case b: Paragraph =>
           b.frgs.collect({case x:Text => x.s.take(20).split('\n').mkString}).mkString
         }).getOrElse("")
+
+      /**
+       * @return Returns a unique id to be used by ``this`` [[Theorem]]'s HTML equivalent.
+       */
       val idValue = key.split(" ").mkString("_")
 
+      /**
+       * @return ``this`` [[Theorem]] as a HTML Fragment of ``ScalaTags``. 
+       */
       val toHTML: Frag =
         div(`class`:="theorem")(
           div(`class`:="name")(
@@ -504,8 +513,23 @@ object TargetLang {
           value.toHTML
         )
   }
+
+  /**
+   * This is a [[BodyElem]] construct for a specific ``LaTEX`` environment of the following form,
+   * 
+   * ```\begin{proof}[alias]\label{label}
+   * ... value ...
+   * \end{proof}```
+   * 
+   * @param alias Optionally any string
+   * @param label Optionally any string
+   * @param value Any [[Body]]
+   */
   case class Proof(alias: Option[String], label: Option[String], value: Body)
     extends BodyElem with Labelable{
+      /**
+       * @return ``this`` [[Proof]] as a HTML Fragment of ``ScalaTags``. 
+       */
       val toHTML: Frag =
         div(`class`:="proof")(
           label.map((l: String) => a(attr("name"):=l)()),
@@ -513,6 +537,10 @@ object TargetLang {
           div(`class`:="pfbody")(value.toHTML)
         )
   }
+
+  /**
+   * This is a common [[BodyElem]] construct for ``LaTEX`` displaymath, matrix, and multiline.
+   */
   sealed trait MathBlock extends BodyElem with Math with Labelable{
     val label: Option[String]
     val value: String
@@ -520,6 +548,10 @@ object TargetLang {
     val idValue = key.split(" ").mkString("_")
     val toHTML: Frag
   }
+
+  /**
+   * 
+   */
   case class EqMatrix(name: String, label: Option[String], value: String) extends MathBlock{
     val toHTML: Frag = 
     div(`class`:="displaymath")(
