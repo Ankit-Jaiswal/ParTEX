@@ -8,7 +8,7 @@ import scalatags.Text.all._
   */
 object TargetLang {
   /**
-    * This is basically scalatags text builder used to generate a footnote tag 
+    * This is basically scalatags text builder which adds a footnote tag 
     * in the generated HTML by [[Document.toHTML]].
     */
   val foot = new scalatags.text.Builder
@@ -298,28 +298,58 @@ object TargetLang {
       )
   }
 
+  /**
+   * This is the common type for all ``LaTEX`` topmatter like Title, Authors, Date and other info.
+   */
   sealed trait MetaData extends BodyElem{
     val toHTML: Frag
   }
+
+  /**
+   * This constructs Document's Title for a given string and alias(optional).
+   */
   case class Title(alias: Option[String], s: String) extends MetaData{
     val toHTML: Frag = s
   }
+
+  /**
+   * This constructs Document's Author corresponding to a name as a string. 
+   */
   case class Author(s: String) extends MetaData{
     val toHTML: Frag = s
   }
+
+  /**
+   * This constructs Author's address.
+   */
   case class Address(s: String) extends MetaData{
     val toHTML: Frag = s
   }
+
+  /**
+   * This constructs Author's Email address.
+   */
   case class Email(s: String) extends MetaData{
     val toHTML: Frag = s
   }
+
+  /**
+   * This constructs Document's creation date.
+   */
   case class Date(s: String) extends MetaData{
     val toHTML: Frag = s
   }
+
+  /**
+   * This is the fallback constructs for all other metadata, i.e. ``LaTEX`` topmatter.
+   */
   case class Info(s: String) extends MetaData{
     val toHTML: Frag = s
   }
 
+  /**
+   * This constructs Document's abstracts for a given [[Paragraph]] and a alias(optional).
+   */
   case class Abstract(alias: Option[String], p: Paragraph) extends MetaData{
     val toHTML: Frag =
       div(id:="abstract")(
@@ -329,6 +359,9 @@ object TargetLang {
   }
 
 
+  /**
+   * This constructs Document's body for a given list of [[BodyElem]]s.
+   */
   case class Body(elems: Vector[BodyElem]){
     val toHTML: Frag =
       div(`class`:="body")(
@@ -336,6 +369,9 @@ object TargetLang {
       )
     }
 
+  /**
+   * This is the common type 
+   */
   sealed trait BodyElem extends AllElem{
     val toHTML: Frag
   }
