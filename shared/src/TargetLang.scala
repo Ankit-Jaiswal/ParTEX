@@ -370,9 +370,12 @@ object TargetLang {
     }
 
   /**
-   * This is the common type 
+   * This is the common for ``LaTEX`` 
    */
   sealed trait BodyElem extends AllElem{
+    /**
+     * @return ``this`` [[BodyElem]] as a HTML Fragment of ``ScalaTags``. 
+     */
     val toHTML: Frag
   }
 
@@ -381,9 +384,6 @@ object TargetLang {
    * @param frgs a list of [[Fragment]]s.
    */
   case class Paragraph(frgs: Vector[Fragment]) extends BodyElem with TableElem{
-    /**
-     * @return ``this`` [[Paragraph]] as a HTML Fragment of ``ScalaTags``. 
-     */
     val toHTML: Frag =
       p(`class`:="paragraph")(
         for(f <- frgs) yield f.toHTML
@@ -513,6 +513,7 @@ object TargetLang {
    * @param numberBy Optionally any [[Heading]] as a string
    * @param alias Optionally any string
    * @param label Optionally any string
+   * @param value Any [[Body]]
    */
   case class Theorem(name: String, counter: Option[String], numberBy: Option[String],
     alias: Option[String], label: Option[String], value: Body)
@@ -580,13 +581,28 @@ object TargetLang {
   sealed trait MathBlock extends BodyElem with Math with Labelable{
     val label: Option[String]
     val value: String
+    /**
+     * @return Returns a key which can be used to know the index of ``this`` [[MathBlock]] 
+     * by calling ``eqNum[key]``.
+     */
     val key = value.take(20).split('\n').mkString
+    /**
+     * @return Returns a unique id to be used by ``this`` [[MathBlock]]'s HTML equivalent.
+     */
     val idValue = key.split(" ").mkString("_")
     val toHTML: Frag
   }
 
   /**
+   * This is a [[BodyElem]] construct for matrix of equations, like the form below,
    * 
+   * ```\begin{name}\label{label}
+   * ... value ...
+   * \end{name}```
+   * 
+   * @param name can be a string from the following 
+   * "align", "eqnarray", "gathered", "gather"
+   * @param label Optionally any string
    */
   case class EqMatrix(name: String, label: Option[String], value: String) extends MathBlock{
     val toHTML: Frag = 
