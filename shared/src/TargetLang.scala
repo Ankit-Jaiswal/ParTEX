@@ -370,7 +370,7 @@ object TargetLang {
     }
 
   /**
-   * This is the common for ``LaTEX`` 
+   * This is the common type for all kinds of ``LaTEX`` body constructs. 
    */
   sealed trait BodyElem extends AllElem{
     /**
@@ -615,6 +615,16 @@ object TargetLang {
       "\\begin{",name,"}", raw(value), "\\end{",name,"}"
     )
   }
+
+  /**
+   * This is a [[BodyElem]] construct for displaying a equations longer than a line, like the form below,
+   * 
+   * ```\begin{multiline}\label{label}
+   * ... value ...
+   * \end{multiline}```
+   * 
+   * @param label Optionally any string
+   */
   case class MultiLine(label: Option[String], value: String) extends MathBlock{
     val toHTML: Frag =
     div(`class`:="displaymath")(
@@ -626,6 +636,21 @@ object TargetLang {
       "\\[", raw(value), "\\]"
     )
   }
+
+
+  /**
+   * This is a [[BodyElem]] construct for displaying a equation, like the form below,
+   * 
+   * ```\begin{displaymath/math/equation}\label{label}
+   * ... value ...
+   * \end{displaymath/math/equation}``` or,
+   * 
+   * ```$$...value...$$``` or,
+   * 
+   * ```\[...value...\]```
+   * 
+   * @param label Optionally any string
+   */
   case class DisplayMath(label: Option[String], value: String) extends MathBlock{
     val toHTML: Frag =
     div(`class`:="displaymath")(
@@ -638,6 +663,16 @@ object TargetLang {
     )
   }
 
+  /**
+   * This is a [[BodyElem]] construct for a block of code, like the form below,
+   * 
+   * ```\begin{verbatim/lstlisting/alltt}\label{label}
+   * ... value ...
+   * \end{verbatim/lstlisting/alltt}```
+   * 
+   * @param label Optionally any string
+   * @param value code snippet as a string
+   */
   case class CodeBlock(label: Option[String], value: String) extends BodyElem with Labelable{
     val key = value.take(20).split('\n').mkString
     val idValue = key.split(" ").mkString("_")
@@ -651,6 +686,17 @@ object TargetLang {
         ))
       )
   }
+
+  /**
+   * This is a [[BodyElem]] construct for a figure, like the form below,
+   * 
+   * ```\begin{verbatim/lstlisting/alltt}\label{label}
+   * ... value ...
+   * \end{verbatim/lstlisting/alltt}```
+   * 
+   * @param label Optionally any string
+   * @param value code snippet as a string
+   */
   case class Figure(g: Graphics, cap: Option[String], label: Option[String])
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
@@ -669,13 +715,33 @@ object TargetLang {
           }).getOrElse("")
         )
   }
+
+  /**
+   * This is a common type for ``includegraphics`` and ``tikzcd`` 
+   */
   sealed trait Graphics{
     val toHTML: Frag
   }
+
+  /**
+   * This is a [[BodyElem]] construct for math's commutative diagrams, like the form below,
+   * 
+   * ```\begin{tikzcd}
+   * ... value ...
+   * \end{tikzcd}```
+   * 
+   * @param value diagrams expressed as arrows between math mode expression
+   */
   case class FigMath(value: String) extends Graphics with Float{
     val toHTML: Frag = div(`class`:="figmath")(value)
   }
 
+  /**
+   * This is a [[BodyElem]] construct for tables.
+   * 
+   * @param label Optionally any string
+   * @param value code snippet as a string
+   */
   case class Table(cap: Option[String], label: Option[String], tb: Vector[Rows])
     extends BodyElem with Float with Labelable{
       val toHTML: Frag =
@@ -694,11 +760,25 @@ object TargetLang {
           }).getOrElse("")
         )
   }
+
+  /**
+   * This is a [[BodyElem]] construct for Lists.
+   * 
+   * @param name "enumerate","itemize","description" or some string
+   * @param xs `Vector` of List [[Item]]s
+   */
   sealed trait TexList extends BodyElem {
     val name: String
     val xs: Vector[Item]
     val toHTML: Frag
   }
+
+
+  /**
+   * This is a [[BodyElem]] construct for bibliography.
+   *
+   * @param xs `Vector` of Bib [[Item]]s
+   */
   case class Bibliography(xs: Vector[BibItem]) extends BodyElem {
     val toHTML: Frag =
       div(`class`:="bibliography")(
@@ -706,19 +786,51 @@ object TargetLang {
         ol(for(i <- xs) yield i.toHTML)
       )
   }
+
+  /**
+   * This constructs an item of ``LaTEX`` [[Bibliography]].
+   *
+   * @param name Name of ``this`` Bib [[Item]] which can be used to refer it
+   * @param value [[Body]] of ``this`` Bib [[Item]] 
+   */
   case class BibItem(name: String, value: Body){
     val toHTML: Frag = li(value.toHTML)
   }
 
+  /**
+   * This is a [[BodyElem]] construct for the ordered list.
+   *
+   * @param name "enumerate" or "tasks"
+   */
   case class Ordered(name: String, xs: Vector[Item]) extends TexList{
     val toHTML: Frag = ol(for(i <- xs) yield i.toHTML)
   }
+
+  /**
+   * This is a [[BodyElem]] construct for the ordered list.
+   *
+   * @param name "itemize" or "description" or "labelling"
+   */
   case class Unordered(name: String,xs: Vector[Item]) extends TexList{
     val toHTML: Frag = ul(for(i <- xs) yield i.toHTML)
   }
+  
+  /**
+   * This is a [[BodyElem]] construct for the ordered list.
+   *
+   * @param name Any String
+   */
   case class Custom(name: String,xs: Vector[Item]) extends TexList{
     val toHTML: Frag = ul(`class`:="custom")(for(i <- xs) yield i.toHTML)
   }
+
+  /**
+   * This constructs an item of ``LaTEX`` list.
+   *
+   * @param alias Optionally, name of ``this`` [[Item]] which can be displayed
+   * @param label Optionally, name of ``this`` [[Item]] which can be used to refer it
+   * @param value [[Body]] of ``this`` Bib [[Item]] 
+   */
   case class Item(alias: Option[String], label: Option[String], value: Body) extends Labelable with AllElem{
     val toHTML: Frag =
       li(`class`:="item")(
@@ -727,40 +839,90 @@ object TargetLang {
       )
   }
 
-
+  /**
+   * This constructs a row of ``LaTEX`` Tables.
+   * 
+   * @param rs a row, i.e. a Vector of [[TableElem]]s
+   */
   case class Rows(rs: Vector[TableElem]){
     val toHTML: Frag = tr(for(e <- rs) yield td(e.toHTML))
   }
+
+  /**
+   * This is a common type for cell elements which essentially a [[Paragraph]]
+   * spanned either in a cell or multiple cells
+   */
   sealed trait TableElem {
     val toHTML: Frag
   }
+
+  /**
+   * This a [[TableElem]] construct spanned in multiple columns
+   * 
+   * @param n number of coulumns to be merged
+   * @param value a [[TableElem]]
+   */
   case class MultiCol(n: Int, value: TableElem) extends TableElem{
     val toHTML: Frag = span(`class`:="multicol")(value.toHTML)
   }
+
+  /**
+   * This a [[TableElem]] construct spanned in multiple rows
+   * 
+   * @param n number of rows to be merged
+   * @param value a [[TableElem]]
+   */
   case class MultiRow(n: Int, value: TableElem) extends TableElem{
     val toHTML: Frag = span(`class`:="multirow")(value.toHTML)
   }
+
+  /**
+   * This a [[TableElem]] construct wrapped inside ``\parbox{...}``
+   * 
+   * @param value a [[TableElem]]
+   */
   case class ParBox(value: TableElem) extends TableElem{
     val toHTML: Frag = span(`class`:="parbox")(value.toHTML)
   }
 
 
+  /**
+   * This a common type for a fragment of a [[Paragraph]]
+   */
   sealed trait Fragment extends AllElem{
     val toHTML: Frag
   }
+
+  /**
+   * This is a [[Fragment]] construct containing plain text
+   * 
+   * @param s contained text as a String 
+   */
   case class Text(s: String) extends Fragment{
     val toHTML: Frag = span(`class`:="text")(s)
-    /*span().apply(s.split("\n\n").map((s: String) => span(s).apply(br)))*/
   }
+
+  /**
+   * This a [[Fragment]] construct containing inline math block
+   * 
+   * @param value ``LaTEX`` math mode as a String
+   */
   case class InlineMath(value: String) extends Fragment with Math{
     val toHTML: Frag = span(`class`:="inlinemath")("\\(", raw(value), "\\)")
   }
+  
+  /**
+   * This a [[Fragment]] construct for ``LaTEX``'s ``\phantom\label{..}``
+   * 
+   * @param label Optionally, name of ``this`` [[Item]] which can be used to refer it
+   */
   case class Phantom(label: Option[String]) extends Fragment with Labelable{
     val toHTML: Frag =
       span(`class`:="phantom")(
         label.map((l: String) => a(attr("name"):=l)())
       )
   }
+
   case class Quoted(s: String) extends Fragment{
     val toHTML: Frag = "\""+s+"\""
   }
