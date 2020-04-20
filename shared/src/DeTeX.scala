@@ -8,46 +8,134 @@ STATUS - parser is complete and running succesfully.
 
 package partex
 
+/**
+ * To be written
+ */
 object ParsingRules {
   val all = DeTeX(Map())
 }
 
+/**
+ * To be written
+ */
 case class DeTeX(thmList: Map[String,(Option[String],String,Option[String])]) {
   import fastparse._, NoWhitespace._
   import TargetLang._
 
+  /**
+   * This parses the space char, newline char, tab char and LaTEX tab char "\:"  
+   */
   def ws[_:P]: P[Unit] = P(" " | "\n" | "\t" | "\\:")
   def alpha[_:P]: P[Unit] = P( CharIn("a-z") | CharIn("A-Z") )
   def num[_:P]: P[Unit] = P( CharIn("0-9") )
+
+  /**
+   * This starts parsing strings begining with '[' and parses till (and including) 
+   * the first ']'; plus white space chars if present.
+   * 
+   * @return string within '[' and ']'
+   */
   def alias[_:P]: P[String] = P("[" ~ (!("]") ~ AnyChar).rep.! ~ "]" ~ (&("\\")|ws.rep))
+
   def box[_:P]: P[Unit] = P(curlyBox|sqBox)
+
+  /**
+   * This starts parsing strings begining with '{' and parses till (and including) '}'.
+   * This also parses nested `curlyBox`.
+   */
   def curlyBox[_:P]: P[Unit] = P("{" ~ (curlyBox | !("}") ~ AnyChar).rep ~ "}" )
+
+  /**
+   * This starts parsing strings begining with '[' and parses till (and including) ']'.
+   * This also parses nested `sqBox`.
+   */
   def sqBox[_:P]: P[Unit] = P("[" ~ (sqBox | !("]") ~ AnyChar).rep ~ "]" )
+  
+  /**
+   * This parses LaTEX's `\label{str}` command.
+   *
+   * @return string `str`
+   */
   def label[_:P]: P[String] = P("\\label{" ~ (!("}") ~ AnyChar).rep(1).! ~ "}" ~ (&("\\")|ws.rep))
+
+
+  /**
+   * This parses LaTEX's `\caption{str}` command.
+   * 
+   * @return string `str`
+   */
   def caption[_:P]: P[String] = P("\\caption" ~ sqBox.? ~ "{" ~ (!("}" | "\\label{") ~ AnyChar).rep(1).! ~
     label.? ~ "}" ~ (&("\\")|ws.rep)).map((t:(String,Option[String])) => t._1)
 
+  /**
+   * This method returns `true` when the given [[TargetLang.BodyElem]] is a [[TargetLang.MetaData]].
+   */
   def isMeta(b: BodyElem) : Boolean = b match {
     case _: MetaData => true
     case _ => false
   }
 
-
+  /**
+   * This is the top most parser to be called.
+   * This parses the .tex file which contains `\begin{document}` and `end{document}`.
+   *
+   * @return an instance of [[TargetLang.Document]]
+   */
   def document[_:P]: P[Document] = P(topmatter ~ (!beginDoc ~ AnyChar).rep ~ beginDoc ~ body ~ endDoc).
     map((t:(Vector[MetaData],Body)) =>
     Document(t._1 ++ t._2.elems.filter(isMeta).asInstanceOf[Vector[MetaData]] , Body(t._2.elems.filterNot(isMeta))))
 
+  /**
+   * This parses zero or more occurences of [[meta]] present before `\begin{document}` and returns it as a vector of [[TargetLang.MetaData]].
+   */
   def topmatter[_:P]: P[Vector[MetaData]] = P( (!(metaToken|beginDoc) ~ AnyChar).rep ~
     meta ).rep.map(_.toVector)
 
   def meta[_:P]: P[MetaData] = P(abs | title | author | address | email | date)
+
+  /**
+   * This parses the LaTEX's abstract, i.e. the strings starting with `\begin{abstract}` and ending with `\end{abstract}`.
+   * This parses the [[alias]] also, if it is present.
+   *
+   * @return an instance of [[TargetLang.Abstract]] 
+   */
   def abs[_:P]: P[Abstract] = P("\\begin{abstract}" ~ alias.? ~ paragraph ~
     "\\end{abstract}").map((t:(Option[String],Paragraph)) => Abstract(t._1,t._2))
+
+  /**
+   * This parses the `\title{str}` tag.
+   * 
+   * @return an instance of [[TargetLang.Title]]
+   */
   def title[_:P]: P[Title] = P("\\title" ~ alias.? ~ cmdName).map((t:(Option[String],String)) =>
     Title(t._1,parse(t._2,text(_)).get.value.s))
+
+  /**
+   * This parses the `\author{str}` tag.
+   * 
+   * @return an instance of [[TargetLang.Title]]`
+   */
   def author[_:P]: P[Author] = P("\\author" ~ cmdName).map((s: String) => Author(s))
+
+  /**
+   * This parses the `\address{str}` tag.
+   * 
+   * @return string `str`
+   */
   def address[_:P]: P[Address] = P("\\address" ~ cmdName).map((s: String) => Address(s))
+
+  /**
+   * This parses the `\email{str}` tag.
+   * 
+   * @return string `str`
+   */
   def email[_:P]: P[Email] = P("\\email" ~ cmdName).map((s: String) => Email(s))
+
+  /**
+   * This parses the `\date{str}` tag.
+   * 
+   * @return string `str`
+   */
   def date[_:P]: P[Date] = P("\\date" ~ cmdName).map((s: String) => Date(s))
   def metaToken[_:P]: P[Unit] = P("\\" ~
     StringIn("begin{abstract}","title{","author{","address{","email{","date{"))
